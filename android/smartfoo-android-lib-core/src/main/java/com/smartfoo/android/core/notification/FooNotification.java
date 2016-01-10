@@ -2,7 +2,6 @@ package com.smartfoo.android.core.notification;
 
 import android.app.Notification;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,6 +10,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.app.NotificationCompat.Style;
+import android.support.v4.app.NotificationManagerCompat;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
@@ -24,6 +24,11 @@ public class FooNotification
         implements Parcelable
 {
     private static final String TAG = FooLog.TAG("FooNotification");
+
+    public static NotificationManagerCompat getNotificationManager(Context context)
+    {
+        return NotificationManagerCompat.from(context);
+    }
 
     public static final Creator<FooNotification> CREATOR = new Creator<FooNotification>()
     {
@@ -241,24 +246,18 @@ public class FooNotification
     /**
      * @return true if the FooNotificationService was started, otherwise false and no notification.
      */
-    @SuppressWarnings({ "UnnecessaryLocalVariable", "unused" })
     public boolean show(Context context)
     {
         if (isOngoing())
         {
             FooLog.d(TAG, "show: isOngoing()==true; Sending non-dismissable notification to FooNotificationService: " +
                           mNotification);
-            Intent intentService = new Intent(context, FooNotificationService.class);
-            intentService.putExtra(FooNotificationService.EXTRA_NOTIFICATION, this);
-
-            ComponentName componentName = context.startService(intentService);
-            boolean started = (componentName != null);
-            return started;
+            return FooNotificationService.showNotification(context, this);
         }
         else
         {
-            FooLog.d(TAG, "showNotification: ongoing==false; Showing dismissable notification: " + mNotification);
-            FooNotificationService.getNotificationManager(context).notify(mRequestCode, mNotification);
+            FooLog.d(TAG, "show: ongoing==false; Showing dismissable notification: " + mNotification);
+            getNotificationManager(context).notify(mRequestCode, mNotification);
             return true;
         }
     }
@@ -266,18 +265,18 @@ public class FooNotification
     /**
      * @return true if the FooNotificationService was stopped, otherwise false and no notification.
      */
-    @SuppressWarnings({ "UnnecessaryLocalVariable", "unused" })
     public boolean cancel(Context context)
     {
         if (isOngoing())
         {
             Intent intent = new Intent(context, FooNotificationService.class);
+            //noinspection UnnecessaryLocalVariable
             boolean stopped = context.stopService(intent);
             return stopped;
         }
         else
         {
-            FooNotificationService.getNotificationManager(context).cancel(mRequestCode);
+            getNotificationManager(context).cancel(mRequestCode);
             return true;
         }
     }
