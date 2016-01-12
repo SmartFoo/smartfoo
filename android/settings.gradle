@@ -1,1 +1,3 @@
-include ':smartfoo-android-testapp', ':smartfoo-android-lib-core'
+
+include ':smartfoo-android-lib-core'
+include ':smartfoo-android-testapp'

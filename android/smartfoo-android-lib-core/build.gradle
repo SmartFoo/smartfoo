@@ -1,15 +1,36 @@
+//
+// NOTE:(pv) Many ideas for publishing to jCenter came from:
+//  https://www.virag.si/2015/01/publishing-gradle-android-library-to-jcenter/
+//
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+archivesBaseName = 'smartfoo-android-lib-core'
+description = 'SmartFoo Core Library for Android'
+group = 'com.smartfoo'
+version = '0.0.1'
+
+def siteUrl = 'https://github.com/SmartFoo/smartfoo'
+def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+}
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '23.0.2'
 
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName version
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -18,8 +39,82 @@ android {
     }
 }
 
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.1'
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+//
+// https://github.com/bintray/gradle-bintray-plugin/blob/master/README.md#the-bintray-plugin-dsl
+//
+bintray {
+    user = properties.getProperty('bintray.user')
+    key = properties.getProperty('bintray.apikey')
+
+    configurations = ['archives']
+
+    publish = true
+
+    pkg {
+        repo = 'maven'
+        name = archivesBaseName
+        userOrg = 'smartfoo'
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ['MIT']
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+
+                // Add your description here
+                name description
+                url siteUrl
+
+                // Set your license
+                licenses {
+                    license {
+                        name 'The MIT License (MIT)'
+                        url 'https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'paulpv'
+                        name 'Paul Peavyhouse'
+                        email 'pv@swooby.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
 }
