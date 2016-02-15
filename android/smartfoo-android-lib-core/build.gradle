@@ -3,8 +3,8 @@
 //  https://www.virag.si/2015/01/publishing-gradle-android-library-to-jcenter/
 //
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
+//apply plugin: 'com.github.dcendents.android-maven'
+//apply plugin: 'com.jfrog.bintray'
 
 archivesBaseName = 'smartfoo-android-lib-core'
 description = 'SmartFoo Core Library for Android'
@@ -39,6 +39,7 @@ android {
     }
 }
 
+/*
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
@@ -118,3 +119,4 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
+*/
