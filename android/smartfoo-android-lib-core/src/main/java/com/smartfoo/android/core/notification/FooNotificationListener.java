@@ -195,6 +195,11 @@ public class FooNotificationListener
     {
     }
 
+    public static String toVerboseString(int value)
+    {
+        return Integer.toString(value) + " (" + Integer.toHexString(value) + ')';
+    }
+
     // TODO:(pv) Make a UI that shows all StatusBarNotification fields, especially:
     //  Notification.tickerText
     //  All ImageView Resource Ids and TextView Texts in BigContentView
@@ -571,65 +576,65 @@ public class FooNotificationListener
             Resources resources = otherAppContext.getResources();
             String packageName = otherAppContext.getPackageName();
             int ic_mini_controller_play = resources.getIdentifier("ic_mini_controller_play", "drawable", packageName);
-            FooLog.e(TAG, "parse: ic_mini_controller_play=" + ic_mini_controller_play + " (" +
-                          Integer.toHexString(ic_mini_controller_play) + ')');
+            FooLog.e(TAG, "parse: ic_mini_controller_play=" + toVerboseString(ic_mini_controller_play));
             //int idDrawablePlay2 = resources.getIdentifier("ic_play_arrow_grey600_48dp", "drawable", packageName);
             int ic_mini_controller_pause = resources.getIdentifier("ic_mini_controller_pause", "drawable", packageName);
-            FooLog.e(TAG, "parse: ic_mini_controller_pause=" + ic_mini_controller_pause + " (" +
-                          Integer.toHexString(ic_mini_controller_pause) + ')');
+            FooLog.e(TAG, "parse: ic_mini_controller_pause=" + toVerboseString(ic_mini_controller_pause));
 
             //resources.getResourceName()
 
             //resources.getDrawable()
 
             int idTitle = getIdOfChildWithName(mockRemoteView, "title");
-            FooLog.e(TAG, "parse: idTitle=" + idTitle + " (" + Integer.toHexString(idTitle) + ')');
+            FooLog.e(TAG, "parse: idTitle=" + toVerboseString(idTitle));
             if (idTitle == 0)
             {
                 return;
             }
 
             int idArtist = getIdOfChildWithName(mockRemoteView, "artist");
-            FooLog.e(TAG, "parse: idArtist=" + idArtist + " (" + Integer.toHexString(idArtist) + ')');
+            FooLog.e(TAG, "parse: idArtist=" + toVerboseString(idArtist));
             if (idArtist == 0)
             {
                 return;
             }
 
             int idStation = getIdOfChildWithName(mockRemoteView, "station");
-            FooLog.e(TAG, "parse: idStation=" + idStation + " (" + Integer.toHexString(idStation) + ')');
+            FooLog.e(TAG, "parse: idStation=" + toVerboseString(idStation));
             if (idStation == 0)
             {
                 return;
             }
 
+            /*
             int idText2 = getIdOfChildWithName(mockRemoteView, "text2");
-            FooLog.e(TAG, "parse: idText2=" + idText2 + " (" + Integer.toHexString(idText2) + ')');
+            FooLog.e(TAG, "parse: idText2=" + toVerboseString(idText2));
             if (idText2 == 0)
             {
                 return;
             }
 
             int idText3 = getIdOfChildWithName(mockRemoteView, "text3");
-            FooLog.e(TAG, "parse: idText3=" + idText3 + " (" + Integer.toHexString(idText3) + ')');
+            FooLog.e(TAG, "parse: idText3=" + toVerboseString(idText3));
             if (idText3 == 0)
             {
                 return;
             }
+            */
 
-            boolean isPlaying = false;
             int idPlay = getIdOfChildWithName(mockRemoteView, "play");
-            FooLog.e(TAG, "parse: idPlay=" + idPlay + " (" + Integer.toHexString(idPlay) + ')');
-            if (idPlay != 0)
+            FooLog.e(TAG, "parse: idPlay=" + toVerboseString(idPlay));
+            if (idPlay == 0)
             {
-                // TODO:(pv) Can we better determine play/pause based on SetOnClickPendingIntent?
-                Integer playImageResourceId = (Integer) getRemoteViewValueById(bigContentView, idPlay, ValueTypes.IMAGE_RESOURCE_ID);
-                // pause showing (ie: playing) == 2130838231 (0x7F0202D7)
-                // play showing (ie: paused) == 2130838230 (0x0x7F0202D6)
-                FooLog.e(TAG, "parse: playImageResourceId=" + playImageResourceId + " (" +
-                              Integer.toHexString(playImageResourceId) + ')');
-                isPlaying = playImageResourceId != null && playImageResourceId == 0x7F0202D6;
+                return;
             }
+
+            // TODO:(pv) Can we better determine play/pause based on SetOnClickPendingIntent?
+            Integer playImageResourceId = (Integer) getRemoteViewValueById(bigContentView, idPlay, ValueTypes.IMAGE_RESOURCE_ID);
+            // pause showing (ie: playing) == 2130838231 (0x7F0202D7)
+            // play showing (ie: paused) == 2130838230 (0x0x7F0202D6)
+            FooLog.e(TAG, "parse: playImageResourceId=" + toVerboseString(playImageResourceId));
+            boolean isPlaying = playImageResourceId != null && playImageResourceId == 0x7F0202D6;
             FooLog.e(TAG, "parse: isPlaying=" + isPlaying);
 
             String textTitle = (String) getRemoteViewValueById(bigContentView, idTitle, ValueTypes.TEXT);
@@ -637,17 +642,17 @@ public class FooNotificationListener
             FooLog.e(TAG, "parse: textTitle=" + FooString.quote(textTitle));
             // "Advertisement"
 
-            String text2 = (String) getRemoteViewValueById(bigContentView, idText2, ValueTypes.TEXT);
-            text2 = unknownIfNullOrEmpty(text2);
-            FooLog.e(TAG, "parse: text2=" + FooString.quote(text2));
+            String textArtist = (String) getRemoteViewValueById(bigContentView, idArtist, ValueTypes.TEXT);
+            textArtist = unknownIfNullOrEmpty(textArtist);
+            FooLog.e(TAG, "parse: textArtist=" + FooString.quote(textArtist));
             //
 
-            String text3 = (String) getRemoteViewValueById(bigContentView, idText3, ValueTypes.TEXT);
-            text3 = unknownIfNullOrEmpty(text3);
-            FooLog.e(TAG, "parse: text3=" + FooString.quote(text3));
+            String textStation = (String) getRemoteViewValueById(bigContentView, idStation, ValueTypes.TEXT);
+            textStation = unknownIfNullOrEmpty(textStation);
+            FooLog.e(TAG, "parse: textStation=" + FooString.quote(textStation));
 
             if ("Advertisement".equalsIgnoreCase(textTitle) &&
-                "Your station will be right back…".equalsIgnoreCase(text2))
+                "Your station will be right back…".equalsIgnoreCase(textArtist))
             {
                 // It's a commercial!
                 return;
@@ -655,19 +660,19 @@ public class FooNotificationListener
 
             if (isPlaying != mLastIsPlaying ||
                 !textTitle.equals(mLastTitle) ||
-                !text2.equals(mLastArtist) ||
-                !text3.equals(mLastStation))
+                !textArtist.equals(mLastArtist) ||
+                !textStation.equals(mLastStation))
             {
                 mLastIsPlaying = isPlaying;
                 mLastTitle = textTitle;
-                mLastArtist = text2;
-                mLastStation = text3;
+                mLastArtist = textArtist;
+                mLastStation = textStation;
 
                 if (isPlaying)
                 {
                     mTextToSpeech.speak("Pandora playing");
                     mTextToSpeech.silence(500);
-                    mTextToSpeech.speak("artist " + text2);
+                    mTextToSpeech.speak("artist " + textArtist);
                     mTextToSpeech.silence(500);
                     mTextToSpeech.speak("title " + textTitle);
                     //mTextToSpeech.silence(500);
@@ -727,14 +732,15 @@ public class FooNotificationListener
                 return;
             }
 
-            boolean isPlaying = false;
             int idPause = getIdOfChildWithName(mockRemoteView, "pause");
-            if (idPause != 0)
+            if (idPause == 0)
             {
-                int pauseVisibility = (int) getRemoteViewValueById(contentView, idPause, ValueTypes.VISIBILITY);
-                FooLog.e(TAG, "parse: pauseVisibility=" + pauseVisibility);
-                isPlaying = pauseVisibility == View.VISIBLE;
+                return;
             }
+
+            int pauseVisibility = (int) getRemoteViewValueById(contentView, idPause, ValueTypes.VISIBILITY);
+            FooLog.e(TAG, "parse: pauseVisibility=" + pauseVisibility);
+            boolean isPlaying = pauseVisibility == View.VISIBLE;
             FooLog.e(TAG, "parse: isPlaying=" + isPlaying);
 
             String textTitle = (String) getRemoteViewValueById(contentView, idTitle, ValueTypes.TEXT);
