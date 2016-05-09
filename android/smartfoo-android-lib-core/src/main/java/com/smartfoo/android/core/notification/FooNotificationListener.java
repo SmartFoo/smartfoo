@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.RemoteViews;
 
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 import com.smartfoo.android.core.texttospeech.FooTextToSpeech;
@@ -116,12 +117,14 @@ public class FooNotificationListener
     {
         super.onCreate();
 
-        mRemoteController = new RemoteController(this, this);
-        mTextToSpeech = FooTextToSpeech.getInstance().start(this);
+        Context applicationContext = getApplicationContext();
 
-        addNotificationParser(new PandoraNotificationParser(mTextToSpeech));
-        addNotificationParser(new SpotifyNotificationParser(mTextToSpeech));
-        addNotificationParser(new GoogleHangoutsNotificationParser(mTextToSpeech));
+        mRemoteController = new RemoteController(applicationContext, this);
+        mTextToSpeech = FooTextToSpeech.getInstance().start(applicationContext);
+
+        addNotificationParser(new PandoraNotificationParser(applicationContext, mTextToSpeech));
+        addNotificationParser(new SpotifyNotificationParser(applicationContext, mTextToSpeech));
+        addNotificationParser(new GoogleHangoutsNotificationParser(applicationContext, mTextToSpeech));
     }
 
     @Override
@@ -208,8 +211,6 @@ public class FooNotificationListener
 
     public static abstract class NotificationParser
     {
-        protected FooTextToSpeech mTextToSpeech;
-
         @NonNull
         public static Notification getNotification(
                 @NonNull
@@ -481,12 +482,26 @@ public class FooNotificationListener
             return value;
         }
 
-        protected NotificationParser(FooTextToSpeech textToSpeech)
+        protected final Context         mContext;
+        protected final FooTextToSpeech mTextToSpeech;
+        protected final String          mPackageName;
+        protected final String          mPackageAppName;
+
+        protected NotificationParser(Context context,
+                                     FooTextToSpeech textToSpeech,
+                                     String packageName,
+                                     String packageAppName)
         {
+            mContext = context;
             mTextToSpeech = textToSpeech;
+            mPackageName = packageName;
+            mPackageAppName = packageAppName;
         }
 
-        public abstract String getPackageName();
+        public String getPackageName()
+        {
+            return mPackageName;
+        }
 
         public void parse(Context context, StatusBarNotification sbn)
         {
@@ -533,20 +548,20 @@ public class FooNotificationListener
     public static class PandoraNotificationParser
             extends NotificationParser
     {
+        private String mAdvertisementTitle;
+        private String mAdvertisementArtist;
+
         private boolean mLastIsPlaying;
         private String  mLastArtist;
         private String  mLastTitle;
         private String  mLastStation;
 
-        public PandoraNotificationParser(FooTextToSpeech textToSpeech)
+        public PandoraNotificationParser(Context applicationContext, FooTextToSpeech textToSpeech)
         {
-            super(textToSpeech);
-        }
+            super(applicationContext, textToSpeech, "com.pandora.android", applicationContext.getString(R.string.pandora_package_app_name));
 
-        @Override
-        public String getPackageName()
-        {
-            return "com.pandora.android";
+            mAdvertisementTitle = applicationContext.getString(R.string.pandora_advertisement_title);
+            mAdvertisementArtist = applicationContext.getString(R.string.pandora_advertisement_artist);
         }
 
         @Override
@@ -651,8 +666,8 @@ public class FooNotificationListener
             textStation = unknownIfNullOrEmpty(textStation);
             FooLog.e(TAG, "parse: textStation=" + FooString.quote(textStation));
 
-            if ("Advertisement".equalsIgnoreCase(textTitle) &&
-                "Your station will be right back…".equalsIgnoreCase(textArtist))
+            if (mAdvertisementTitle.equalsIgnoreCase(textTitle) &&
+                mAdvertisementArtist.equalsIgnoreCase(textArtist))
             {
                 // It's a commercial!
                 return;
@@ -670,7 +685,7 @@ public class FooNotificationListener
 
                 if (isPlaying)
                 {
-                    mTextToSpeech.speak("Pandora playing");
+                    mTextToSpeech.speak(mPackageAppName + " playing");
                     mTextToSpeech.silence(500);
                     mTextToSpeech.speak("artist " + textArtist);
                     mTextToSpeech.silence(500);
@@ -680,7 +695,7 @@ public class FooNotificationListener
                 }
                 else
                 {
-                    mTextToSpeech.speak("Pandora paused");
+                    mTextToSpeech.speak(mPackageAppName + " paused");
                 }
 
                 mTextToSpeech.silence(500);
@@ -696,15 +711,9 @@ public class FooNotificationListener
         private String  mLastTitle;
         private String  mLastAlbum;
 
-        public SpotifyNotificationParser(FooTextToSpeech textToSpeech)
+        public SpotifyNotificationParser(Context applicationContext, FooTextToSpeech textToSpeech)
         {
-            super(textToSpeech);
-        }
-
-        @Override
-        public String getPackageName()
-        {
-            return "com.spotify.music";
+            super(applicationContext, textToSpeech, "com.spotify.music", applicationContext.getString(R.string.spotify_package_app_name));
         }
 
         @Override
@@ -789,7 +798,7 @@ public class FooNotificationListener
 
                 if (isPlaying)
                 {
-                    mTextToSpeech.speak("Spotify playing");
+                    mTextToSpeech.speak(mPackageAppName + " playing");
                     mTextToSpeech.silence(500);
                     mTextToSpeech.speak("artist " + textArtist);
                     mTextToSpeech.silence(500);
@@ -799,7 +808,7 @@ public class FooNotificationListener
                 }
                 else
                 {
-                    mTextToSpeech.speak("Spotify paused");
+                    mTextToSpeech.speak(mPackageAppName + " paused");
                 }
 
                 mTextToSpeech.silence(500);
@@ -810,15 +819,9 @@ public class FooNotificationListener
     public static class GoogleHangoutsNotificationParser
             extends NotificationParser
     {
-        public GoogleHangoutsNotificationParser(FooTextToSpeech textToSpeech)
+        public GoogleHangoutsNotificationParser(Context applicationContext, FooTextToSpeech textToSpeech)
         {
-            super(textToSpeech);
-        }
-
-        @Override
-        public String getPackageName()
-        {
-            return "com.google.android.talk";
+            super(applicationContext, textToSpeech, "com.google.android.talk", applicationContext.getString(R.string.hangouts_package_app_name));
         }
 
         @Override

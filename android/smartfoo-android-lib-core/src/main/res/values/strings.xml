@@ -2,6 +2,14 @@
 
     <string name="app_name">SmartFoo Android Core Library</string>
 
+    <string name="pandora_package_app_name">Pandora</string>
+    <string name="pandora_advertisement_title">Advertisement</string>
+    <string name="pandora_advertisement_artist">Your station will be right back…</string>
+
+    <string name="spotify_package_app_name">Spotify</string>
+
+    <string name="hangouts_package_app_name">Hangouts</string>
+
     <!--
     <plurals name="years">
         <item quantity="one">Year</item>
