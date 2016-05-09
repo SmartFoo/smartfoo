@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.platform.FooPlatformUtils;
 
 /**
  * NOTE:(pv) I originally thought that an IntentService might be appropriate here.
@@ -18,7 +19,7 @@ import com.smartfoo.android.core.logging.FooLog;
 public class FooNotificationService
         extends Service
 {
-    private static final String TAG = FooLog.TAG("FooNotificationService");
+    private static final String TAG = FooLog.TAG(FooNotificationService.class);
 
     private static final String EXTRA_NOTIFICATION_REQUEST_CODE = "EXTRA_NOTIFICATION_REQUEST_CODE";
     private static final String EXTRA_NOTIFICATION              = "EXTRA_NOTIFICATION";
@@ -84,7 +85,7 @@ public class FooNotificationService
     {
         try
         {
-            FooLog.d(TAG, "+onStartCommand(intent=" + PlatformUtils.toString(intent) + ", flags=" + flags +
+            FooLog.d(TAG, "+onStartCommand(intent=" + FooPlatformUtils.toString(intent) + ", flags=" + flags +
                           ", startId=" + startId + ")");
             //FooLog.s(TAG, FooString.separateCamelCaseWords("onStartCommand"));
             if (intent != null)
@@ -119,7 +120,7 @@ public class FooNotificationService
         }
         finally
         {
-            FooLog.d(TAG, "-onStartCommand(intent=" + PlatformUtils.toString(intent) + ", flags=" + flags +
+            FooLog.d(TAG, "-onStartCommand(intent=" + FooPlatformUtils.toString(intent) + ", flags=" + flags +
                           ", startId=" + startId + ")");
         }
     }

@@ -1,5 +1,8 @@
 package com.smartfoo.android.core;
 
+import android.content.Context;
+import android.content.res.Resources;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +55,11 @@ public class FooString
      * @return true if the String is null, zero length, or ""
      */
     public static boolean isNullOrEmpty(String value)
+    {
+        return (value == null || value.length() == 0 || value.equals(""));
+    }
+
+    public static boolean isNullOrEmpty(CharSequence value)
     {
         return (value == null || value.length() == 0 || value.equals(""));
     }
@@ -551,12 +559,13 @@ public class FooString
         return (str1 == null) ? str1 == str2 : str1.equals(str2);
     }
 
+    /*
     public static String plurality(int count)
     {
         return (count == 1) ? "" : "s";
     }
 
-    /**
+    /* *
      * Generates a plurality of a given name of a given count.<br>
      * Examples:<br>
      * Plurality("item", 0)="items"<br>
@@ -566,53 +575,201 @@ public class FooString
      * @param name  the name to potentially make plural
      * @param count the number of items
      * @return if (count == 1) then return name else return (name + "s")
-     */
+     * /
     public static String plurality(String name, int count)
     {
         return name + plurality(count);
     }
+    */
 
-    public static String getDurationString(long durationMs)
+    public static String getTimeDurationString(Context context, long elapsedMillis)
     {
-        String durationString = "";
+        return getTimeDurationString(context, elapsedMillis, true);
+    }
 
-        if (durationMs > 0)
+    public static String getTimeDurationString(Context context, long elapsedMillis, boolean expanded)
+    {
+        return getTimeDurationString(context, elapsedMillis, expanded, null);
+    }
+
+    public static String getTimeDurationString(Context context, long elapsedMillis, TimeUnit minimumTimeUnit)
+    {
+        return getTimeDurationString(context, elapsedMillis, true, minimumTimeUnit);
+    }
+
+    /**
+     * @param context
+     * @param elapsedMillis
+     * @param expanded        if true then formatted as "X days, X hours, X minutes, X seconds, ...", otherwise,
+     *                        formatted as "XX minutes", or "XX hours", or "X days"
+     * @param minimumTimeUnit must be >= TimeUnit.MILLISECONDS, or null to default to TimeUnit.SECONDS
+     * @return
+     */
+    public static String getTimeDurationString(Context context, long elapsedMillis, boolean expanded, TimeUnit minimumTimeUnit)
+    {
+        if (context == null)
         {
-            int days = (int) TimeUnit.MILLISECONDS.toDays(durationMs);
-            if (days > 0)
-            {
-                durationMs -= TimeUnit.DAYS.toMillis(days);
-                durationString += " " + days + " " + plurality("day", days);
-            }
-
-            int hours = (int) TimeUnit.MILLISECONDS.toHours(durationMs);
-            if (hours > 0)
-            {
-                durationMs -= TimeUnit.HOURS.toMillis(hours);
-                durationString += " " + hours + " " + plurality("hour", hours);
-            }
-
-            int minutes = (int) TimeUnit.MILLISECONDS.toMinutes(durationMs);
-            if (minutes > 0)
-            {
-                durationMs -= TimeUnit.MINUTES.toMillis(minutes);
-                durationString += " " + minutes + " " + plurality("minute", minutes);
-            }
-
-            int seconds = (int) TimeUnit.MILLISECONDS.toSeconds(durationMs);
-            if (seconds > 0)
-            {
-                durationMs -= TimeUnit.SECONDS.toMillis(minutes);
-                durationString += " " + seconds + " " + plurality("second", seconds);
-            }
-
-            if (durationString.length() == 0)
-            {
-                durationString = durationMs + " " + plurality("millisecond", (int) durationMs);
-            }
+            throw new IllegalArgumentException("context must not be null");
         }
 
-        return durationString;
+        if (minimumTimeUnit == null)
+        {
+            minimumTimeUnit = TimeUnit.SECONDS;
+        }
+
+        if (TimeUnit.MILLISECONDS.compareTo(minimumTimeUnit) > 0)
+        {
+            throw new IllegalArgumentException("minimumTimeUnit must be null or >= TimeUnit.MILLISECONDS");
+        }
+
+        String result = null;
+
+        if (elapsedMillis >= 0)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            Resources res = context.getResources();
+
+            if (expanded)
+            {
+                int days = (int) TimeUnit.MILLISECONDS.toDays(elapsedMillis);
+                if (days > 0 && TimeUnit.DAYS.compareTo(minimumTimeUnit) >= 0)
+                {
+                    elapsedMillis -= TimeUnit.DAYS.toMillis(days);
+                    String temp = res.getQuantityString(R.plurals.days, days, days);
+                    sb.append(' ').append(temp);
+                }
+
+                int hours = (int) TimeUnit.MILLISECONDS.toHours(elapsedMillis);
+                if (hours > 0 && TimeUnit.HOURS.compareTo(minimumTimeUnit) >= 0)
+                {
+                    elapsedMillis -= TimeUnit.HOURS.toMillis(hours);
+                    String temp = res.getQuantityString(R.plurals.hours, hours, hours);
+                    sb.append(' ').append(temp);
+                }
+
+                int minutes = (int) TimeUnit.MILLISECONDS.toMinutes(elapsedMillis);
+                if (minutes > 0 && TimeUnit.MINUTES.compareTo(minimumTimeUnit) >= 0)
+                {
+                    elapsedMillis -= TimeUnit.MINUTES.toMillis(minutes);
+                    String temp = res.getQuantityString(R.plurals.minutes, minutes, minutes);
+                    sb.append(' ').append(temp);
+                }
+
+                int seconds = (int) TimeUnit.MILLISECONDS.toSeconds(elapsedMillis);
+                if (seconds > 0 && TimeUnit.SECONDS.compareTo(minimumTimeUnit) >= 0)
+                {
+                    elapsedMillis -= TimeUnit.SECONDS.toMillis(seconds);
+                    String temp = res.getQuantityString(R.plurals.seconds, seconds, seconds);
+                    sb.append(' ').append(temp);
+                }
+
+                int milliseconds = (int) elapsedMillis;
+                if (TimeUnit.MILLISECONDS.compareTo(minimumTimeUnit) >= 0)
+                {
+                    String temp = res.getQuantityString(R.plurals.milliseconds, milliseconds, milliseconds);
+                    sb.append(' ').append(temp);
+                }
+
+                if (sb.length() == 0)
+                {
+                    int timeUnitNameResId;
+                    switch (minimumTimeUnit)
+                    {
+                        case DAYS:
+                            timeUnitNameResId = R.plurals.days;
+                            break;
+                        case HOURS:
+                            timeUnitNameResId = R.plurals.hours;
+                            break;
+                        case MINUTES:
+                            timeUnitNameResId = R.plurals.minutes;
+                            break;
+                        case SECONDS:
+                            timeUnitNameResId = R.plurals.seconds;
+                            break;
+                        case MILLISECONDS:
+                        default:
+                            timeUnitNameResId = R.plurals.milliseconds;
+                            break;
+                    }
+                    String temp = res.getQuantityString(timeUnitNameResId, 0, 0);
+                    sb.append(' ').append(temp);
+                }
+            }
+            else
+            {
+                int timeUnitNameResId;
+
+                int timeUnitValue = (int) TimeUnit.MILLISECONDS.toDays(elapsedMillis);
+                if (timeUnitValue > 0 || TimeUnit.DAYS.compareTo(minimumTimeUnit) <= 0)
+                {
+                    timeUnitNameResId = R.plurals.days;
+                }
+                else
+                {
+                    timeUnitValue = (int) TimeUnit.MILLISECONDS.toHours(elapsedMillis);
+                    if (timeUnitValue > 0 || TimeUnit.HOURS.compareTo(minimumTimeUnit) <= 0)
+                    {
+                        timeUnitNameResId = R.plurals.hours;
+                    }
+                    else
+                    {
+                        timeUnitValue = (int) TimeUnit.MILLISECONDS.toMinutes(elapsedMillis);
+                        if (timeUnitValue > 0 || TimeUnit.MINUTES.compareTo(minimumTimeUnit) <= 0)
+                        {
+                            timeUnitNameResId = R.plurals.minutes;
+                        }
+                        else
+                        {
+                            timeUnitValue = (int) TimeUnit.MILLISECONDS.toSeconds(elapsedMillis);
+                            if (timeUnitValue > 0 || TimeUnit.SECONDS.compareTo(minimumTimeUnit) <= 0)
+                            {
+                                timeUnitNameResId = R.plurals.seconds;
+                            }
+                            else
+                            {
+                                timeUnitValue = (int) elapsedMillis;
+                                timeUnitNameResId = R.plurals.milliseconds;
+                            }
+                        }
+                    }
+                }
+
+                sb.append(res.getQuantityString(timeUnitNameResId, timeUnitValue, timeUnitValue));
+            }
+
+            result = sb.toString().trim();
+        }
+
+        return result;
+    }
+
+    /**
+     * @param msElapsed
+     * @return HH:MM:SS.MMM
+     */
+    public static String getTimeDurationFormattedString(long msElapsed)
+    {
+        long h = 0;
+        long m = 0;
+        long s = 0;
+        if (msElapsed > 0)
+        {
+            h = (int) (msElapsed / (3600 * 1000));
+            msElapsed -= (h * 3600 * 1000);
+            m = (int) (msElapsed / (60 * 1000));
+            msElapsed -= (m * 60 * 1000);
+            s = (int) (msElapsed / 1000);
+            msElapsed -= (s * 1000);
+        }
+        else
+        {
+            msElapsed = 0;
+        }
+
+        return formatNumber(h, 2) + ":" + formatNumber(m, 2) + ":" + formatNumber(s, 2) + "." +
+               formatNumber(msElapsed, 3);
     }
 
     public static String separateCamelCaseWords(String s)
@@ -646,5 +803,10 @@ public class FooString
             s = s.toLowerCase();
         }
         return s;
+    }
+
+    public static boolean startsWithVowel(String vowels, String s)
+    {
+        return s != null && s.matches("^[" + vowels + "].*");
     }
 }

@@ -1,4 +1,4 @@
-package com.smartfoo.android.core.notification;
+package com.smartfoo.android.core.platform;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -33,15 +33,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.notification.FooPermissionsChecker;
 
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-public class PlatformUtils
+public class FooPlatformUtils
 {
-    private PlatformUtils()
+    private FooPlatformUtils()
     {
     }
 
@@ -440,14 +441,14 @@ public class PlatformUtils
      * I thought that I could duplicate what com.android.settings.DevelopmentSettings does:
      * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L941
      * ie: Use Reflection to set the SystemProperty and then pokeSystemProperties
-     * <p/>
+     * <p>
      * After several hours of work I learned that the SystemProperties are ACL protected to only allow the Google
      * Signed Settings app to change them.
      * http://stackoverflow.com/a/11136242 -> http://stackoverflow.com/a/11123609/252308
-     * <p/>
+     * <p>
      * Rather than continue to try to get this to work (if it is even possible),
      * I have chosen to just launch the SettingsActivity DevelopmentSettings fragment.
-     * <p/>
+     * <p>
      * Other references for my wasted efforts:
      * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L1588
      * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/os/SystemProperties.java#L122

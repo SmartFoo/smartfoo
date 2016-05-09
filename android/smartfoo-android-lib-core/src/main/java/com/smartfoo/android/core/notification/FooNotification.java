@@ -23,7 +23,7 @@ import com.smartfoo.android.core.logging.FooLog;
 public class FooNotification
         implements Parcelable
 {
-    private static final String TAG = FooLog.TAG("FooNotification");
+    private static final String TAG = FooLog.TAG(FooNotification.class);
 
     public static NotificationManagerCompat getNotificationManager(Context context)
     {

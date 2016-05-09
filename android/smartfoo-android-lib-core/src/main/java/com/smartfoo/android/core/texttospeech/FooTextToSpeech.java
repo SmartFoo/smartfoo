@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class FooTextToSpeech
 {
-    private static final String TAG = FooLog.TAG("FooTextToSpeech");
+    private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
 
     private static final FooTextToSpeech sInstance = new FooTextToSpeech();
 
@@ -58,11 +58,11 @@ public class FooTextToSpeech
         return mIsStartingOrStarted;
     }
 
-    public void start(Context applicationContext)
+    public FooTextToSpeech start(Context applicationContext)
     {
         if (mTextToSpeech != null)
         {
-            return;
+            return this;
         }
 
         mTextToSpeech = new TextToSpeech(applicationContext, new TextToSpeech.OnInitListener()
@@ -93,6 +93,8 @@ public class FooTextToSpeech
                 FooTextToSpeech.this.onError(utteranceId);
             }
         });
+
+        return this;
     }
 
     private static String statusToString(int status)
@@ -106,7 +108,6 @@ public class FooTextToSpeech
             default:
                 return "UNKNOWN(" + status + ")";
         }
-
     }
 
     private void onInit(int status)
@@ -119,7 +120,21 @@ public class FooTextToSpeech
 
             if (mIsStartingOrStarted)
             {
-                mTextToSpeech.setLanguage(Locale.getDefault());
+                Locale locale = Locale.getDefault();
+                boolean hasVariant = (null != locale.getVariant() && locale.getVariant().length() > 0);
+                boolean hasCountry = (null != locale.getCountry() && locale.getCountry().length() > 0);
+
+                int isLanguageAvailable = mTextToSpeech.isLanguageAvailable(locale);
+
+                boolean isLocaleSupported =
+                        (!hasVariant && !hasCountry && isLanguageAvailable == TextToSpeech.LANG_AVAILABLE) ||
+                        (!hasVariant && hasCountry && isLanguageAvailable == TextToSpeech.LANG_COUNTRY_AVAILABLE) ||
+                        (isLanguageAvailable == TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE);
+
+                if (isLocaleSupported)
+                {
+                    mTextToSpeech.setLanguage(locale);
+                }
 
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
@@ -172,17 +187,6 @@ public class FooTextToSpeech
         FooLog.i(TAG, "-onError(utteranceId=" + FooString.quote(utteranceId) + ")");
     }
 
-    public void stop()
-    {
-        clear();
-        if (mIsStartingOrStarted)
-        {
-            mTextToSpeech.shutdown();
-            mTextToSpeech = null;
-            mIsStartingOrStarted = false;
-        }
-    }
-
     public void clear()
     {
         FooLog.i(TAG, "+clear()");
@@ -195,9 +199,26 @@ public class FooTextToSpeech
         FooLog.i(TAG, "-clear()");
     }
 
+    public void stop()
+    {
+        clear();
+        if (mIsStartingOrStarted)
+        {
+            mTextToSpeech.stop();
+            mTextToSpeech.shutdown();
+            mTextToSpeech = null;
+            mIsStartingOrStarted = false;
+        }
+    }
+
     public void speak(String text)
     {
-        speak(text, false, null);
+        speak(text, false);
+    }
+
+    public void speak(String text, boolean clear)
+    {
+        speak(text, clear, null);
     }
 
     /**
@@ -209,7 +230,7 @@ public class FooTextToSpeech
         FooLog.i(TAG, "+speak(text=" + FooString.quote(
                 text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
 
-        if (mTextToSpeech == null)
+        if (!isStartingOrStarted())
         {
             throw new IllegalStateException("start(Context context) must be called first");
         }
@@ -255,5 +276,22 @@ public class FooTextToSpeech
 
         FooLog.i(TAG, "-speak(text=" + FooString.quote(
                 text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
+    }
+
+    public void silence(long durationInMs)
+    {
+        if (!isStartingOrStarted())
+        {
+            throw new IllegalStateException("start(Context context) must be called first");
+        }
+
+        if (mIsStartingOrStarted)
+        {
+            mTextToSpeech.playSilence(durationInMs, TextToSpeech.QUEUE_ADD, null);
+        }
+        else
+        {
+            // TODO:(pv) Queue silence...
+        }
     }
 }

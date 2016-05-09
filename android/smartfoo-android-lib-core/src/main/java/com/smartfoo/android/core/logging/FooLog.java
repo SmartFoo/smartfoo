@@ -11,19 +11,46 @@ import java.util.Set;
 
 public class FooLog
 {
-    public interface IFooLogListener
-    {
-        void println(String msg);
+    private static final boolean FORCE_TEXT_LOGGING = true;
 
-        void println(String tag, int level, String msg, Throwable e);
+    public interface FooLogLevel
+    {
+        /**
+         * "Verbose should never be compiled into an application except during development."
+         */
+        int Verbose = 2;
+        /**
+         * "Debug logs are compiled in but stripped at runtime."
+         */
+        int Debug   = 3;
+        /**
+         * "Error, warning and info logs are always kept."
+         */
+        int Info    = 4;
+        /**
+         * "Error, warning and info logs are always kept."
+         */
+        int Warn    = 5;
+        /**
+         * "Error, warning and info logs are always kept."
+         */
+        int Error   = 6;
+        /**
+         * "Report a condition that should never happen."
+         */
+        int Fatal   = 7;
     }
 
-    private static final boolean FORCE_TEXT_LOGGING = true;
+    private static final Set<FooLogPrinter> sLogPrinters;
 
     private static boolean sIsEnabled;
 
     static
     {
+        sLogPrinters = new LinkedHashSet<>();
+
+        addPrinter(FooLogAdbPrinter.getInstance());
+
         setEnabled(BuildConfig.DEBUG);
     }
 
@@ -72,57 +99,75 @@ public class FooLog
         return tag;
     }
 
-    private static final Set<IFooLogListener> sLogListeners = new LinkedHashSet<>();
-
-    @SuppressWarnings("unused")
-    public static void addListener(IFooLogListener listener)
+    /**
+     * Harmless if called multiple times with the same logPrinter
+     *
+     * @param logPrinter
+     */
+    public static void addPrinter(FooLogPrinter logPrinter)
     {
-        synchronized (sLogListeners)
+        if (logPrinter == null)
         {
-            sLogListeners.add(listener);
+            return;
+        }
+        synchronized (FooLog.class)
+        {
+            sLogPrinters.add(logPrinter);
         }
     }
 
-    @SuppressWarnings("unused")
-    public static void removeListener(IFooLogListener listener)
+    public static void removePrinter(FooLogPrinter logPrinter)
     {
-        synchronized (sLogListeners)
+        if (logPrinter == null)
         {
-            sLogListeners.remove(listener);
+            return;
+        }
+        synchronized (FooLog.class)
+        {
+            sLogPrinters.remove(logPrinter);
         }
     }
 
-    @SuppressWarnings("unused")
-    public static void clearListeners()
+    public static boolean isAdded(FooLogPrinter logPrinter)
     {
-        synchronized (sLogListeners)
+        if (logPrinter == null)
         {
-            sLogListeners.clear();
+            return false;
+        }
+        synchronized (FooLog.class)
+        {
+            return sLogPrinters.contains(logPrinter);
+        }
+    }
+
+    public static void clearPrinters()
+    {
+        synchronized (FooLog.class)
+        {
+            sLogPrinters.clear();
+        }
+    }
+
+    public static void clear()
+    {
+        synchronized (FooLog.class)
+        {
+            for (FooLogPrinter logPrinter : sLogPrinters)
+            {
+                logPrinter.clear();
+            }
         }
     }
 
     protected static void println(String tag, int level, String msg, Throwable e)
     {
-        if (FORCE_TEXT_LOGGING || sIsEnabled)// && FooLogPlatform.isLoggable(tag, level))
+        synchronized (FooLog.class)
         {
-            String preformatted = PlatformLog.println(tag, level, msg, e);
-
-            // Avoid taking a lock if size == 0; safe if listener is removed before we enter lock
-            if (sLogListeners.size() > 0)
+            if (FORCE_TEXT_LOGGING || sIsEnabled)// && PbLogPlatform.isLoggable(tag, level))
             {
-                synchronized (sLogListeners)
+                for (FooLogPrinter logPrinter : sLogPrinters)
                 {
-                    for (IFooLogListener listener : sLogListeners)
-                    {
-                        if (preformatted != null)
-                        {
-                            listener.println(preformatted);
-                        }
-                        else
-                        {
-                            listener.println(tag, level, msg, e);
-                        }
-                    }
+                    logPrinter.println(tag, level, msg, e);
                 }
             }
         }
@@ -142,7 +187,7 @@ public class FooLog
 
     public static void v(String tag, String msg, Throwable e)
     {
-        println(tag, PlatformLog.VERBOSE, msg, e);
+        println(tag, FooLogLevel.Verbose, msg, e);
     }
 
     @SuppressWarnings("unused")
@@ -159,7 +204,7 @@ public class FooLog
 
     public static void d(String tag, String msg, Throwable e)
     {
-        println(tag, PlatformLog.DEBUG, msg, e);
+        println(tag, FooLogLevel.Debug, msg, e);
     }
 
     @SuppressWarnings("unused")
@@ -176,7 +221,7 @@ public class FooLog
 
     public static void i(String tag, String msg, Throwable e)
     {
-        println(tag, PlatformLog.INFO, msg, e);
+        println(tag, FooLogLevel.Info, msg, e);
     }
 
     @SuppressWarnings("unused")
@@ -193,7 +238,7 @@ public class FooLog
 
     public static void w(String tag, String msg, Throwable e)
     {
-        println(tag, PlatformLog.WARN, msg, e);
+        println(tag, FooLogLevel.Warn, msg, e);
     }
 
     @SuppressWarnings("unused")
@@ -210,7 +255,7 @@ public class FooLog
 
     public static void e(String tag, String msg, Throwable e)
     {
-        println(tag, PlatformLog.ERROR, msg, e);
+        println(tag, FooLogLevel.Error, msg, e);
     }
 
     @SuppressWarnings("unused")
@@ -227,7 +272,7 @@ public class FooLog
 
     public static void f(String tag, String msg, Throwable e)
     {
-        println(tag, PlatformLog.FATAL, msg, e);
+        println(tag, FooLogLevel.Fatal, msg, e);
     }
 
     private static FooTextToSpeech sTextToSpeech;

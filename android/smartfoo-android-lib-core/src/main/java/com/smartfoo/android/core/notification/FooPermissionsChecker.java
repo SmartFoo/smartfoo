@@ -17,7 +17,7 @@ import java.util.List;
 
 public class FooPermissionsChecker
 {
-    private static final String TAG = FooLog.TAG("FooPermissionsChecker");
+    private static final String TAG = FooLog.TAG(FooPermissionsChecker.class);
 
     public interface FooPermissionsHandler
     {
