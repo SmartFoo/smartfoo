@@ -10,6 +10,12 @@
 
     <string name="hangouts_package_app_name">Hangouts</string>
 
+    <plurals name="X_new_messages">
+        <item quantity="one">%1$d new message</item>
+        <item quantity="other">%1$d new messages</item>
+    </plurals>
+    <string name="X_says">%1$s says</string>
+
     <!--
     <plurals name="years">
         <item quantity="one">Year</item>
