@@ -424,7 +424,18 @@ public class FooPlatformUtils
                 value = "*CENSORED*";
             }
 
-            sb.append(FooString.quote(value));
+            if (value instanceof Bundle)
+            {
+                sb.append(toString((Bundle) value));
+            }
+            else if (value instanceof Intent)
+            {
+                sb.append(toString((Intent) value));
+            }
+            else
+            {
+                sb.append(FooString.quote(value));
+            }
 
             if (it.hasNext())
             {
@@ -523,37 +534,24 @@ public class FooPlatformUtils
         }
     }
 
-    /**
-     * Shows the Soft Input Keyboard given an Activity.<br>
-     * I cannot find a reliable way to show or hide SoftInput from either exclusively an Activity *OR* a View.
-     *
-     * @param activity
-     */
-    public static void showSoftInput(Activity activity)
+    public static void showSoftInput(View view, boolean show)
     {
-        boolean show = true;
+        if (view == null)
+        {
+            throw new IllegalArgumentException("view must not be null");
+        }
+
+        Context context = view.getContext();
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+
         if (show)
         {
-            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            imm.showSoftInput(view, 0);
         }
         else
         {
-            // Can't get this to work! :(
-            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-    }
-
-    /**
-     * Hides the Soft Input Keyboard given a View.<br>
-     * I cannot find a reliable way to show or hide SoftInput from either exclusively an Activity *OR* a View.
-     *
-     * @param view
-     */
-    public static void hideSoftInput(View view)
-    {
-        Context context = view.getContext();
-        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     /**
@@ -685,5 +683,26 @@ public class FooPlatformUtils
     {
         //noinspection deprecation
         return (Build.VERSION.SDK_INT > 21) ? res.getDrawable(resId, null) : res.getDrawable(resId);
+    }
+
+    public static String viewVisibilityToString(int visibility)
+    {
+        String name;
+        switch (visibility)
+        {
+            case View.VISIBLE:
+                name = "VISIBLE";
+                break;
+            case View.INVISIBLE:
+                name = "INVISIBLE";
+                break;
+            case View.GONE:
+                name = "GONE";
+                break;
+            default:
+                name = "UNKNOWN";
+                break;
+        }
+        return name + '(' + visibility + ')';
     }
 }

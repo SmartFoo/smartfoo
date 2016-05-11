@@ -264,7 +264,7 @@ public class FooMemoryStream
             if (length > buffer.length)
             {
                 throw new IllegalArgumentException(
-                        "length(" + length + ") must be <= buffer.length(" + buffer.length + ")");
+                        "length(" + length + ") must be <= buffer.length(" + buffer.length + ')');
             }
 
             if (offset < 0 || offset >= length)
@@ -279,7 +279,7 @@ public class FooMemoryStream
             if (throwException)
             {
                 throw new IndexOutOfBoundsException("attempted to read " + size + " bytes past offset(" + offset
-                                                    + ") would exceed length(" + length + ")");
+                                                    + ") would exceed length(" + length + ')');
             }
             return false;
         }

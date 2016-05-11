@@ -86,7 +86,7 @@ public class FooNotificationService
         try
         {
             FooLog.d(TAG, "+onStartCommand(intent=" + FooPlatformUtils.toString(intent) + ", flags=" + flags +
-                          ", startId=" + startId + ")");
+                          ", startId=" + startId + ')');
             //FooLog.s(TAG, FooString.separateCamelCaseWords("onStartCommand"));
             if (intent != null)
             {
@@ -121,7 +121,7 @@ public class FooNotificationService
         finally
         {
             FooLog.d(TAG, "-onStartCommand(intent=" + FooPlatformUtils.toString(intent) + ", flags=" + flags +
-                          ", startId=" + startId + ")");
+                          ", startId=" + startId + ')');
         }
     }
 
