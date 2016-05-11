@@ -18,6 +18,9 @@ public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
 
+    public static boolean VERBOSE_LOG_UTTERANCE_IDS      = true;
+    public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = false;
+
     private static final FooTextToSpeech sInstance = new FooTextToSpeech();
 
     public static FooTextToSpeech getInstance()
@@ -43,9 +46,39 @@ public class FooTextToSpeech
     private TextToSpeech mTextToSpeech;
     private boolean      mIsStartingOrStarted;
     private int          mNextUtteranceId;
+    private int          mAudioStreamType;
+    private float        mVolumeRelativeToAudioStream;
 
     private FooTextToSpeech()
     {
+        mAudioStreamType = TextToSpeech.Engine.DEFAULT_STREAM;
+        mVolumeRelativeToAudioStream = 1.0f;
+    }
+
+    public int getAudioStreamType()
+    {
+        return mAudioStreamType;
+    }
+
+    public void setAudioStreamType(int audioStreamType)
+    {
+        mAudioStreamType = audioStreamType;
+    }
+
+    /**
+     * @return 0 (silence) to 1 (maximum)
+     */
+    public float getVolumeRelativeToAudioStream()
+    {
+        return mVolumeRelativeToAudioStream;
+    }
+
+    /**
+     * @param volumeRelativeToAudioStream 0 (silence) to 1 (maximum)
+     */
+    public void setVolumeRelativeToAudioStream(float volumeRelativeToAudioStream)
+    {
+        mVolumeRelativeToAudioStream = volumeRelativeToAudioStream;
     }
 
     public boolean isStartingOrStarted()
@@ -102,17 +135,17 @@ public class FooTextToSpeech
         switch (status)
         {
             case TextToSpeech.SUCCESS:
-                return "TextToSpeech.SUCCESS(" + status + ")";
+                return "TextToSpeech.SUCCESS(" + status + ')';
             case TextToSpeech.ERROR:
-                return "TextToSpeech.ERROR(" + status + ")";
+                return "TextToSpeech.ERROR(" + status + ')';
             default:
-                return "UNKNOWN(" + status + ")";
+                return "UNKNOWN(" + status + ')';
         }
     }
 
     private void onInit(int status)
     {
-        FooLog.i(TAG, "+onInit(status=" + statusToString(status) + ")");
+        FooLog.v(TAG, "+onInit(status=" + statusToString(status) + ')');
 
         synchronized (sInstance)
         {
@@ -148,55 +181,74 @@ public class FooTextToSpeech
             }
         }
 
-        FooLog.i(TAG, "-onInit(status=" + statusToString(status) + ")");
+        FooLog.v(TAG, "-onInit(status=" + statusToString(status) + ')');
     }
 
     private void onStart(String utteranceId)
     {
-        FooLog.i(TAG, "+onStart(utteranceId=" + FooString.quote(utteranceId) + ")");
-        /*
-        Runnable runAfter = mUtteranceCallbacks.get(utteranceId);
-        if (runAfter != null) {
-            runAfter.run();
+        if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+        {
+            FooLog.v(TAG, "+onStart(utteranceId=" + FooString.quote(utteranceId) + ')');
         }
-        */
-        FooLog.i(TAG, "-onStart(utteranceId=" + FooString.quote(utteranceId) + ")");
+
+        // ...
+
+        if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+        {
+            FooLog.v(TAG, "-onStart(utteranceId=" + FooString.quote(utteranceId) + ')');
+        }
     }
 
     private void onDone(String utteranceId)
     {
-        FooLog.i(TAG, "+onDone(utteranceId=" + FooString.quote(utteranceId) + ")");
+        if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+        {
+            FooLog.v(TAG, "+onDone(utteranceId=" + FooString.quote(utteranceId) + ')');
+        }
+
         Runnable runAfter = mUtteranceCallbacks.remove(utteranceId);
-        FooLog.i(TAG, "onDone: runAfter=" + runAfter);
+        //FooLog.v(TAG, "onDone: runAfter=" + runAfter);
         if (runAfter != null)
         {
             runAfter.run();
         }
-        FooLog.i(TAG, "-onDone(utteranceId=" + FooString.quote(utteranceId) + ")");
+
+        if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+        {
+            FooLog.v(TAG, "-onDone(utteranceId=" + FooString.quote(utteranceId) + ')');
+        }
     }
 
     private void onError(String utteranceId)
     {
-        FooLog.i(TAG, "+onError(utteranceId=" + FooString.quote(utteranceId) + ")");
+        if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+        {
+            FooLog.w(TAG, "+onError(utteranceId=" + FooString.quote(utteranceId) + ')');
+        }
+
         Runnable runAfter = mUtteranceCallbacks.remove(utteranceId);
-        FooLog.i(TAG, "onError: runAfter=" + runAfter);
+        //FooLog.w(TAG, "onError: runAfter=" + runAfter);
         if (runAfter != null)
         {
             runAfter.run();
         }
-        FooLog.i(TAG, "-onError(utteranceId=" + FooString.quote(utteranceId) + ")");
+
+        if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+        {
+            FooLog.w(TAG, "-onError(utteranceId=" + FooString.quote(utteranceId) + ')');
+        }
     }
 
     public void clear()
     {
-        FooLog.i(TAG, "+clear()");
+        FooLog.d(TAG, "+clear()");
         mTextToSpeechQueue.clear();
         if (mIsStartingOrStarted)
         {
             mTextToSpeech.stop();
         }
         mUtteranceCallbacks.clear();
-        FooLog.i(TAG, "-clear()");
+        FooLog.d(TAG, "-clear()");
     }
 
     public void stop()
@@ -221,13 +273,18 @@ public class FooTextToSpeech
         speak(text, clear, null);
     }
 
+    public void speak(String text, Runnable runAfter)
+    {
+        speak(text, false, runAfter);
+    }
+
     /**
      * @param text
      * @param clear true to drop all entries in the playback queue and replace them with the new entry
      */
     public void speak(String text, boolean clear, Runnable runAfter)
     {
-        FooLog.i(TAG, "+speak(text=" + FooString.quote(
+        FooLog.d(TAG, "+speak(text=" + FooString.quote(
                 text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
 
         if (!isStartingOrStarted())
@@ -245,6 +302,14 @@ public class FooTextToSpeech
 
                     HashMap<String, String> params = new HashMap<>();
                     params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId);
+                    params.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(mAudioStreamType));
+                    params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, String.valueOf(mVolumeRelativeToAudioStream));
+
+                    if (VERBOSE_LOG_UTTERANCE_IDS)
+                    {
+                        FooLog.v(TAG, "speak: utteranceId=" + FooString.quote(utteranceId) +
+                                      ", text=" + FooString.quote(text));
+                    }
 
                     //noinspection deprecation
                     int result = mTextToSpeech.speak(text,
@@ -274,7 +339,7 @@ public class FooTextToSpeech
             }
         }
 
-        FooLog.i(TAG, "-speak(text=" + FooString.quote(
+        FooLog.d(TAG, "-speak(text=" + FooString.quote(
                 text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
     }
 
