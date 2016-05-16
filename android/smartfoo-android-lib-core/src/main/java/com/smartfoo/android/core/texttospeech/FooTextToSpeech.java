@@ -3,9 +3,11 @@ package com.smartfoo.android.core.texttospeech;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build.VERSION_CODES;
+import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
+import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
@@ -24,6 +26,7 @@ import java.util.Set;
  * <li>https://github.com/android/platform_packages_apps_settings/tree/master/src/com/android/settings/tts</li>
  * </ul>
  */
+@TargetApi(VERSION_CODES.LOLLIPOP)
 public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
@@ -33,6 +36,7 @@ public class FooTextToSpeech
 
     private static final FooTextToSpeech sInstance = new FooTextToSpeech();
 
+    @NonNull
     public static FooTextToSpeech getInstance()
     {
         return sInstance;
@@ -54,9 +58,10 @@ public class FooTextToSpeech
     private final Map<String, Runnable> mUtteranceCallbacks = new HashMap<>();
 
     private TextToSpeech mTextToSpeech;
-    private boolean      mIsStartingOrStarted;
+    private boolean      mIsInitialized;
     private int          mNextUtteranceId;
     private String       mVoiceName;
+    private Voice        mVoice;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
 
@@ -66,32 +71,62 @@ public class FooTextToSpeech
         mVolumeRelativeToAudioStream = 1.0f;
     }
 
-    public TextToSpeech getTextToSpeech()
+    public Set<Voice> getVoices()
     {
-        return mTextToSpeech;
+        return mTextToSpeech != null ? mTextToSpeech.getVoices() : null;
     }
-    @TargetApi(VERSION_CODES.LOLLIPOP)
+
+    public Voice getVoice()
+    {
+        return mTextToSpeech != null ? mTextToSpeech.getVoice() : null;
+    }
+
+    public void setVoice(Voice voice)
+    {
+        mVoice = voice;
+
+        if (!mIsInitialized)
+        {
+            return;
+        }
+
+        if (mVoice == null)
+        {
+            mVoice = mTextToSpeech.getDefaultVoice();
+        }
+
+        mTextToSpeech.setVoice(mVoice);
+
+        mVoiceName = mVoice.getName();
+    }
+
     public void setVoiceName(String voiceName)
     {
         mVoiceName = voiceName;
 
-        if (mIsStartingOrStarted)
+        if (!mIsInitialized)
         {
-            if (mVoiceName == null)
-            {
-                mVoiceName = mTextToSpeech.getDefaultVoice().getName();
-            }
+            return;
+        }
 
-            Set<Voice> voices = mTextToSpeech.getVoices();
-            for (Voice voice : voices)
+        if (mVoiceName == null)
+        {
+            mVoiceName = mTextToSpeech.getDefaultVoice().getName();
+        }
+
+        Voice foundVoice = null;
+
+        Set<Voice> voices = mTextToSpeech.getVoices();
+        for (Voice voice : voices)
+        {
+            if (voice.getName().equalsIgnoreCase(mVoiceName))
             {
-                if (voice.getName().equalsIgnoreCase(mVoiceName))
-                {
-                    mTextToSpeech.setVoice(voice);
-                    break;
-                }
+                foundVoice = voice;
+                break;
             }
         }
+
+        setVoice(foundVoice);
     }
 
     public int getAudioStreamType()
@@ -127,7 +162,7 @@ public class FooTextToSpeech
 
     public boolean isStarted()
     {
-        return mIsStartingOrStarted;
+        return mIsInitialized;
     }
 
     public FooTextToSpeech start(Context applicationContext)
@@ -184,17 +219,21 @@ public class FooTextToSpeech
 
     private void onInit(int status)
     {
-        FooLog.v(TAG, "+onInit(status=" + statusToString(status) + ')');
-
-        synchronized (sInstance)
+        try
         {
-            mIsStartingOrStarted = (status == TextToSpeech.SUCCESS);
+            FooLog.v(TAG, "+onInit(status=" + statusToString(status) + ')');
 
-            if (mIsStartingOrStarted)
+            synchronized (sInstance)
             {
+                mIsInitialized = (status == TextToSpeech.SUCCESS);
 
-                setVoiceName(mVoiceName);
+                if (!mIsInitialized)
+                {
+                    FooLog.w(TAG, "onInit: TextToSpeech failed to initialize: status=" + statusToString(status));
+                    return;
+                }
 
+                setVoice(mVoice);
 
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
@@ -207,8 +246,10 @@ public class FooTextToSpeech
                 }
             }
         }
-
-        FooLog.v(TAG, "-onInit(status=" + statusToString(status) + ')');
+        finally
+        {
+            FooLog.v(TAG, "-onInit(status=" + statusToString(status) + ')');
+        }
     }
 
     private void onStart(String utteranceId)
@@ -270,7 +311,7 @@ public class FooTextToSpeech
     {
         FooLog.d(TAG, "+clear()");
         mTextToSpeechQueue.clear();
-        if (mIsStartingOrStarted)
+        if (mIsInitialized)
         {
             mTextToSpeech.stop();
         }
@@ -281,12 +322,12 @@ public class FooTextToSpeech
     public void stop()
     {
         clear();
-        if (mIsStartingOrStarted)
+        if (mIsInitialized)
         {
             mTextToSpeech.stop();
             mTextToSpeech.shutdown();
             mTextToSpeech = null;
-            mIsStartingOrStarted = false;
+            mIsInitialized = false;
         }
     }
 
@@ -311,26 +352,35 @@ public class FooTextToSpeech
      */
     public void speak(String text, boolean clear, Runnable runAfter)
     {
-        FooLog.d(TAG, "+speak(text=" + FooString.quote(
-                text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
-
-        if (!isStartingOrStarted())
+        try
         {
-            throw new IllegalStateException("start(Context context) must be called first");
-        }
+            FooLog.d(TAG, "+speak(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
 
-        if (!FooString.isNullOrEmpty(text))
-        {
+            if (!isStartingOrStarted())
+            {
+                throw new IllegalStateException("start(...) must be called first");
+            }
+
+            if (FooString.isNullOrEmpty(text))
+            {
+                return;
+            }
+
+            int maxSpeechInputLength = TextToSpeech.getMaxSpeechInputLength();
+            if (text.length() > maxSpeechInputLength)
+            {
+                throw new IllegalArgumentException("text.length must be <= " + maxSpeechInputLength);
+            }
+
             synchronized (sInstance)
             {
-                if (mIsStartingOrStarted)
+                if (mIsInitialized)
                 {
                     String utteranceId = Integer.toString(mNextUtteranceId);
 
-                    HashMap<String, String> params = new HashMap<>();
-                    params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId);
-                    params.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(mAudioStreamType));
-                    params.put(TextToSpeech.Engine.KEY_PARAM_VOLUME, String.valueOf(mVolumeRelativeToAudioStream));
+                    Bundle params = new Bundle();
+                    params.putString(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(mAudioStreamType));
+                    params.putString(TextToSpeech.Engine.KEY_PARAM_VOLUME, String.valueOf(mVolumeRelativeToAudioStream));
 
                     if (VERBOSE_LOG_UTTERANCE_IDS)
                     {
@@ -343,10 +393,10 @@ public class FooTextToSpeech
                         mUtteranceCallbacks.put(utteranceId, runAfter);
                     }
 
-                    //noinspection deprecation
                     int result = mTextToSpeech.speak(text,
                             clear ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD,
-                            params);
+                            params,
+                            utteranceId);
                     if (result == TextToSpeech.SUCCESS)
                     {
                         mNextUtteranceId++;
@@ -368,9 +418,10 @@ public class FooTextToSpeech
                 }
             }
         }
-
-        FooLog.d(TAG, "-speak(text=" + FooString.quote(
-                text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
+        finally
+        {
+            FooLog.d(TAG, "-speak(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
+        }
     }
 
     public void silence(long durationInMs)
@@ -380,9 +431,9 @@ public class FooTextToSpeech
             throw new IllegalStateException("start(Context context) must be called first");
         }
 
-        if (mIsStartingOrStarted)
+        if (mIsInitialized)
         {
-            mTextToSpeech.playSilence(durationInMs, TextToSpeech.QUEUE_ADD, null);
+            mTextToSpeech.playSilentUtterance(durationInMs, TextToSpeech.QUEUE_ADD, null);
         }
         else
         {

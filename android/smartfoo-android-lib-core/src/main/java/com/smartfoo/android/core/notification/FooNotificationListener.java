@@ -27,13 +27,9 @@ public class FooNotificationListener
 {
     private static final String TAG = FooLog.TAG(FooNotificationListener.class);
 
-    public interface FooNotificationListenerCallbacks
-    {
-        void onNotificationPosted(StatusBarNotification sbn);
-
-        void onNotificationRemoved(StatusBarNotification sbn);
-    }
-
+    /**
+     * Used to force testing of using a specific OS Version #.
+     */
     private static final int VERSION_SDK_INT = VERSION.SDK_INT;
 
     public static boolean supportsNotificationListenerSettings()
@@ -59,11 +55,28 @@ public class FooNotificationListener
         return new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS);
     }
 
-    private static FooNotificationListener sInstance;
-
-    public static FooNotificationListener getInstance()
+    public interface FooNotificationListenerCallbacks
     {
-        return sInstance;
+        void onNotificationPosted(StatusBarNotification sbn);
+
+        void onNotificationRemoved(StatusBarNotification sbn);
+    }
+
+    private static final FooListenerManager<FooNotificationListenerCallbacks> sListenerManager;
+
+    static
+    {
+        sListenerManager = new FooListenerManager<>();
+    }
+
+    public static void addListener(FooNotificationListenerCallbacks listener)
+    {
+        sListenerManager.attach(listener);
+    }
+
+    public static void removeListener(FooNotificationListenerCallbacks listener)
+    {
+        sListenerManager.detach(listener);
     }
 
     public static final String ACTION_BIND_REMOTE_CONTROLLER = "com.smartfoo.android.core.notification.FooNotificationListener.ACTION_BIND_REMOTE_CONTROLLER";
@@ -80,30 +93,6 @@ public class FooNotificationListener
     private IBinder mRemoteControllerBinder = new RemoteControllerBinder();
 
     private RemoteController mRemoteController;
-
-    private final FooListenerManager<FooNotificationListenerCallbacks> mListenerManager;
-
-    public FooNotificationListener()
-    {
-        if (sInstance != null)
-        {
-            throw new IllegalStateException("Single instance of FooNotificationListener is already created");
-        }
-
-        sInstance = this;
-
-        mListenerManager = new FooListenerManager<>();
-    }
-
-    public void addListener(FooNotificationListenerCallbacks listener)
-    {
-        mListenerManager.attach(listener);
-    }
-
-    public void removeListener(FooNotificationListenerCallbacks listener)
-    {
-        mListenerManager.detach(listener);
-    }
 
     @Override
     public void onCreate()
@@ -148,23 +137,23 @@ public class FooNotificationListener
     @Override
     public void onNotificationPosted(StatusBarNotification sbn)
     {
-        Set<FooNotificationListenerCallbacks> callbacks = mListenerManager.beginTraversing();
+        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
         for (FooNotificationListenerCallbacks callback : callbacks)
         {
             callback.onNotificationPosted(sbn);
         }
-        mListenerManager.endTraversing();
+        sListenerManager.endTraversing();
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn)
     {
-        Set<FooNotificationListenerCallbacks> callbacks = mListenerManager.beginTraversing();
+        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
         for (FooNotificationListenerCallbacks callback : callbacks)
         {
             callback.onNotificationRemoved(sbn);
         }
-        mListenerManager.endTraversing();
+        sListenerManager.endTraversing();
     }
 
     @Override
