@@ -379,8 +379,8 @@ public class FooTextToSpeech
                     String utteranceId = Integer.toString(mNextUtteranceId);
 
                     Bundle params = new Bundle();
-                    params.putString(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(mAudioStreamType));
-                    params.putString(TextToSpeech.Engine.KEY_PARAM_VOLUME, String.valueOf(mVolumeRelativeToAudioStream));
+                    params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, mAudioStreamType);
+                    params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, mVolumeRelativeToAudioStream);
 
                     if (VERBOSE_LOG_UTTERANCE_IDS)
                     {
