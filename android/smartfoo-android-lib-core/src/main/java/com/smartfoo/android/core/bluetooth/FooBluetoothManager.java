@@ -3,12 +3,14 @@ package com.smartfoo.android.core.bluetooth;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile.ServiceListener;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.support.annotation.NonNull;
 
+import com.smartfoo.android.core.bluetooth.FooBluetoothServiceListener.OnGetConnectedBluetoothDevicesCallbacks;
 import com.smartfoo.android.core.logging.FooLog;
 
 public class FooBluetoothManager
@@ -76,6 +78,7 @@ public class FooBluetoothManager
         return bluetoothAdapter;
     }
 
+    private final Context                          mApplicationContext;
     private final boolean                          mIsBluetoothSupported;
     private final boolean                          mIsBluetoothLowEnergySupported;
     private final BluetoothManager                 mBluetoothManager;
@@ -84,15 +87,16 @@ public class FooBluetoothManager
 
     public FooBluetoothManager(
             @NonNull
-            Context context)
+            Context applicationContext)
     {
-        mIsBluetoothSupported = isBluetoothSupported(context);
-        mIsBluetoothLowEnergySupported = isBluetoothLowEnergySupported(context);
+        mApplicationContext = applicationContext;
+        mIsBluetoothSupported = isBluetoothSupported(applicationContext);
+        mIsBluetoothLowEnergySupported = isBluetoothLowEnergySupported(applicationContext);
 
-        mBluetoothManager = getBluetoothManager(context);
-        mBluetoothAdapter = getBluetoothAdapter(context);
+        mBluetoothManager = getBluetoothManager(applicationContext);
+        mBluetoothAdapter = getBluetoothAdapter(applicationContext);
 
-        mBluetoothAdapterStateListener = new FooBluetoothAdapterStateListener(context);
+        mBluetoothAdapterStateListener = new FooBluetoothAdapterStateListener(applicationContext);
     }
 
     public boolean isBluetoothSupported()
@@ -188,6 +192,25 @@ public class FooBluetoothManager
             FooLog.v(TAG, "isBluetoothAdapterEnabled: mBluetoothAdapter.isEnabled()", e);
             return false;
         }
+    }
+
+    /**
+     * @param bluetoothProfileId One of {@link android.bluetooth.BluetoothProfile}.* profile ids
+     * @param callbacks
+     * @see {@link BluetoothAdapter#getProfileProxy(Context, ServiceListener, int)}
+     */
+    public void getConnectedBluetoothDevices(int bluetoothProfileId,
+                                             @NonNull
+                                             OnGetConnectedBluetoothDevicesCallbacks callbacks)
+    {
+        if (mBluetoothAdapter == null)
+        {
+            return;
+        }
+
+        FooBluetoothServiceListener bluetoothServiceListener = new FooBluetoothServiceListener(mBluetoothAdapter, bluetoothProfileId, callbacks);
+
+        mBluetoothAdapter.getProfileProxy(mApplicationContext, bluetoothServiceListener, bluetoothProfileId);
     }
 
     public FooBluetoothAdapterStateListener getBluetoothAdapterStateListener()
