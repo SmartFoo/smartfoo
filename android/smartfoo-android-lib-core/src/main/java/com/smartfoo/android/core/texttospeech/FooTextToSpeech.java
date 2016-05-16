@@ -1,8 +1,11 @@
 package com.smartfoo.android.core.texttospeech;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build.VERSION_CODES;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.speech.tts.Voice;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
@@ -11,9 +14,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+/**
+ * References:
+ * <ul>
+ * <li>https://github.com/android/platform_frameworks_base/tree/master/core/java/android/speech/tts</li>
+ * <li>https://github.com/android/platform_packages_apps_settings/tree/master/src/com/android/settings/tts</li>
+ * </ul>
+ */
 public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
@@ -46,6 +56,7 @@ public class FooTextToSpeech
     private TextToSpeech mTextToSpeech;
     private boolean      mIsStartingOrStarted;
     private int          mNextUtteranceId;
+    private String       mVoiceName;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
 
@@ -53,6 +64,34 @@ public class FooTextToSpeech
     {
         mAudioStreamType = TextToSpeech.Engine.DEFAULT_STREAM;
         mVolumeRelativeToAudioStream = 1.0f;
+    }
+
+    public TextToSpeech getTextToSpeech()
+    {
+        return mTextToSpeech;
+    }
+    @TargetApi(VERSION_CODES.LOLLIPOP)
+    public void setVoiceName(String voiceName)
+    {
+        mVoiceName = voiceName;
+
+        if (mIsStartingOrStarted)
+        {
+            if (mVoiceName == null)
+            {
+                mVoiceName = mTextToSpeech.getDefaultVoice().getName();
+            }
+
+            Set<Voice> voices = mTextToSpeech.getVoices();
+            for (Voice voice : voices)
+            {
+                if (voice.getName().equalsIgnoreCase(mVoiceName))
+                {
+                    mTextToSpeech.setVoice(voice);
+                    break;
+                }
+            }
+        }
     }
 
     public int getAudioStreamType()
@@ -153,21 +192,9 @@ public class FooTextToSpeech
 
             if (mIsStartingOrStarted)
             {
-                Locale locale = Locale.getDefault();
-                boolean hasVariant = (null != locale.getVariant() && locale.getVariant().length() > 0);
-                boolean hasCountry = (null != locale.getCountry() && locale.getCountry().length() > 0);
 
-                int isLanguageAvailable = mTextToSpeech.isLanguageAvailable(locale);
+                setVoiceName(mVoiceName);
 
-                boolean isLocaleSupported =
-                        (!hasVariant && !hasCountry && isLanguageAvailable == TextToSpeech.LANG_AVAILABLE) ||
-                        (!hasVariant && hasCountry && isLanguageAvailable == TextToSpeech.LANG_COUNTRY_AVAILABLE) ||
-                        (isLanguageAvailable == TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE);
-
-                if (isLocaleSupported)
-                {
-                    mTextToSpeech.setLanguage(locale);
-                }
 
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
@@ -311,6 +338,11 @@ public class FooTextToSpeech
                                       ", text=" + FooString.quote(text));
                     }
 
+                    if (runAfter != null)
+                    {
+                        mUtteranceCallbacks.put(utteranceId, runAfter);
+                    }
+
                     //noinspection deprecation
                     int result = mTextToSpeech.speak(text,
                             clear ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD,
@@ -318,13 +350,11 @@ public class FooTextToSpeech
                     if (result == TextToSpeech.SUCCESS)
                     {
                         mNextUtteranceId++;
-                        if (runAfter != null)
-                        {
-                            mUtteranceCallbacks.put(utteranceId, runAfter);
-                        }
                     }
                     else
                     {
+                        mUtteranceCallbacks.remove(utteranceId);
+
                         if (runAfter != null)
                         {
                             runAfter.run();

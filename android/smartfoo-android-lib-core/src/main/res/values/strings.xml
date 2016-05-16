@@ -6,9 +6,9 @@
     <string name="pandora_advertisement_title">Advertisement</string>
     <string name="pandora_advertisement_artist">Your station will be right back…</string>
 
-    <string name="spotify_package_app_name">Spotify</string>
+    <string name="spotify_package_app_spoken_name">Spotify</string>
 
-    <string name="hangouts_package_app_name">Hangouts</string>
+    <string name="hangouts_package_app_spoken_name">Hangouts</string>
 
     <plurals name="X_new_messages">
         <item quantity="one">%1$d new message</item>

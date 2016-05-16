@@ -3,10 +3,12 @@ package com.smartfoo.android.core.notification;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
+import android.media.AudioManager;
 import android.media.RemoteController;
 import android.media.RemoteController.MetadataEditor;
 import android.os.Binder;
@@ -34,10 +36,14 @@ import com.smartfoo.android.core.texttospeech.FooTextToSpeech;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @TargetApi(19)
 public class FooNotificationListener
@@ -116,7 +122,7 @@ public class FooNotificationListener
     @Override
     public void onCreate()
     {
-        FooLog.d(TAG, "onCreate()");
+        FooLog.d(TAG, "+onCreate()");
         super.onCreate();
 
         Context applicationContext = getApplicationContext();
@@ -129,6 +135,8 @@ public class FooNotificationListener
         addNotificationParser(new GoogleHangoutsNotificationParser(applicationContext, mTextToSpeech));
         addNotificationParser(new GmailNotificationParser(applicationContext, mTextToSpeech));
         addNotificationParser(new GoogleMessengerNotificationParser(applicationContext, mTextToSpeech));
+
+        FooLog.d(TAG, "-onCreate()");
     }
 
     @Override
@@ -205,9 +213,9 @@ public class FooNotificationListener
     {
     }
 
-    public static String toVerboseString(int value)
+    public static String toVerboseString(Integer value)
     {
-        return Integer.toString(value) + " (0x" + Integer.toHexString(value) + ')';
+        return value == null ? "null" : Integer.toString(value) + " (0x" + Integer.toHexString(value) + ')';
     }
 
     // TODO:(pv) Make a UI that shows all StatusBarNotification fields, especially:
@@ -322,16 +330,18 @@ public class FooNotificationListener
 
         public interface TagTypes
         {
-            /*
-            /* *
+            /**
              * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/widget/RemoteViews.java#L733
-             * /
-            int PendingIntent    = 1;
-            */
+             */
+            int PendingIntent          = 1;
             /**
              * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/widget/RemoteViews.java#L1057
              */
-            int ReflectionAction = 2;
+            int ReflectionAction       = 2;
+            /**
+             * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/widget/RemoteViews.java#L1050
+             */
+            int BitmapReflectionAction = 12;
         }
 
         /**
@@ -358,23 +368,44 @@ public class FooNotificationListener
             int ICON             = 16;
         }
 
-        public interface ValueTypes
+        public static abstract class ValueTypes
         {
-            int TEXT              = 1;
-            int VISIBILITY        = 2;
-            int ENABLED           = 3;
-            int IMAGE_RESOURCE_ID = 4;
+            public static final int TEXT               = 1;
+            public static final int VISIBILITY         = 2;
+            public static final int ENABLED            = 3;
+            public static final int IMAGE_RESOURCE_ID  = 4;
+            public static final int BITMAP_RESOURCE_ID = 5;
+            public static final int PENDING_INTENT     = 6;
             /*
-            int PENDING_INTENT    = 5;
-            int ICON              = 6;
-            int BITMAP            = 7;
+            public static final int ICON              = ?;
             */
+
+            public static String toString(int value)
+            {
+                switch (value)
+                {
+                    case TEXT:
+                        return "TEXT(" + value + ')';
+                    case VISIBILITY:
+                        return "VISIBILITY(" + value + ')';
+                    case ENABLED:
+                        return "ENABLED(" + value + ')';
+                    case IMAGE_RESOURCE_ID:
+                        return "IMAGE_RESOURCE_ID(" + value + ')';
+                    case BITMAP_RESOURCE_ID:
+                        return "BITMAP_RESOURCE_ID(" + value + ')';
+                    case PENDING_INTENT:
+                        return "PENDING_INTENT(" + value + ')';
+                    default:
+                        return "UNKNOWN(" + value + ')';
+                }
+            }
         }
 
         @Nullable
         public static Object getRemoteViewValueById(
                 @NonNull
-                RemoteViews remoteViews, int id, int valueType)
+                RemoteViews remoteViews, int viewId, int valueType)
         {
             //noinspection TryWithIdenticalCatches
             try
@@ -397,8 +428,8 @@ public class FooNotificationListener
 
                         parcel.setDataPosition(0);
 
-                        int tag = parcel.readInt();
-                        FooLog.v(TAG, "getRemoteViewValueById: tag=" + toVerboseString(tag));
+                        int actionTag = parcel.readInt();
+                        //FooLog.v(TAG, "getRemoteViewValueById: actionTag=" + toVerboseString(tag));
                         switch (valueType)
                         {
                             /*
@@ -413,7 +444,13 @@ public class FooNotificationListener
                             case ValueTypes.VISIBILITY:
                             case ValueTypes.ENABLED:
                             case ValueTypes.IMAGE_RESOURCE_ID:
-                                if (tag != TagTypes.ReflectionAction)
+                                if (actionTag != TagTypes.ReflectionAction)
+                                {
+                                    continue;
+                                }
+                                break;
+                            case ValueTypes.BITMAP_RESOURCE_ID:
+                                if (actionTag != TagTypes.BitmapReflectionAction)
                                 {
                                     continue;
                                 }
@@ -422,16 +459,16 @@ public class FooNotificationListener
                                 continue;
                         }
 
-                        int viewId = parcel.readInt();
-                        FooLog.v(TAG, "getRemoteViewValueById: viewId=" + toVerboseString(viewId));
-                        if (viewId != id)
+                        int actionViewId = parcel.readInt();
+                        //FooLog.v(TAG, "getRemoteViewValueById: actionViewId=" + toVerboseString(viewId));
+                        if (actionViewId != viewId)
                         {
                             continue;
                         }
 
                         Object value = null;
 
-                        switch (tag)
+                        switch (actionTag)
                         {
                             /*
                             case TagTypes.PendingIntent:
@@ -445,29 +482,30 @@ public class FooNotificationListener
                             */
                             case TagTypes.ReflectionAction:
                             {
-                                String methodName = parcel.readString();
+                                String actionMethodName = parcel.readString();
+                                //FooLog.v(TAG, "getRemoteViewValueById: actionMethodName=" + FooString.quote(actionMethodName));
                                 switch (valueType)
                                 {
                                     case ValueTypes.TEXT:
-                                        if (!"setText".equals(methodName))
+                                        if (!"setText".equals(actionMethodName))
                                         {
                                             continue;
                                         }
                                         break;
                                     case ValueTypes.VISIBILITY:
-                                        if (!"setVisibility".equals(methodName))
+                                        if (!"setVisibility".equals(actionMethodName))
                                         {
                                             continue;
                                         }
                                         break;
                                     case ValueTypes.IMAGE_RESOURCE_ID:
-                                        if (!"setImageResource".equals(methodName))
+                                        if (!"setImageResource".equals(actionMethodName))
                                         {
                                             continue;
                                         }
                                         break;
                                     case ValueTypes.ENABLED:
-                                        if (!"setEnabled".equals(methodName))
+                                        if (!"setEnabled".equals(actionMethodName))
                                         {
                                             continue;
                                         }
@@ -508,11 +546,35 @@ public class FooNotificationListener
                                 }
                                 break;
                             }
+                            case TagTypes.BitmapReflectionAction:
+                            {
+                                String actionMethodName = parcel.readString();
+                                //FooLog.v(TAG, "getRemoteViewValueById: actionMethodName=" + FooString.quote(actionMethodName));
+                                switch (valueType)
+                                {
+                                    case ValueTypes.BITMAP_RESOURCE_ID:
+                                        if (!"setImageBitmap".equals(actionMethodName))
+                                        {
+                                            continue;
+                                        }
+                                        break;
+                                    default:
+                                        continue;
+                                }
+
+                                value = parcel.readInt();
+
+                                break;
+                            }
                             default:
                                 continue;
                         }
 
-                        FooLog.v(TAG, "getRemoteViewValueById: parcel.dataAvail()=" + parcel.dataAvail());
+                        int parcelDataAvail = parcel.dataAvail();
+                        if (parcelDataAvail > 0)
+                        {
+                            FooLog.w(TAG, "getRemoteViewValueById: parcel.dataAvail()=" + parcelDataAvail);
+                        }
 
                         return value;
                     }
@@ -534,18 +596,222 @@ public class FooNotificationListener
             return null;
         }
 
-        public static void walkView(View view)
+        public static class KeyValue
+                implements Comparable<KeyValue>
+        {
+            public final int    mKey;
+            public final int    mValueType;
+            public final Object mValue;
+
+            public KeyValue(int key, int valueType, Object value)
+            {
+                mKey = key;
+                mValueType = valueType;
+                mValue = value;
+            }
+
+            @Override
+            public String toString()
+            {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append(getClass().getSimpleName()).append('@').append(Integer.toHexString(hashCode()))
+                        .append("{ mKey=").append(toVerboseString(mKey))
+                        .append(", mValueType=").append(ValueTypes.toString(mValueType))
+                        .append(", mValue=");
+
+                switch (mValueType)
+                {
+                    case ValueTypes.BITMAP_RESOURCE_ID:
+                    case ValueTypes.IMAGE_RESOURCE_ID:
+                        sb.append(toVerboseString((Integer) mValue));
+                        break;
+                    case ValueTypes.VISIBILITY:
+                        if (mValue instanceof Integer)
+                        {
+                            sb.append(FooPlatformUtils.viewVisibilityToString((Integer) mValue));
+                            break;
+                        }
+                    default:
+                        sb.append(FooString.quote(mValue));
+                        break;
+                }
+
+                sb.append(" }");
+
+                return sb.toString();
+            }
+
+            @Override
+            public int compareTo(KeyValue another)
+            {
+                return Integer.compare(mKey, another.mKey);
+            }
+        }
+
+        public static void walkActions(RemoteViews remoteViews, List<KeyValue> listKeyValues)
+        {
+            //noinspection TryWithIdenticalCatches
+            try
+            {
+                Field field = remoteViews.getClass().getDeclaredField("mActions");
+                field.setAccessible(true);
+
+                @SuppressWarnings("unchecked")
+                ArrayList<Parcelable> actions = (ArrayList<Parcelable>) field.get(remoteViews);
+
+                for (int i = 0; i < actions.size(); i++)
+                {
+                    Parcelable parcelable = actions.get(i);
+
+                    Parcel parcel = Parcel.obtain();
+
+                    try
+                    {
+                        parcelable.writeToParcel(parcel, 0);
+
+                        parcel.setDataPosition(0);
+
+                        int actionTag = parcel.readInt();
+                        //FooLog.v(TAG, "walkActions: actionTag=" + toVerboseString(actionTag));
+
+                        int actionViewId = parcel.readInt();
+                        //FooLog.v(TAG, "walkActions: actionViewId=" + toVerboseString(actionViewId));
+
+                        int valueType;
+                        Object value = null;
+
+                        switch (actionTag)
+                        {
+                            case TagTypes.PendingIntent:
+                            {
+                                valueType = ValueTypes.PENDING_INTENT;
+                                if (parcel.readInt() != 0)
+                                {
+                                    value = PendingIntent.readPendingIntentOrNullFromParcel(parcel);
+                                }
+                                break;
+                            }
+                            case TagTypes.ReflectionAction:
+                            {
+                                String actionMethodName = parcel.readString();
+                                //FooLog.v(TAG, "walkActions: actionMethodName=" + FooString.quote(actionMethodName));
+                                switch (actionMethodName)
+                                {
+                                    case "setText":
+                                        valueType = ValueTypes.TEXT;
+                                        break;
+                                    case "setVisibility":
+                                        valueType = ValueTypes.VISIBILITY;
+                                        break;
+                                    case "setImageResource":
+                                        valueType = ValueTypes.IMAGE_RESOURCE_ID;
+                                        break;
+                                    case "setEnabled":
+                                        valueType = ValueTypes.ENABLED;
+                                        break;
+                                    default:
+                                        valueType = -1;
+                                        break;
+                                }
+
+                                int actionType = parcel.readInt();
+                                // per:
+                                // https://github.com/android/platform_frameworks_base/blob/master/core/java/android/widget/RemoteViews.java#L1101
+                                switch (actionType)
+                                {
+                                    case ActionTypes.BOOLEAN:
+                                        value = parcel.readInt() != 0;
+                                        break;
+                                    case ActionTypes.INT:
+                                        value = parcel.readInt();
+                                        break;
+                                    case ActionTypes.CHAR_SEQUENCE:
+                                        value = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(parcel)
+                                                .toString()
+                                                .trim();
+                                        break;
+                                    /*
+                                    case ActionTypes.INTENT:
+                                        if (parcel.readInt() != 0)
+                                        {
+                                            value = Intent.CREATOR.createFromParcel(parcel);
+                                        }
+                                        break;
+                                    case ActionTypes.ICON:
+                                        if (parcel.readInt() != 0)
+                                        {
+                                            value = null;//Icon.CREATOR.createFromParcel(parcel);
+                                        }
+                                    */
+                                }
+                                break;
+                            }
+                            case TagTypes.BitmapReflectionAction:
+                            {
+                                String actionMethodName = parcel.readString();
+                                //FooLog.v(TAG, "walkActions: actionMethodName=" + FooString.quote(actionMethodName));
+
+                                valueType = ValueTypes.BITMAP_RESOURCE_ID;
+
+                                value = parcel.readInt();
+
+                                break;
+                            }
+                            default:
+                                continue;
+                        }
+
+                        int parcelDataAvail = parcel.dataAvail();
+                        if (parcelDataAvail > 0)
+                        {
+                            FooLog.w(TAG, "walkActions: parcel.dataAvail()=" + parcelDataAvail);
+                        }
+
+                        //FooLog.w(TAG, "walkActions: actionViewId=" + toVerboseString(actionViewId) +
+                        //              ", value=" + value);
+
+                        if (listKeyValues != null)
+                        {
+                            listKeyValues.add(new KeyValue(actionViewId, valueType, value));
+                        }
+                    }
+                    finally
+                    {
+                        parcel.recycle();
+                    }
+                }
+            }
+            catch (IllegalAccessException e)
+            {
+                FooLog.e(TAG, "walkActions", e);
+            }
+            catch (NoSuchFieldException e)
+            {
+                FooLog.e(TAG, "walkActions", e);
+            }
+        }
+
+        public static void walkView(View view, Set<Integer> viewIds)
         {
             FooLog.v(TAG, "walkView: view=" + view);
 
-            if (view instanceof ViewGroup)
+            if (view != null)
             {
-                ViewGroup viewGroup = (ViewGroup) view;
-                int childCount = viewGroup.getChildCount();
-                for (int i = 0; i < childCount; i++)
+                if (viewIds != null)
                 {
-                    View childView = viewGroup.getChildAt(i);
-                    walkView(childView);
+                    viewIds.add(view.getId());
+                }
+
+                if (view instanceof ViewGroup)
+                {
+                    ViewGroup viewGroup = (ViewGroup) view;
+                    int childCount = viewGroup.getChildCount();
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        View childView = viewGroup.getChildAt(i);
+                        walkView(childView, viewIds);
+                    }
                 }
             }
         }
@@ -634,12 +900,14 @@ public class FooNotificationListener
             RemoteViews bigContentView = notification.bigContentView;
             View mockBigContentView = mockRemoteView(mApplicationContext, bigContentView);
             FooLog.v(TAG, "onNotificationPosted: bigContentView");
-            walkView(mockBigContentView);
+            Set<Integer> bigContentViewIds = new LinkedHashSet<>();
+            walkView(mockBigContentView, bigContentViewIds);
             FooLog.v(TAG, "onNotificationPosted: --------");
             RemoteViews contentView = notification.contentView;
             View mockContentView = mockRemoteView(mApplicationContext, contentView);
             FooLog.v(TAG, "onNotificationPosted: contentView");
-            walkView(mockContentView);
+            Set<Integer> contentViewIds = new LinkedHashSet<>();
+            walkView(mockContentView, contentViewIds);
 
             //RemoteViews headUpContentView = notification.headsUpContentView;
 
@@ -658,16 +926,87 @@ public class FooNotificationListener
         }
     }
 
-    public static class PandoraNotificationParser
+    public static abstract class AbstractMediaPlayerNotificiationParser
             extends NotificationParser
     {
-        private String mAdvertisementTitle;
-        private String mAdvertisementArtist;
+        /**
+         * If we set volume to zero then many media players automatically pause
+         */
+        public static final int MUTE_VOLUME = 1;
 
-        private boolean mLastIsPlaying;
-        private String  mLastArtist;
-        private String  mLastTitle;
-        private String  mLastStation;
+        protected final AudioManager mAudioManager;
+
+        protected int mLastVolume = -1;
+
+        protected AbstractMediaPlayerNotificiationParser(
+                @NonNull
+                Context applicationContext,
+                @NonNull
+                FooTextToSpeech textToSpeech,
+                @NonNull
+                String packageName,
+                @NonNull
+                String packageAppSpokenName)
+        {
+            super(applicationContext, textToSpeech, packageName, packageAppSpokenName);
+
+            mAudioManager = (AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE);
+        }
+
+        protected void mute(boolean mute, String speech)
+        {
+            if (mute)
+            {
+                if (mLastVolume != -1)
+                {
+                    return;
+                }
+
+                final int audioStreamType = mTextToSpeech.getAudioStreamType();
+                mLastVolume = mAudioManager.getStreamVolume(audioStreamType);
+
+                if (speech == null)
+                {
+                    speech = "attenuating";
+                }
+
+                mTextToSpeech.speak(mPackageAppSpokenName + ' ' + speech, new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mAudioManager.setStreamVolume(audioStreamType, MUTE_VOLUME, 0);
+                    }
+                });
+            }
+            else
+            {
+                if (mLastVolume == -1)
+                {
+                    return;
+                }
+
+                int audioStreamType = mTextToSpeech.getAudioStreamType();
+                int audioStreamVolume = mAudioManager.getStreamVolume(audioStreamType);
+                if (audioStreamVolume == MUTE_VOLUME)
+                {
+                    mAudioManager.setStreamVolume(audioStreamType, mLastVolume, 0);
+                }
+
+                mLastVolume = -1;
+            }
+        }
+    }
+
+    public static class PandoraNotificationParser
+            extends AbstractMediaPlayerNotificiationParser
+    {
+        private final String mAdvertisementTitle;
+        private final String mAdvertisementArtist;
+        protected Boolean mLastIsPlaying;
+        protected String  mLastArtist;
+        protected String  mLastTitle;
+        protected String  mLastStation;
 
         public PandoraNotificationParser(Context applicationContext, FooTextToSpeech textToSpeech)
         {
@@ -682,65 +1021,192 @@ public class FooNotificationListener
         {
             //super.onNotificationPosted(sbn);
 
+            //
+            // Source: com.pandora.android/res/layout-v21/persistant_notification_expanded.xml
+            //
             RemoteViews bigContentView = getBigContentView(sbn);
 
             //
             // NOTE: We intentionally recompute this every time;
             // The app can update in the background which can cause the resource ids to change.
             //
-            View mockRemoteView = mockRemoteView(mApplicationContext, bigContentView);
-            if (mockRemoteView == null)
+            View mockBigContentView = mockRemoteView(mApplicationContext, bigContentView);
+            if (mockBigContentView == null)
             {
+                FooLog.w(TAG, "onNotificationPosted: mockBigContentView == null; ignoring");
                 return false;
             }
 
-            int idTitle = getIdOfChildWithName(mockRemoteView, "title");
-            FooLog.v(TAG, "onNotificationPosted: idTitle=" + toVerboseString(idTitle));
+            Set<Integer> mockBigContentViewIds = new LinkedHashSet<>();
+
+            Map<Integer, String> mapIdsToNames = new LinkedHashMap<>();
+
+            int idIcon = getIdOfChildWithName(mockBigContentView, "icon");
+            FooLog.v(TAG, "onNotificationPosted: idIcon=" + toVerboseString(idIcon));
+            if (idIcon == 0)
+            {
+                FooLog.w(TAG, "onNotificationPosted: idIcon == 0; ignoring");
+                return false;
+            }
+            mapIdsToNames.put(idIcon, "icon");
+
+            int idTitle = getIdOfChildWithName(mockBigContentView, "title");
+            //FooLog.v(TAG, "onNotificationPosted: idTitle=" + toVerboseString(idTitle));
             if (idTitle == 0)
             {
+                FooLog.w(TAG, "onNotificationPosted: idTitle == 0; ignoring");
                 return false;
             }
+            mapIdsToNames.put(idTitle, "title");
 
-            int idArtist = getIdOfChildWithName(mockRemoteView, "artist");
-            FooLog.v(TAG, "onNotificationPosted: idArtist=" + toVerboseString(idArtist));
+            int idArtist = getIdOfChildWithName(mockBigContentView, "artist");
+            //FooLog.v(TAG, "onNotificationPosted: idArtist=" + toVerboseString(idArtist));
             if (idArtist == 0)
             {
+                FooLog.w(TAG, "onNotificationPosted: idArtist == 0; ignoring");
                 return false;
             }
+            mapIdsToNames.put(idArtist, "artist");
 
-            int idStation = getIdOfChildWithName(mockRemoteView, "station");
-            FooLog.v(TAG, "onNotificationPosted: idStation=" + toVerboseString(idStation));
+            int idStation = getIdOfChildWithName(mockBigContentView, "station");
+            //FooLog.v(TAG, "onNotificationPosted: idStation=" + toVerboseString(idStation));
             if (idStation == 0)
             {
+                FooLog.w(TAG, "onNotificationPosted: idStation == 0; ignoring");
                 return false;
             }
+            mapIdsToNames.put(idStation, "station");
 
-            int idPlay = getIdOfChildWithName(mockRemoteView, "play");
+            /*
+            int idThumbDown = getIdOfChildWithName(mockBigContentView, "thumb_down");
+            FooLog.v(TAG, "onNotificationPosted: idThumbDown=" + toVerboseString(idThumbDown));
+            if (idThumbDown == 0)
+            {
+                FooLog.w(TAG, "onNotificationPosted: idThumbDown == 0; ignoring");
+                return false;
+            }
+            mapIdsToNames.put(idThumbDown, "thumb_down");
+
+            int idThumbUp = getIdOfChildWithName(mockBigContentView, "thumb_up");
+            FooLog.v(TAG, "onNotificationPosted: idThumbUp=" + toVerboseString(idThumbUp));
+            if (idThumbUp == 0)
+            {
+                FooLog.w(TAG, "onNotificationPosted: idThumbUp == 0; ignoring");
+                return false;
+            }
+            mapIdsToNames.put(idThumbUp, "thumb_up");
+            */
+
+            int idPlay = getIdOfChildWithName(mockBigContentView, "play");
             FooLog.v(TAG, "onNotificationPosted: idPlay=" + toVerboseString(idPlay));
             if (idPlay == 0)
             {
+                FooLog.w(TAG, "onNotificationPosted: idPlay == 0; ignoring");
                 return false;
             }
+            mapIdsToNames.put(idPlay, "play");
+
+            int idSkip = getIdOfChildWithName(mockBigContentView, "skip");
+            FooLog.v(TAG, "onNotificationPosted: idSkip=" + toVerboseString(idSkip));
+            if (idSkip == 0)
+            {
+                FooLog.w(TAG, "onNotificationPosted: idSkip == 0; ignoring");
+                return false;
+            }
+            mapIdsToNames.put(idSkip, "skip");
+
+            int idLoading = getIdOfChildWithName(mockBigContentView, "loading");
+            FooLog.v(TAG, "onNotificationPosted: idLoading=" + toVerboseString(idLoading));
+            if (idLoading == 0)
+            {
+                FooLog.w(TAG, "onNotificationPosted: idLoading == 0; ignoring");
+                return false;
+            }
+            mapIdsToNames.put(idLoading, "loading");
 
             Context otherAppContext = createPackageContext(mApplicationContext, bigContentView);
             if (otherAppContext == null)
             {
+                FooLog.w(TAG, "onNotificationPosted: otherAppContext == null; ignoring");
                 return false;
             }
 
             Resources resources = otherAppContext.getResources();
             String packageName = otherAppContext.getPackageName();
-            int idPauseDrawable = resources.getIdentifier("notification_pause_selector", "drawable", packageName);
-            FooLog.v(TAG, "onNotificationPosted: idPauseDrawable=" + toVerboseString(idPauseDrawable));
 
-            int idPlayResourceId = (int) getRemoteViewValueById(bigContentView, idPlay, ValueTypes.IMAGE_RESOURCE_ID);
-            FooLog.v(TAG, "onNotificationPosted: idPlayResourceId=" + toVerboseString(idPlayResourceId));
-            if (idPlayResourceId == 0)
+            int idDrawablePause = resources.getIdentifier("notification_pause_selector", "drawable", packageName);
+            // Pandora v7.2: 2130838193 (0x7F0202B1)
+            FooLog.e(TAG, "onNotificationPosted: idDrawablePause=" + toVerboseString(idDrawablePause));
+
+            int idDrawablePlay = resources.getIdentifier("notification_play_selector", "drawable", packageName);
+            // Pandora v7.2: 2130838194 (0x7F0202B2)
+            FooLog.e(TAG, "onNotificationPosted: idDrawablePlay=" + toVerboseString(idDrawablePlay));
+
+            Integer idPlayImageResourceId = (Integer) getRemoteViewValueById(bigContentView, idPlay, ValueTypes.IMAGE_RESOURCE_ID);
+            FooLog.e(TAG, "onNotificationPosted: idPlayImageResourceId=" + toVerboseString(idPlayImageResourceId));
+            if (idPlayImageResourceId == null)
             {
+                FooLog.w(TAG, "onNotificationPosted: idPlayImageResourceId == null; ignoring");
                 return false;
             }
-            boolean isPlaying = idPlayResourceId == idPauseDrawable;
-            FooLog.v(TAG, "onNotificationPosted: isPlaying=" + isPlaying);
+
+            Boolean playEnabled = (Boolean) getRemoteViewValueById(bigContentView, idPlay, ValueTypes.ENABLED);
+            FooLog.e(TAG, "onNotificationPosted: playEnabled=" + playEnabled);
+            if (playEnabled == null)
+            {
+                FooLog.w(TAG, "onNotificationPosted: playEnabled == null; ignoring");
+                return false;
+            }
+
+            Integer idIconBitmapResourceId = (Integer) getRemoteViewValueById(bigContentView, idIcon, ValueTypes.BITMAP_RESOURCE_ID);
+            FooLog.e(TAG, "onNotificationPosted: idIconBitmapResourceId=" + toVerboseString(idIconBitmapResourceId));
+            if (idIconBitmapResourceId == null)
+            {
+                //return false;
+            }
+
+            Integer iconVisibility = (Integer) getRemoteViewValueById(bigContentView, idIcon, ValueTypes.VISIBILITY);
+            FooLog.e(TAG, "onNotificationPosted: iconVisibility=" + iconVisibility);
+            if (iconVisibility == null)
+            {
+                //return false;
+            }
+
+            Integer loadingVisibility = (Integer) getRemoteViewValueById(bigContentView, idLoading, ValueTypes.VISIBILITY);
+            FooLog.e(TAG, "onNotificationPosted: loadingVisibility=" + loadingVisibility);
+            if (loadingVisibility == null)
+            {
+                //return false;
+            }
+
+            if (true)
+            {
+                List<KeyValue> bigContentViewKeyValues = new LinkedList<>();
+                walkActions(bigContentView, bigContentViewKeyValues);
+                Collections.sort(bigContentViewKeyValues);
+                for (KeyValue keyValue : bigContentViewKeyValues)
+                {
+                    int key = keyValue.mKey;
+
+                    String idName = mapIdsToNames.get(key);
+
+                    if (idName != null)
+                    {
+                        FooLog.e(TAG, idName + " keyValue=" + keyValue);
+                    }
+                }
+            }
+
+            boolean isLoading = //(idIconBitmapResourceId != null && idIconBitmapResourceId == 0) ||
+                    (loadingVisibility != null && loadingVisibility == View.VISIBLE);
+            FooLog.e(TAG, "onNotificationPosted: isLoading=" + isLoading);
+            if (isLoading)
+            {
+                //return false;
+            }
+
+            boolean isPlaying = isLoading || idPlayImageResourceId == idDrawablePause;
+            FooLog.e(TAG, "onNotificationPosted: isPlaying=" + isPlaying);
 
             String textTitle = (String) getRemoteViewValueById(bigContentView, idTitle, ValueTypes.TEXT);
             textTitle = unknownIfNullOrEmpty(textTitle);
@@ -754,19 +1220,33 @@ public class FooNotificationListener
             textStation = unknownIfNullOrEmpty(textStation);
             FooLog.v(TAG, "onNotificationPosted: textStation=" + FooString.quote(textStation));
 
-            if (mAdvertisementTitle.equalsIgnoreCase(textTitle) &&
-                mAdvertisementArtist.equalsIgnoreCase(textArtist))
+            boolean isCommercial = mAdvertisementTitle.equalsIgnoreCase(textTitle) &&
+                                   mAdvertisementArtist.equalsIgnoreCase(textArtist);
+            if (isCommercial)
             {
+                //
                 // It's a commercial!
-                // TODO:(pv) Option to mute the volume and unmute when commercial ends...
+                //
+                // TODO:(pv) Make this a user option...
+                if (true)
+                {
+                    mute(true, "attenuating commercial");
+                }
+
+                FooLog.w(TAG, "onNotificationPosted: isCommercial == true; ignoring");
+
                 return false;
             }
 
-            if (isPlaying != mLastIsPlaying ||
+            FooLog.v(TAG, "onNotificationPosted: mLastIsPlaying=" + mLastIsPlaying);
+
+            if ((mLastIsPlaying == null || isPlaying != mLastIsPlaying) ||
                 !textTitle.equals(mLastTitle) ||
                 !textArtist.equals(mLastArtist) ||
                 !textStation.equals(mLastStation))
             {
+                mute(false, null);//, "un-muting commercial");
+
                 mLastIsPlaying = isPlaying;
                 mLastTitle = textTitle;
                 mLastArtist = textArtist;
@@ -774,6 +1254,8 @@ public class FooNotificationListener
 
                 if (isPlaying)
                 {
+                    FooLog.w(TAG, "onNotificationPosted: playing");
+
                     mTextToSpeech.speak(mPackageAppSpokenName + " playing");
                     mTextToSpeech.silence(500);
                     mTextToSpeech.speak("artist " + textArtist);
@@ -784,10 +1266,16 @@ public class FooNotificationListener
                 }
                 else
                 {
+                    FooLog.w(TAG, "onNotificationPosted: paused");
+
                     mTextToSpeech.speak(mPackageAppSpokenName + " paused");
                 }
 
                 return true;
+            }
+            else
+            {
+                FooLog.w(TAG, "onNotificationPosted: data unchanged; ignoring");
             }
 
             return false;
@@ -795,7 +1283,7 @@ public class FooNotificationListener
     }
 
     public static class SpotifyNotificationParser
-            extends NotificationParser
+            extends AbstractMediaPlayerNotificiationParser
     {
         private boolean mLastIsPlaying;
         private String  mLastArtist;
@@ -804,7 +1292,7 @@ public class FooNotificationListener
 
         public SpotifyNotificationParser(Context applicationContext, FooTextToSpeech textToSpeech)
         {
-            super(applicationContext, textToSpeech, "com.spotify.music", applicationContext.getString(R.string.spotify_package_app_name));
+            super(applicationContext, textToSpeech, "com.spotify.music", applicationContext.getString(R.string.spotify_package_app_spoken_name));
         }
 
         @Override
@@ -838,8 +1326,13 @@ public class FooNotificationListener
                 return false;
             }
 
-            int pauseVisibility = (int) getRemoteViewValueById(contentView, idPause, ValueTypes.VISIBILITY);
+            Integer pauseVisibility = (Integer) getRemoteViewValueById(contentView, idPause, ValueTypes.VISIBILITY);
             FooLog.v(TAG, "onNotificationPosted: pauseVisibility=" + pauseVisibility);
+            if (pauseVisibility == null)
+            {
+                return false;
+            }
+
             boolean isPlaying = pauseVisibility == View.VISIBLE;
             FooLog.v(TAG, "onNotificationPosted: isPlaying=" + isPlaying);
 
@@ -871,8 +1364,15 @@ public class FooNotificationListener
 
             if (textArtist == null && textAlbum == null)
             {
+                //
                 // It's a commercial!
-                // TODO:(pv) Option to mute the volume and unmute when commercial ends...
+                //
+                // TODO:(pv) Make this a user option...
+                if (true)
+                {
+                    mute(true, "attenuating commercial");
+                }
+
                 return false;
             }
 
@@ -884,6 +1384,8 @@ public class FooNotificationListener
                 !textTitle.equals(mLastTitle) ||
                 !textAlbum.equals(mLastAlbum))
             {
+                mute(false, null);//"un-muting commercial");
+
                 mLastIsPlaying = isPlaying;
                 mLastArtist = textArtist;
                 mLastTitle = textTitle;
@@ -951,7 +1453,7 @@ public class FooNotificationListener
 
         public GoogleHangoutsNotificationParser(Context applicationContext, FooTextToSpeech textToSpeech)
         {
-            super(applicationContext, textToSpeech, "com.google.android.talk", applicationContext.getString(R.string.hangouts_package_app_name));
+            super(applicationContext, textToSpeech, "com.google.android.talk", applicationContext.getString(R.string.hangouts_package_app_spoken_name));
 
             mTextMessages = new LinkedList<>();
         }
@@ -1013,7 +1515,7 @@ public class FooNotificationListener
                 }
             }
 
-            // TODO:(pv) Prevent repeats or overly verbose speaking of rolled up texts...
+            // TODO:(pv) I think there is perhaps a better even less verbatim way to speak the notification info...
 
             int count = textMessages.size();
             if (count == 0)
@@ -1057,6 +1559,15 @@ public class FooNotificationListener
         protected GoogleMessengerNotificationParser(Context context, FooTextToSpeech textToSpeech)
         {
             super(context, textToSpeech, "com.google.android.apps.messaging", "Google Messenger");
+        }
+    }
+
+    public static class GoogleDialerNotificationParser
+            extends NotificationParser
+    {
+        protected GoogleDialerNotificationParser(Context context, FooTextToSpeech textToSpeech)
+        {
+            super(context, textToSpeech, "com.google.android.dialer", "Google Dialer");
         }
     }
 }
