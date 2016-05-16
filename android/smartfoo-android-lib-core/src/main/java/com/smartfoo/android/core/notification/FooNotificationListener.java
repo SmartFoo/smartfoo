@@ -15,6 +15,7 @@ import android.service.notification.StatusBarNotification;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 
@@ -57,6 +58,8 @@ public class FooNotificationListener
 
     public interface FooNotificationListenerCallbacks
     {
+        void onCreate();
+
         void onNotificationPosted(StatusBarNotification sbn);
 
         void onNotificationRemoved(StatusBarNotification sbn);
@@ -104,6 +107,12 @@ public class FooNotificationListener
 
         mRemoteController = new RemoteController(applicationContext, this);
 
+        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
+        for (FooNotificationListenerCallbacks callback : callbacks)
+        {
+            callback.onCreate();
+        }
+        sListenerManager.endTraversing();
 
         FooLog.d(TAG, "-onCreate()");
     }

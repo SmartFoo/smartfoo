@@ -30,16 +30,16 @@ public class FooLogAdbPrinter
     public static final int DEBUG   = Log.DEBUG;
     */
 
-    private static final int[] sPbLogToAdbLogLevels =
+    private static final int[] sFooLogToAdbLogLevels =
             {
                     -1,   // 0
                     -1,   // 1
-                    Log.VERBOSE,   // 2 PbLog.LogLevel.Verbose
-                    Log.DEBUG, // 3 PbLog.LogLevel.Debug
-                    Log.INFO, // 4 PbLog.LogLevel.Info
-                    Log.WARN, // 5 PbLog.LogLevel.Warn
-                    Log.ERROR, // 6 PbLog.LogLevel.Error
-                    Log.ASSERT // 7 PbLog.LogLevel.Fatal
+                    Log.VERBOSE,   // 2 FooLog.LogLevel.Verbose
+                    Log.DEBUG, // 3 FooLog.LogLevel.Debug
+                    Log.INFO, // 4 FooLog.LogLevel.Info
+                    Log.WARN, // 5 FooLog.LogLevel.Warn
+                    Log.ERROR, // 6 FooLog.LogLevel.Error
+                    Log.ASSERT // 7 FooLog.LogLevel.Fatal
             };
 
     public static boolean isLoggable(String tag, int level)
@@ -67,7 +67,7 @@ public class FooLogAdbPrinter
      * Prints a line to LogCat.
      * On Android, "System.out.println(...)" also prints to LogCat.
      * Do *NOT* "System.out.println(...)"; it would add a [near] duplicated line to LogCat.
-     * <p>
+     * <p/>
      * {@inheritDoc}
      */
     @Override
@@ -86,7 +86,7 @@ public class FooLogAdbPrinter
         }
 
         //noinspection WrongConstant
-        Log.println(sPbLogToAdbLogLevels[level], tag, sb.toString());
+        Log.println(sFooLogToAdbLogLevels[level], tag, sb.toString());
 
         return true;
     }

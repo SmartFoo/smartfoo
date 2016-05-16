@@ -10,7 +10,7 @@ import com.smartfoo.android.core.logging.FooLog;
 
 public class FooPreferences
 {
-    private static final String TAG = FooLog.TAG("FooPreferences");
+    private static final String TAG = FooLog.TAG(FooPreferences.class);
 
     protected static final String FILE_NAME_APP  = "pref_file_app";
     public static final    String FILE_NAME_USER = "pref_file_user";

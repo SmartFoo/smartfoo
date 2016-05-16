@@ -163,7 +163,7 @@ public class FooLog
     {
         synchronized (FooLog.class)
         {
-            if (FORCE_TEXT_LOGGING || sIsEnabled)// && PbLogPlatform.isLoggable(tag, level))
+            if (FORCE_TEXT_LOGGING || sIsEnabled)// && FooLogPlatform.isLoggable(tag, level))
             {
                 for (FooLogPrinter logPrinter : sLogPrinters)
                 {

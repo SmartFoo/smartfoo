@@ -16,12 +16,12 @@ public abstract class FooLogFormatter
             {
                     "?", // 0
                     "?", // 1
-                    "V", // 2 PbLog.LogLevel.Verbose
-                    "D", // 3 PbLog.LogLevel.Debug
-                    "I", // 4 PbLog.LogLevel.Info
-                    "W", // 5 PbLog.LogLevel.Warn
-                    "E", // 6 PbLog.LogLevel.Error
-                    "F", // 7 PbLog.LogLevel.Fatal
+                    "V", // 2 FooLog.LogLevel.Verbose
+                    "D", // 3 FooLog.LogLevel.Debug
+                    "I", // 4 FooLog.LogLevel.Info
+                    "W", // 5 FooLog.LogLevel.Warn
+                    "E", // 6 FooLog.LogLevel.Error
+                    "F", // 7 FooLog.LogLevel.Fatal
             };
 
     protected abstract int getPid();

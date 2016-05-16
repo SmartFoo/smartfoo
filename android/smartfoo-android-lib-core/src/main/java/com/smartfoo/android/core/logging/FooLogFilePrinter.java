@@ -36,7 +36,7 @@ public class FooLogFilePrinter
     /**
      * NOTE: {@link #getInstance(Context)} must first be called
      *
-     * @return the singleton PbLogFileWriter instance
+     * @return the singleton FooLogFileWriter instance
      * @throws IllegalStateException if {@link #getInstance(Context)} has not been called
      */
     public static FooLogFilePrinter getInstance()
