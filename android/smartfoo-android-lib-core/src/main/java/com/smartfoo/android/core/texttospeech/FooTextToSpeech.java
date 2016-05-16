@@ -108,6 +108,11 @@ public class FooTextToSpeech
         {
             mVoice = voice;
 
+            if (mVoice != null)
+            {
+                mVoiceName = mVoice.getName();
+            }
+
             if (!mIsInitialized)
             {
                 return;
@@ -135,20 +140,22 @@ public class FooTextToSpeech
                 return;
             }
 
-            if (mVoiceName == null)
-            {
-                mVoiceName = mTextToSpeech.getDefaultVoice().getName();
-            }
-
             Voice foundVoice = null;
 
-            Set<Voice> voices = mTextToSpeech.getVoices();
-            for (Voice voice : voices)
+            if (mVoiceName == null)
             {
-                if (voice.getName().equalsIgnoreCase(mVoiceName))
+                foundVoice = mTextToSpeech.getDefaultVoice();
+            }
+            else
+            {
+                Set<Voice> voices = mTextToSpeech.getVoices();
+                for (Voice voice : voices)
                 {
-                    foundVoice = voice;
-                    break;
+                    if (voice.getName().equalsIgnoreCase(mVoiceName))
+                    {
+                        foundVoice = voice;
+                        break;
+                    }
                 }
             }
 
