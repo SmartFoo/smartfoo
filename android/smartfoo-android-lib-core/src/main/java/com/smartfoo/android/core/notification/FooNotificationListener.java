@@ -127,7 +127,6 @@ public class FooNotificationListener
         }
         else
         {
-            StatusBarNotification[] activeNotifications = getActiveNotifications();
             return super.onBind(intent);
         }
     }
