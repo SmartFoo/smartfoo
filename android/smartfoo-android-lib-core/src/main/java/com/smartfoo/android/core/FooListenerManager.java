@@ -19,6 +19,14 @@ public class FooListenerManager<T>
         mListenersToRemove = new LinkedHashSet<>();
     }
 
+    public boolean isEmpty()
+    {
+        synchronized (mListeners)
+        {
+            return mListeners.size() == 0;
+        }
+    }
+
     public void attach(T listener)
     {
         if (listener == null)

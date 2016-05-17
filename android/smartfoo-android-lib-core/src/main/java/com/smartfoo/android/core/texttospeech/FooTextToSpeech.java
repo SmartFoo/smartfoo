@@ -31,11 +31,6 @@ public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
 
-    public interface FooTextToSpeechCallbacks
-    {
-        boolean isSpeechEnabled();
-    }
-
     public static boolean VERBOSE_LOG_UTTERANCE_IDS      = true;
     public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = true;
 
@@ -70,20 +65,10 @@ public class FooTextToSpeech
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
 
-    private FooTextToSpeechCallbacks mCallbacks;
-
     private FooTextToSpeech()
     {
         mAudioStreamType = TextToSpeech.Engine.DEFAULT_STREAM;
         mVolumeRelativeToAudioStream = 1.0f;
-    }
-
-    public void setCallbacks(FooTextToSpeechCallbacks callbacks)
-    {
-        synchronized (sInstance)
-        {
-            mCallbacks = callbacks;
-        }
     }
 
     public Set<Voice> getVoices()
@@ -429,11 +414,6 @@ public class FooTextToSpeech
                 if (mTextToSpeech == null)
                 {
                     throw new IllegalStateException("start(...) must be called first");
-                }
-
-                if (mCallbacks != null && !mCallbacks.isSpeechEnabled())
-                {
-                    return;
                 }
 
                 if (mIsInitialized)
