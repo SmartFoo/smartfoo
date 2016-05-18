@@ -418,7 +418,7 @@ public class FooTextToSpeech
 
                 if (mIsInitialized)
                 {
-                    String utteranceId = Integer.toString(mNextUtteranceId);
+                    String utteranceId = "text_" + Integer.toString(mNextUtteranceId);
 
                     Bundle params = new Bundle();
                     params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, mAudioStreamType);
@@ -466,7 +466,12 @@ public class FooTextToSpeech
         }
     }
 
-    public void silence(long durationInMs)
+    public void silence(int durationInMs)
+    {
+        silence(durationInMs, null);
+    }
+
+    public void silence(int durationInMs, Runnable runAfter)
     {
         synchronized (sInstance)
         {
@@ -477,7 +482,32 @@ public class FooTextToSpeech
 
             if (mIsInitialized)
             {
-                mTextToSpeech.playSilentUtterance(durationInMs, TextToSpeech.QUEUE_ADD, null);
+                String utteranceId = "silence_" + Integer.toString(mNextUtteranceId);
+
+                if (VERBOSE_LOG_UTTERANCE_IDS)
+                {
+                    FooLog.v(TAG, "silence: utteranceId=" + FooString.quote(utteranceId));
+                }
+
+                if (runAfter != null)
+                {
+                    mUtteranceCallbacks.put(utteranceId, runAfter);
+                }
+
+                int result = mTextToSpeech.playSilentUtterance(durationInMs, TextToSpeech.QUEUE_ADD, utteranceId);
+                if (result == TextToSpeech.SUCCESS)
+                {
+                    mNextUtteranceId++;
+                }
+                else
+                {
+                    mUtteranceCallbacks.remove(utteranceId);
+
+                    if (runAfter != null)
+                    {
+                        runAfter.run();
+                    }
+                }
             }
             else
             {
