@@ -47,6 +47,42 @@ public class FooAudioUtils
         return s + '(' + audioStreamType + ')';
     }
 
+    public static String audioFocusToString(int audioFocus)
+    {
+        String s;
+        switch (audioFocus)
+        {
+            case 0:
+                s = "AUDIOFOCUS_NONE";
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                s = "AUDIOFOCUS_GAIN";
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
+                s = "AUDIOFOCUS_GAIN_TRANSIENT";
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
+                s = "AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK";
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE:
+                s = "AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE";
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS:
+                s = "AUDIOFOCUS_LOSS";
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                s = "AUDIOFOCUS_LOSS_TRANSIENT";
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                s = "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK";
+                break;
+            default:
+                s = "UNKNOWN";
+                break;
+        }
+        return s + '(' + audioFocus + ')';
+    }
+
     public static int getVolumePercentFromAbsolute(
             @NonNull
             AudioManager audioManager, int audioStreamType, int volume)

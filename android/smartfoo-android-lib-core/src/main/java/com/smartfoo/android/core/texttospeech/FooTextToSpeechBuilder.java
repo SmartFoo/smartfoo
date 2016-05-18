@@ -1,44 +1,46 @@
 package com.smartfoo.android.core.texttospeech;
 
-import android.support.annotation.NonNull;
+import android.speech.tts.TextToSpeech;
+
+import com.smartfoo.android.core.FooString;
 
 import java.util.LinkedList;
 
 public class FooTextToSpeechBuilder
 {
-    private static abstract class FooTextToSpeechPart
+    // package
+    static abstract class FooTextToSpeechPart
     {
     }
 
     public static class FooTextToSpeechPartSpeech
             extends FooTextToSpeechPart
     {
-        private final String mText;
+        // package
+        final String mText;
 
         public FooTextToSpeechPartSpeech(String text)
         {
-            mText = text;
-        }
+            int maxSpeechInputLength = TextToSpeech.getMaxSpeechInputLength();
 
-        public String getText()
-        {
-            return mText;
+            if (FooString.isNullOrEmpty(text) || text.length() > maxSpeechInputLength)
+            {
+                throw new IllegalArgumentException("text.length must be > 0 and <= " + maxSpeechInputLength);
+            }
+
+            mText = text;
         }
     }
 
     public static class FooTextToSpeechPartSilence
             extends FooTextToSpeechPart
     {
-        private final int mDurationInMs;
+        // package
+        final int mDurationInMs;
 
         public FooTextToSpeechPartSilence(int durationInMs)
         {
             mDurationInMs = durationInMs;
-        }
-
-        public int getDurationInMs()
-        {
-            return mDurationInMs;
         }
     }
 
@@ -67,53 +69,10 @@ public class FooTextToSpeechBuilder
         return this;
     }
 
-    public void invoke(
-            @NonNull
-            FooTextToSpeech textToSpeech,
-            boolean clear,
-            Runnable runAfter)
+    public LinkedList<FooTextToSpeechPart> build()
     {
-        int i = 0;
-        int last = mParts.size() - 1;
-        for (FooTextToSpeechPart part : mParts)
-        {
-            invoke(textToSpeech, part, i == 0 ? clear : null, i == last ? runAfter : null);
-            i++;
-        }
+        LinkedList<FooTextToSpeechPart> parts = new LinkedList<>(mParts);
         mParts.clear();
-    }
-
-    private static void invoke(
-            @NonNull
-            FooTextToSpeech textToSpeech,
-            @NonNull
-            FooTextToSpeechPart part,
-            Boolean clear, Runnable runAfter)
-    {
-        if (part instanceof FooTextToSpeechPartSpeech)
-        {
-            String text = ((FooTextToSpeechPartSpeech) part).getText();
-
-            if (clear != null)
-            {
-                textToSpeech.speak(text, clear);
-                return;
-            }
-
-            textToSpeech.speak(text, runAfter);
-
-            return;
-        }
-
-        if (part instanceof FooTextToSpeechPartSilence)
-        {
-            int durationInMs = ((FooTextToSpeechPartSilence) part).mDurationInMs;
-
-            textToSpeech.silence(durationInMs, runAfter);
-
-            return;
-        }
-
-        throw new IllegalArgumentException("unhandled part type " + part.getClass());
+        return parts;
     }
 }

@@ -2,6 +2,8 @@ package com.smartfoo.android.core.texttospeech;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -11,6 +13,10 @@ import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.media.FooAudioUtils;
+import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPart;
+import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPartSilence;
+import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPartSpeech;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,6 +63,7 @@ public class FooTextToSpeech
     private final List<UtteranceInfo>   mTextToSpeechQueue  = new LinkedList<>();
     private final Map<String, Runnable> mUtteranceCallbacks = new HashMap<>();
 
+    private AudioManager mAudioManager;
     private TextToSpeech mTextToSpeech;
     private boolean      mIsInitialized;
     private int          mNextUtteranceId;
@@ -64,6 +71,15 @@ public class FooTextToSpeech
     private Voice        mVoice;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
+
+    private final OnAudioFocusChangeListener mOnAudioFocusChangeListener = new OnAudioFocusChangeListener()
+    {
+        @Override
+        public void onAudioFocusChange(int focusChange)
+        {
+            FooTextToSpeech.this.onAudioFocusChange(focusChange);
+        }
+    };
 
     private FooTextToSpeech()
     {
@@ -198,6 +214,8 @@ public class FooTextToSpeech
             {
                 return this;
             }
+
+            mAudioManager = (AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE);
 
             mTextToSpeech = new TextToSpeech(applicationContext, new TextToSpeech.OnInitListener()
             {
@@ -373,41 +391,165 @@ public class FooTextToSpeech
         }
     }
 
-    public void speak(String text)
-    {
-        speak(text, false);
-    }
-
-    public void speak(String text, boolean clear)
-    {
-        speak(text, clear, null);
-    }
-
-    public void speak(String text, Runnable runAfter)
-    {
-        speak(text, false, runAfter);
-    }
-
     /**
-     * @param text
-     * @param clear true to drop all entries in the playback queue and replace them with the new entry
+     * @return true if successful, otherwise false
      */
-    public void speak(String text, boolean clear, Runnable runAfter)
+    public boolean audioFocusStart()
+    {
+        FooLog.i(TAG, "audioFocusStart()");
+        int voiceAudioStreamType = getAudioStreamType();
+        int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener, voiceAudioStreamType, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+    }
+
+    private void onAudioFocusChange(int focusChange)
+    {
+        FooLog.i(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
+    }
+
+    public void audioFocusStop()
+    {
+        FooLog.i(TAG, "audioFocusStop()");
+        mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+    }
+
+    private class Runnables
+            implements Runnable
+    {
+        private final Runnable[] mRunnables;
+
+        public Runnables(Runnable... runnables)
+        {
+            mRunnables = runnables;
+        }
+
+        @Override
+        public void run()
+        {
+            for (Runnable runnable : mRunnables)
+            {
+                if (runnable != null)
+                {
+                    runnable.run();
+                }
+            }
+        }
+    }
+
+    private final Runnable mRunAfterSpeak = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            audioFocusStop();
+        }
+    };
+
+    public boolean speak(String text)
+    {
+        return speak(text, false);
+    }
+
+    public boolean speak(String text, boolean clear)
+    {
+        return speak(text, clear, null);
+    }
+
+    public boolean speak(String text, Runnable runAfter)
+    {
+        return speak(text, false, runAfter);
+    }
+
+    public boolean speak(String text, boolean clear, Runnable runAfter)
+    {
+        return speak(new FooTextToSpeechBuilder(text), clear, runAfter);
+    }
+
+    public boolean speak(
+            @NonNull
+            FooTextToSpeechBuilder builder)
+    {
+        return speak(builder, false, null);
+    }
+
+    public boolean speak(
+            @NonNull
+            FooTextToSpeechBuilder builder,
+            boolean clear, Runnable runAfter)
+    {
+        if (runAfter == null)
+        {
+            runAfter = mRunAfterSpeak;
+        }
+        else
+        {
+            runAfter = new Runnables(mRunAfterSpeak, runAfter);
+        }
+
+        //
+        // Always suffix w/ 500ms so that there is a clear break before the next speech.
+        //
+        builder.appendSilence(500);
+
+        audioFocusStart();
+
+        boolean anySuccess = false;
+
+        LinkedList<FooTextToSpeechPart> parts = builder.build();
+        int i = 0;
+        int last = parts.size() - 1;
+        for (FooTextToSpeechPart part : parts)
+        {
+            anySuccess |= speak(part, i == 0 ? clear : null, i == last ? runAfter : null);
+            i++;
+        }
+
+        if (!anySuccess)
+        {
+            runAfter.run();
+        }
+
+        return anySuccess;
+    }
+
+    private boolean speak(
+            @NonNull
+            FooTextToSpeechPart part,
+            Boolean clear, Runnable runAfter)
+    {
+        if (part instanceof FooTextToSpeechPartSpeech)
+        {
+            String text = ((FooTextToSpeechPartSpeech) part).mText;
+
+            if (clear != null)
+            {
+                return speakInternal(text, clear, null);
+            }
+            else
+            {
+                return speakInternal(text, false, runAfter);
+            }
+        }
+
+        if (part instanceof FooTextToSpeechPartSilence)
+        {
+            int durationInMs = ((FooTextToSpeechPartSilence) part).mDurationInMs;
+
+            return silence(durationInMs, runAfter);
+        }
+
+        throw new IllegalArgumentException("unhandled part type " + part.getClass());
+    }
+
+    private boolean speakInternal(String text, boolean clear, Runnable runAfter)
     {
         try
         {
-            FooLog.d(TAG, "+speak(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
+            FooLog.d(TAG,
+                    "+speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
+                    ')');
 
-            if (FooString.isNullOrEmpty(text))
-            {
-                return;
-            }
-
-            int maxSpeechInputLength = TextToSpeech.getMaxSpeechInputLength();
-            if (text.length() > maxSpeechInputLength)
-            {
-                throw new IllegalArgumentException("text.length must be <= " + maxSpeechInputLength);
-            }
+            boolean success = false;
 
             synchronized (sInstance)
             {
@@ -426,7 +568,7 @@ public class FooTextToSpeech
 
                     if (VERBOSE_LOG_UTTERANCE_IDS)
                     {
-                        FooLog.v(TAG, "speak: utteranceId=" + FooString.quote(utteranceId) +
+                        FooLog.v(TAG, "speakInternal: utteranceId=" + FooString.quote(utteranceId) +
                                       ", text=" + FooString.quote(text));
                     }
 
@@ -442,6 +584,8 @@ public class FooTextToSpeech
                     if (result == TextToSpeech.SUCCESS)
                     {
                         mNextUtteranceId++;
+
+                        success = true;
                     }
                     else
                     {
@@ -457,22 +601,30 @@ public class FooTextToSpeech
                 {
                     UtteranceInfo utteranceInfo = new UtteranceInfo(text, runAfter);
                     mTextToSpeechQueue.add(utteranceInfo);
+
+                    success = true;
                 }
             }
+
+            return success;
         }
         finally
         {
-            FooLog.d(TAG, "-speak(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter + ')');
+            FooLog.d(TAG,
+                    "-speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
+                    ')');
         }
     }
 
-    public void silence(int durationInMs)
+    public boolean silence(int durationInMs)
     {
-        silence(durationInMs, null);
+        return silence(durationInMs, null);
     }
 
-    public void silence(int durationInMs, Runnable runAfter)
+    public boolean silence(int durationInMs, Runnable runAfter)
     {
+        boolean success = false;
+
         synchronized (sInstance)
         {
             if (mTextToSpeech == null)
@@ -498,6 +650,8 @@ public class FooTextToSpeech
                 if (result == TextToSpeech.SUCCESS)
                 {
                     mNextUtteranceId++;
+
+                    success = true;
                 }
                 else
                 {
@@ -514,5 +668,7 @@ public class FooTextToSpeech
                 // TODO:(pv) Queue silence...
             }
         }
+
+        return success;
     }
 }

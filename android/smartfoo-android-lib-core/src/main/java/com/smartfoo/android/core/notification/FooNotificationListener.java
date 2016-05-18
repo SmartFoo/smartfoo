@@ -2,6 +2,7 @@ package com.smartfoo.android.core.notification;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RemoteController;
@@ -38,6 +39,37 @@ public class FooNotificationListener
         return VERSION_SDK_INT >= 19;
     }
 
+    private static boolean sIsNotificationListenerBound;
+
+    public static boolean isNotificationListenerBound()
+    {
+        return sIsNotificationListenerBound;
+    }
+
+    @TargetApi(21) // TODO:(pv) Does this work on API19-20?
+    public static boolean isNotificationAccessSettingEnabled(Context context)
+    {
+        String packageName = context.getPackageName();
+
+        ContentResolver contentResolver = context.getContentResolver();
+
+        final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
+
+        String enabledNotificationListeners = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
+        if (enabledNotificationListeners != null)
+        {
+            for (String enabledNotificationListener : enabledNotificationListeners.split(":"))
+            {
+                if (enabledNotificationListener.startsWith(packageName))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     @SuppressLint("InlinedApi")
     @TargetApi(19)
     @NonNull
@@ -58,7 +90,9 @@ public class FooNotificationListener
 
     public interface FooNotificationListenerCallbacks
     {
-        void onCreate();
+        void onNotificationListenerBound();
+
+        void onNotificationListenerUnbound();
 
         void onNotificationPosted(StatusBarNotification sbn);
 
@@ -107,12 +141,8 @@ public class FooNotificationListener
 
         mRemoteController = new RemoteController(applicationContext, this);
 
-        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
-        for (FooNotificationListenerCallbacks callback : callbacks)
         {
-            callback.onCreate();
         }
-        sListenerManager.endTraversing();
 
         FooLog.d(TAG, "-onCreate()");
     }
@@ -120,15 +150,45 @@ public class FooNotificationListener
     @Override
     public IBinder onBind(Intent intent)
     {
+        IBinder result;
+
         FooLog.d(TAG, "onBind(intent=" + FooPlatformUtils.toString(intent) + ')');
         if (ACTION_BIND_REMOTE_CONTROLLER.equals(intent.getAction()))
         {
-            return mRemoteControllerBinder;
+            result = mRemoteControllerBinder;
         }
         else
         {
-            return super.onBind(intent);
+            result = super.onBind(intent);
+
+            sIsNotificationListenerBound = true;
+
+            Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
+            for (FooNotificationListenerCallbacks callback : callbacks)
+            {
+                callback.onNotificationListenerBound();
+            }
+            sListenerManager.endTraversing();
         }
+
+        return result;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent)
+    {
+        boolean result = super.onUnbind(intent);
+
+        sIsNotificationListenerBound = false;
+
+        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
+        for (FooNotificationListenerCallbacks callback : callbacks)
+        {
+            callback.onNotificationListenerUnbound();
+        }
+        sListenerManager.endTraversing();
+
+        return result;
     }
 
     @Override
