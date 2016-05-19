@@ -37,8 +37,9 @@ public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
 
-    public static boolean VERBOSE_LOG_UTTERANCE_IDS      = true;
-    public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = true;
+    public static boolean VERBOSE_LOG_SPEECH             = false;
+    public static boolean VERBOSE_LOG_UTTERANCE_IDS      = false;
+    public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = false;
 
     private static final FooTextToSpeech sInstance = new FooTextToSpeech();
 
@@ -545,9 +546,12 @@ public class FooTextToSpeech
     {
         try
         {
-            FooLog.d(TAG,
-                    "+speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
-                    ')');
+            if (VERBOSE_LOG_SPEECH)
+            {
+                FooLog.d(TAG,
+                        "+speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
+                        ')');
+            }
 
             boolean success = false;
 
@@ -610,9 +614,12 @@ public class FooTextToSpeech
         }
         finally
         {
-            FooLog.d(TAG,
-                    "-speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
-                    ')');
+            if (VERBOSE_LOG_SPEECH)
+            {
+                FooLog.d(TAG,
+                        "-speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
+                        ')');
+            }
         }
     }
 

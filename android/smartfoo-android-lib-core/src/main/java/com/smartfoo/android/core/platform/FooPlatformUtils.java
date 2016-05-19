@@ -5,13 +5,13 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.Rect;
@@ -27,7 +27,6 @@ import android.view.Gravity;
 import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -177,6 +176,33 @@ public class FooPlatformUtils
         return context.getPackageName();
     }
 
+    public static String getApplicationName(Context context)
+    {
+        return getApplicationName(context, getPackageName(context));
+    }
+
+    public static String getApplicationName(Context context, String packageName)
+    {
+        PackageManager pm = context.getPackageManager();
+        try
+        {
+            ApplicationInfo ai = pm.getApplicationInfo(packageName, 0);
+            if (ai != null)
+            {
+                CharSequence applicationLabel = pm.getApplicationLabel(ai);
+                if (applicationLabel != null)
+                {
+                    return applicationLabel.toString();
+                }
+            }
+        }
+        catch (NameNotFoundException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+
     /**
      * @param context
      * @return PackageInfo of the context's package name, or null if one does not exist (should never happen)
@@ -188,7 +214,7 @@ public class FooPlatformUtils
         {
             return context.getPackageManager().getPackageInfo(packageName, PackageManager.GET_META_DATA);
         }
-        catch (PackageManager.NameNotFoundException e)
+        catch (NameNotFoundException e)
         {
             // ignore
             return null;
@@ -452,14 +478,14 @@ public class FooPlatformUtils
      * I thought that I could duplicate what com.android.settings.DevelopmentSettings does:
      * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L941
      * ie: Use Reflection to set the SystemProperty and then pokeSystemProperties
-     * <p>
+     * <p/>
      * After several hours of work I learned that the SystemProperties are ACL protected to only allow the Google
      * Signed Settings app to change them.
      * http://stackoverflow.com/a/11136242 -> http://stackoverflow.com/a/11123609/252308
-     * <p>
+     * <p/>
      * Rather than continue to try to get this to work (if it is even possible),
      * I have chosen to just launch the SettingsActivity DevelopmentSettings fragment.
-     * <p>
+     * <p/>
      * Other references for my wasted efforts:
      * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L1588
      * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/os/SystemProperties.java#L122
@@ -683,26 +709,5 @@ public class FooPlatformUtils
     {
         //noinspection deprecation
         return (Build.VERSION.SDK_INT > 21) ? res.getDrawable(resId, null) : res.getDrawable(resId);
-    }
-
-    public static String viewVisibilityToString(int visibility)
-    {
-        String name;
-        switch (visibility)
-        {
-            case View.VISIBLE:
-                name = "VISIBLE";
-                break;
-            case View.INVISIBLE:
-                name = "INVISIBLE";
-                break;
-            case View.GONE:
-                name = "GONE";
-                break;
-            default:
-                name = "UNKNOWN";
-                break;
-        }
-        return name + '(' + visibility + ')';
     }
 }

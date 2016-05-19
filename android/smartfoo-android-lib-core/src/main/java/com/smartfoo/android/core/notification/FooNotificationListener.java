@@ -9,6 +9,7 @@ import android.media.RemoteController;
 import android.media.RemoteController.MetadataEditor;
 import android.os.Binder;
 import android.os.Build.VERSION;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
@@ -16,7 +17,6 @@ import android.service.notification.StatusBarNotification;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooListenerManager;
-import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 
@@ -30,7 +30,7 @@ public class FooNotificationListener
     private static final String TAG = FooLog.TAG(FooNotificationListener.class);
 
     /**
-     * Used to force testing of using a specific OS Version #.
+     * Used to force testing code for a specific OS Version #.
      */
     private static final int VERSION_SDK_INT = VERSION.SDK_INT;
 
@@ -141,9 +141,6 @@ public class FooNotificationListener
 
         mRemoteController = new RemoteController(applicationContext, this);
 
-        {
-        }
-
         FooLog.d(TAG, "-onCreate()");
     }
 
@@ -161,14 +158,7 @@ public class FooNotificationListener
         {
             result = super.onBind(intent);
 
-            sIsNotificationListenerBound = true;
-
-            Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
-            for (FooNotificationListenerCallbacks callback : callbacks)
-            {
-                callback.onNotificationListenerBound();
-            }
-            sListenerManager.endTraversing();
+            onNotificationListenerBound();
         }
 
         return result;
@@ -179,14 +169,7 @@ public class FooNotificationListener
     {
         boolean result = super.onUnbind(intent);
 
-        sIsNotificationListenerBound = false;
-
-        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
-        for (FooNotificationListenerCallbacks callback : callbacks)
-        {
-            callback.onNotificationListenerUnbound();
-        }
-        sListenerManager.endTraversing();
+        onNotificationListenerUnbound();
 
         return result;
     }
@@ -195,11 +178,54 @@ public class FooNotificationListener
     public void onDestroy()
     {
         super.onDestroy();
+
+        onNotificationListenerUnbound();
     }
 
-    public RemoteController getRemoteController()
+    private void onNotificationListenerBound()
     {
-        return mRemoteController;
+        sIsNotificationListenerBound = true;
+
+        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
+        for (FooNotificationListenerCallbacks callback : callbacks)
+        {
+            callback.onNotificationListenerBound();
+        }
+        sListenerManager.endTraversing();
+
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                StatusBarNotification[] activeNotifications = getActiveNotifications();
+                //FooLog.e(TAG, "onNotificationListenerBound: activeNotifications=" + FooString.toString(activeNotifications));
+                if (activeNotifications != null)
+                {
+                    for (StatusBarNotification sbn : activeNotifications)
+                    {
+                        onNotificationPosted(sbn);
+                    }
+                }
+            }
+        }, 100);
+    }
+
+    private void onNotificationListenerUnbound()
+    {
+        if (!sIsNotificationListenerBound)
+        {
+            return;
+        }
+
+        sIsNotificationListenerBound = false;
+
+        Set<FooNotificationListenerCallbacks> callbacks = sListenerManager.beginTraversing();
+        for (FooNotificationListenerCallbacks callback : callbacks)
+        {
+            callback.onNotificationListenerUnbound();
+        }
+        sListenerManager.endTraversing();
     }
 
     @Override
@@ -222,6 +248,11 @@ public class FooNotificationListener
             callback.onNotificationRemoved(sbn);
         }
         sListenerManager.endTraversing();
+    }
+
+    public RemoteController getRemoteController()
+    {
+        return mRemoteController;
     }
 
     @Override
