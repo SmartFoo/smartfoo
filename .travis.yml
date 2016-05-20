@@ -24,4 +24,4 @@ android:
     # - sys-img-x86-android-17
 script:
     - cd android
-    - ./gradlew assembleDebug --info
+    - ./gradlew assembleDebug --debug
