@@ -57,6 +57,16 @@ public class FooTextToSpeechBuilder
         appendSpeech(text);
     }
 
+    public boolean isEmpty()
+    {
+        return mParts.isEmpty();
+    }
+
+    public int getNumberOfParts()
+    {
+        return mParts.size();
+    }
+
     public FooTextToSpeechBuilder appendSpeech(String text)
     {
         mParts.add(new FooTextToSpeechPartSpeech(text));
