@@ -83,6 +83,27 @@ public class FooAudioUtils
         return s + '(' + audioFocus + ')';
     }
 
+    public static String audioFocusRequestToString(int audioFocus)
+    {
+        String s;
+        switch (audioFocus)
+        {
+            case AudioManager.AUDIOFOCUS_REQUEST_FAILED:
+                s = "AUDIOFOCUS_REQUEST_FAILED";
+                break;
+            case AudioManager.AUDIOFOCUS_REQUEST_GRANTED:
+                s = "AUDIOFOCUS_REQUEST_GRANTED";
+                break;
+            case 2:
+                s = "AUDIOFOCUS_REQUEST_DELAYED";
+                break;
+            default:
+                s = "UNKNOWN";
+                break;
+        }
+        return s + '(' + audioFocus + ')';
+    }
+
     public static int getVolumePercentFromAbsolute(
             @NonNull
             AudioManager audioManager, int audioStreamType, int volume)

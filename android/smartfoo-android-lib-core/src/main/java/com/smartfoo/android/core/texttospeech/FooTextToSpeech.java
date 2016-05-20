@@ -400,18 +400,38 @@ public class FooTextToSpeech
         FooLog.i(TAG, "audioFocusStart()");
         int voiceAudioStreamType = getAudioStreamType();
         int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener, voiceAudioStreamType, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
-        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        if (success)
+        {
+            FooLog.i(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+        }
+        else
+        {
+            FooLog.w(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+        }
+        return success;
     }
 
     private void onAudioFocusChange(int focusChange)
     {
         FooLog.i(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
+
     }
 
-    public void audioFocusStop()
+    public boolean audioFocusStop()
     {
         FooLog.i(TAG, "audioFocusStop()");
-        mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+        int result = mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+        boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        if (success)
+        {
+            FooLog.i(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+        }
+        else
+        {
+            FooLog.w(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+        }
+        return success;
     }
 
     private class Runnables
