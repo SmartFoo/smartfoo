@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanCallback;
 import android.util.SparseArray;
 
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.bluetooth.gatt.FooGattUuids;
 
 import java.util.Arrays;
 import java.util.Iterator;

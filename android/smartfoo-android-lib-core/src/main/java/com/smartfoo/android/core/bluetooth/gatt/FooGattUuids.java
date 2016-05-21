@@ -1,4 +1,4 @@
-package com.smartfoo.android.core.bluetooth;
+package com.smartfoo.android.core.bluetooth.gatt;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
