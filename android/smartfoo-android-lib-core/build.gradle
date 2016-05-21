@@ -1,23 +1,19 @@
-//
-// NOTE:(pv) Many ideas for publishing to jCenter came from:
-//  https://www.virag.si/2015/01/publishing-gradle-android-library-to-jcenter/
-//
 apply plugin: 'com.android.library'
-//apply plugin: 'com.github.dcendents.android-maven'
-//apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
 archivesBaseName = 'smartfoo-android-lib-core'
 description = 'SmartFoo Core Library for Android'
 group = 'com.smartfoo'
-version = '0.0.1'
+version = '0.0.2'
 
 def siteUrl = 'https://github.com/SmartFoo/smartfoo'
 def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:23.4.0'
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.3.0'
 }
 
 android {
@@ -39,16 +35,9 @@ android {
     }
 }
 
-/*
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-//
-// https://github.com/bintray/gradle-bintray-plugin/blob/master/README.md#the-bintray-plugin-dsl
-//
 bintray {
-    user = properties.getProperty('bintray.user')
-    key = properties.getProperty('bintray.apikey')
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
 
     configurations = ['archives']
 
@@ -119,4 +108,3 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
-*/
