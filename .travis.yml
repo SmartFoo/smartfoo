@@ -35,4 +35,4 @@ android:
 
 script:
 - cd android
-- ./gradlew bintrayUpload --info --debug
+- ./gradlew bintrayUpload --info
