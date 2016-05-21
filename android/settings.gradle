@@ -1,3 +1,5 @@
 
 include ':smartfoo-android-lib-core'
 include ':smartfoo-android-testapp'
+
+rootProject.name = 'smartfoo-android'
