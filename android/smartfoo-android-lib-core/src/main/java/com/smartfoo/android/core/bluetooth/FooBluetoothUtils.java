@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.util.SparseArray;
 
@@ -142,6 +144,51 @@ public class FooBluetoothUtils
                 break;
         }
         return name + '(' + bluetoothAdapterState + ')';
+    }
+
+    public static String bluetoothProfileStateToString(int bluetoothProfileState)
+    {
+        String name;
+        switch (bluetoothProfileState)
+        {
+            case BluetoothProfile.STATE_DISCONNECTED:
+                name = "STATE_DISCONNECTED";
+                break;
+            case BluetoothProfile.STATE_CONNECTING:
+                name = "STATE_CONNECTING";
+                break;
+            case BluetoothProfile.STATE_CONNECTED:
+                name = "STATE_CONNECTED";
+                break;
+            case BluetoothProfile.STATE_DISCONNECTING:
+                name = "STATE_DISCONNECTING";
+                break;
+            default:
+                name = "UNKNOWN";
+                break;
+        }
+        return name + '(' + bluetoothProfileState + ')';
+    }
+
+    public static String bluetoothHeadsetAudioStateToString(int bluetoothHeadsetAudioState)
+    {
+        String name;
+        switch (bluetoothHeadsetAudioState)
+        {
+            case BluetoothHeadset.STATE_AUDIO_DISCONNECTED:
+                name = "STATE_AUDIO_DISCONNECTED";
+                break;
+            case BluetoothHeadset.STATE_AUDIO_CONNECTING:
+                name = "STATE_AUDIO_CONNECTING";
+                break;
+            case BluetoothHeadset.STATE_AUDIO_CONNECTED:
+                name = "STATE_AUDIO_CONNECTED";
+                break;
+            default:
+                name = "UNKNOWN";
+                break;
+        }
+        return name + '(' + bluetoothHeadsetAudioState + ')';
     }
 
     public static String scanCallbackErrorToString(int value)

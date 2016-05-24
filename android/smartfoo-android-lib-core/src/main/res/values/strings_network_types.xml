@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Bluetooth">Bluetooth</string>
+    <string name="network_source_Dummy">Dummy</string>
+    <string name="network_source_Ethernet">Ethernet</string>
+    <string name="network_source_cellular">Cellular</string>
+    <string name="network_type_cellular_1xRTT">Cellular (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">Cellular (CDMA)</string>
+    <string name="network_type_cellular_EDGE">Cellular (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">Cellular (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">Cellular (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">Cellular (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">Cellular (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">Cellular (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">Cellular (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">Cellular (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">Cellular (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">Cellular (HSUPA)</string>
+    <string name="network_type_cellular_iDen">Cellular (iDen)</string>
+    <string name="network_type_cellular_LTE">Cellular (LTE)</string>
+    <string name="network_type_cellular_UMTS">Cellular (UMTS)</string>
+    <string name="network_type_cellular_Unknown">Cellular (Unknown)</string>
+    <string name="network_source_cellular_DUN">Cellular DUN</string>
+    <string name="network_source_cellular_HIPRI">Cellular HIPRI</string>
+    <string name="network_source_cellular_MMS">Cellular MMS</string>
+    <string name="network_source_cellular_SUPL">Cellular SUPL</string>
+    <string name="network_source_WIFI">WIFI</string>
+    <string name="network_source_WIMAX">WIMAX</string>
+    <string name="network_source_Unknown">Unknown</string>
+    <string name="network_source_None">None</string>
+</resources>

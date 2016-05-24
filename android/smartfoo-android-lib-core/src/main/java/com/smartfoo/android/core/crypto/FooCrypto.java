@@ -21,20 +21,20 @@ public class FooCrypto
     protected static final String HMAC_SHA256          = "HmacSHA256";
     protected static final String SHA256               = "SHA-256";
 
-    public static class PbCryptoException
+    public static class FooCryptoException
             extends FooException
     {
-        public PbCryptoException(String source, String message)
+        public FooCryptoException(String source, String message)
         {
             super(source, message);
         }
 
-        public PbCryptoException(String source, Exception innerException)
+        public FooCryptoException(String source, Exception innerException)
         {
             super(source, innerException);
         }
 
-        public PbCryptoException(String source, String message, Exception innerException)
+        public FooCryptoException(String source, String message, Exception innerException)
         {
             super(source, message, innerException);
         }
@@ -76,13 +76,13 @@ public class FooCrypto
     }
 
     public static byte[] HMACSHA256(byte[] key, byte[] buffer) //
-            throws PbCryptoException
+            throws FooCryptoException
     {
         return HMACSHA256(key, buffer, 0, buffer.length);
     }
 
     public static byte[] HMACSHA256(byte[] key, byte[] buffer, int offset, int length) //
-            throws PbCryptoException
+            throws FooCryptoException
     {
         SecretKeySpec signingKey = new SecretKeySpec(key, HMAC_SHA256);
         try
@@ -94,12 +94,12 @@ public class FooCrypto
         }
         catch (NoSuchAlgorithmException | InvalidKeyException e)
         {
-            throw new PbCryptoException("HMACSHA256(...)", e);
+            throw new FooCryptoException("HMACSHA256(...)", e);
         }
     }
 
     public static byte[] SHA256(byte[] buffer) //
-            throws PbCryptoException
+            throws FooCryptoException
     {
         try
         {
@@ -107,7 +107,7 @@ public class FooCrypto
         }
         catch (NoSuchAlgorithmException e)
         {
-            throw new PbCryptoException("SHA256(...)", e);
+            throw new FooCryptoException("SHA256(...)", e);
         }
     }
 
