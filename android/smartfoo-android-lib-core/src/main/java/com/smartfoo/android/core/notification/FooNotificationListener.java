@@ -193,22 +193,67 @@ public class FooNotificationListener
         }
         sListenerManager.endTraversing();
 
-        new Handler().postDelayed(new Runnable()
+        initializeActiveNotifications();
+    }
+
+    private static final int INITIALIZE_ACTIVE_NOTIFICATIONS_MAX_ATTEMPTS = 10;
+
+    private int     mInitializeActiveNotificationsAttempts;
+    private int     mInitializeActiveNotificationsDelay;
+    private boolean mInitializeActiveNotificationsSuccess;
+
+    private void initializeActiveNotifications()
+    {
+        //
+        // Hack required to read active notifications immediately after being bound
+        //
+        if (mInitializeActiveNotificationsAttempts < INITIALIZE_ACTIVE_NOTIFICATIONS_MAX_ATTEMPTS)
         {
-            @Override
-            public void run()
+            mInitializeActiveNotificationsAttempts++;
+            mInitializeActiveNotificationsDelay += 100;
+
+            new Handler().postDelayed(new Runnable()
             {
-                StatusBarNotification[] activeNotifications = getActiveNotifications();
-                //FooLog.e(TAG, "onNotificationListenerBound: activeNotifications=" + FooString.toString(activeNotifications));
-                if (activeNotifications != null)
+                @Override
+                public void run()
                 {
-                    for (StatusBarNotification sbn : activeNotifications)
+                    try
                     {
-                        onNotificationPosted(sbn);
+                        StatusBarNotification[] activeNotifications = getActiveNotifications();
+                        //FooLog.e(TAG, "initializeActiveNotifications: activeNotifications=" + FooString.toString(activeNotifications));
+                        if (activeNotifications != null)
+                        {
+                            for (StatusBarNotification sbn : activeNotifications)
+                            {
+                                onNotificationPosted(sbn);
+                            }
+                        }
+
+                        mInitializeActiveNotificationsSuccess = true;
+
+                        FooLog.i(TAG, "initializeActiveNotifications: Success after " +
+                                      mInitializeActiveNotificationsAttempts + " attempts");
+                    }
+                    catch (SecurityException e)
+                    {
+                        FooLog.w(TAG, "initializeActiveNotifications: EXCEPTION", e);
+                        initializeActiveNotifications();
                     }
                 }
-            }
-        }, 100);
+            }, mInitializeActiveNotificationsDelay);
+        }
+        else
+        {
+            FooLog.w(TAG, "initializeActiveNotifications: Maximum number of attempts (" +
+                          INITIALIZE_ACTIVE_NOTIFICATIONS_MAX_ATTEMPTS + ") reached");
+        }
+    }
+
+    private void resetInitializeActiveNotifications()
+    {
+        mInitializeActiveNotificationsAttempts = 0;
+        mInitializeActiveNotificationsDelay = 0;
+        mInitializeActiveNotificationsSuccess = false;
     }
 
     private void onNotificationListenerUnbound()
