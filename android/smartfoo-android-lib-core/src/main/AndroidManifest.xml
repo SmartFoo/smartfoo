@@ -35,6 +35,11 @@
             </intent-filter>
         </service>
 
+        <receiver
+            android:name=".notification.FooNotificationReceiver"
+            android:exported="false"
+            />
+
     </application>
 
 </manifest>

@@ -34,14 +34,14 @@ public class FooWiredHeadsetConnectionListener
         mListenerManager = new FooListenerManager<>();
     }
 
+    public boolean isWiredHeadsetConnected()
+    {
+        return mWiredHeadsetBroadcastReceiver.isWiredHeadsetConnected();
+    }
+
     public boolean isStarted()
     {
         return mWiredHeadsetBroadcastReceiver.isStarted();
-    }
-
-    public boolean isWiredHeadsetInserted()
-    {
-        return mWiredHeadsetBroadcastReceiver.isWiredHeadsetInserted();
     }
 
     public void attach(
@@ -106,16 +106,16 @@ public class FooWiredHeadsetConnectionListener
 
         private OnWiredHeadsetConnectedCallbacks mCallbacks;
 
-        private boolean mIsWiredHeadsetInserted;
+        private boolean mIsWiredHeadsetConnected;
 
         public WiredHeadsetBroadcastReceiver(Context applicationContext)
         {
             mApplicationContext = applicationContext;
         }
 
-        public boolean isWiredHeadsetInserted()
+        public boolean isWiredHeadsetConnected()
         {
-            return mIsWiredHeadsetInserted;
+            return mIsWiredHeadsetConnected;
         }
 
         public boolean isStarted()
@@ -188,8 +188,8 @@ public class FooWiredHeadsetConnectionListener
 
                     synchronized (mSyncLock)
                     {
-                        mIsWiredHeadsetInserted = state == 1;
-                        if (mIsWiredHeadsetInserted)
+                        mIsWiredHeadsetConnected = (state == 1);
+                        if (mIsWiredHeadsetConnected)
                         {
                             mCallbacks.onWiredHeadsetConnected(name, microphone == 1);
                         }

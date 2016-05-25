@@ -42,15 +42,20 @@ public class FooBluetoothHeadsetConnectionListener
         mListenerManager = new FooListenerManager<>();
     }
 
-    public boolean isStarted()
+    public boolean isBluetoothHeadsetConnected()
     {
-        return mBluetoothConnectionBroadcastReceiver.isStarted();
+        return mBluetoothConnectionBroadcastReceiver.isBluetoothHeadsetConnected();
     }
 
     @NonNull
     public Map<String, BluetoothDevice> getConnectedHeadsets()
     {
         return mBluetoothConnectionBroadcastReceiver.getConnectedHeadsets();
+    }
+
+    public boolean isStarted()
+    {
+        return mBluetoothConnectionBroadcastReceiver.isStarted();
     }
 
     public void attach(
@@ -167,6 +172,14 @@ public class FooBluetoothHeadsetConnectionListener
             mApplicationContext = applicationContext;
             mBluetoothAdapter = bluetoothAdapter;
             mConnectedBluetoothHeadsets = new HashMap<>();
+        }
+
+        public boolean isBluetoothHeadsetConnected()
+        {
+            synchronized (mSyncLock)
+            {
+                return mConnectedBluetoothHeadsets.size() > 0;
+            }
         }
 
         public Map<String, BluetoothDevice> getConnectedHeadsets()
