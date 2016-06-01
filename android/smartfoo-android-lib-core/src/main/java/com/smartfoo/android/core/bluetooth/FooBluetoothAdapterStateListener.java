@@ -80,7 +80,7 @@ public class FooBluetoothAdapterStateListener
             }
 
             mContext = context;
-            mBluetoothAdapter = FooBluetoothManager.getBluetoothAdapter(context);
+            mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(context);
         }
 
         public static boolean isBluetoothAdapterEnabled(int bluetoothAdapterState)
