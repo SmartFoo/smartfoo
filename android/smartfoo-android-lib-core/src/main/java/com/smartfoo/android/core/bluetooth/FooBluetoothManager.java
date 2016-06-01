@@ -1,12 +1,8 @@
 package com.smartfoo.android.core.bluetooth;
 
-import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.logging.FooLog;
@@ -15,68 +11,6 @@ public class FooBluetoothManager
 {
     private static final String TAG = FooLog.TAG(FooBluetoothManager.class);
 
-    public static boolean isBluetoothSupported(Context context)
-    {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context must not be null");
-        }
-
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
-    }
-
-    public static boolean isBluetoothLowEnergySupported(Context context)
-    {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context must not be null");
-        }
-
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
-    }
-
-    @TargetApi(VERSION_CODES.JELLY_BEAN_MR2)
-    public static BluetoothManager getBluetoothManager(Context context)
-    {
-        if (!isBluetoothSupported(context))
-        {
-            return null;
-        }
-
-        return (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-    }
-
-    /**
-     * Per: http://developer.android.com/reference/android/bluetooth/BluetoothAdapter.html
-     * "To get a BluetoothAdapter representing the local Bluetooth adapter, when running on JELLY_BEAN_MR1 and below,
-     * call the static getDefaultAdapter() method; when running on JELLY_BEAN_MR2 and higher, retrieve it through
-     * getSystemService(String) with BLUETOOTH_SERVICE. Fundamentally, this is your starting point for all Bluetooth
-     * actions."
-     *
-     * @return
-     */
-    public static BluetoothAdapter getBluetoothAdapter(Context context)
-    {
-        if (!isBluetoothSupported(context))
-        {
-            return null;
-        }
-
-        BluetoothAdapter bluetoothAdapter;
-        if (VERSION.SDK_INT <= VERSION_CODES.JELLY_BEAN_MR1)
-        {
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        }
-        else
-        {
-            //noinspection ConstantConditions
-            bluetoothAdapter = getBluetoothManager(context).getAdapter();
-        }
-
-        return bluetoothAdapter;
-    }
-
-    private final Context                               mApplicationContext;
     private final boolean                               mIsBluetoothSupported;
     private final boolean                               mIsBluetoothLowEnergySupported;
     private final BluetoothManager                      mBluetoothManager;
@@ -88,21 +22,13 @@ public class FooBluetoothManager
             @NonNull
             Context applicationContext)
     {
-        mApplicationContext = applicationContext;
-        mIsBluetoothSupported = isBluetoothSupported(applicationContext);
-        mIsBluetoothLowEnergySupported = isBluetoothLowEnergySupported(applicationContext);
+        mIsBluetoothSupported = FooBluetoothUtils.isBluetoothSupported(applicationContext);
+        mIsBluetoothLowEnergySupported = FooBluetoothUtils.isBluetoothLowEnergySupported(applicationContext);
 
-        mBluetoothManager = getBluetoothManager(applicationContext);
-        mBluetoothAdapter = getBluetoothAdapter(applicationContext);
+        mBluetoothManager = FooBluetoothUtils.getBluetoothManager(applicationContext);
+        mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(applicationContext);
 
-        if (mBluetoothAdapter != null)
-        {
-            mBluetoothHeadsetConnectionListener = new FooBluetoothHeadsetConnectionListener(applicationContext, mBluetoothAdapter);
-        }
-        else
-        {
-            mBluetoothHeadsetConnectionListener = null;
-        }
+        mBluetoothHeadsetConnectionListener = new FooBluetoothHeadsetConnectionListener(applicationContext);
 
         mBluetoothAdapterStateListener = new FooBluetoothAdapterStateListener(applicationContext);
     }

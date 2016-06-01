@@ -1,10 +1,26 @@
 package com.smartfoo.android.core.media;
 
+import android.content.Context;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.logging.FooLog;
 
 public class FooAudioUtils
 {
+    private static final String TAG = FooLog.TAG(FooAudioUtils.class);
+
+    private FooAudioUtils()
+    {
+    }
+
     public static String audioStreamTypeToString(int audioStreamType)
     {
         String s;
@@ -135,7 +151,13 @@ public class FooAudioUtils
         return getVolumePercentFromAbsolute(audioManager, audioStreamType, volume);
     }
 
-    private FooAudioUtils()
+    public static Ringtone getRingtone(Context context, Uri ringtoneUri)
     {
+        if (FooString.isNullOrEmpty(ringtoneUri))
+        {
+            return null;
+        }
+
+        return RingtoneManager.getRingtone(context, ringtoneUri);
     }
 }

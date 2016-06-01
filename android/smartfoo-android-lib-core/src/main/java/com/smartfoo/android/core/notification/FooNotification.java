@@ -97,7 +97,7 @@ public class FooNotification
         mNotification = notification;
     }
 
-    public FooNotification(
+    private FooNotification(
             @NonNull
             Parcel in)
     {

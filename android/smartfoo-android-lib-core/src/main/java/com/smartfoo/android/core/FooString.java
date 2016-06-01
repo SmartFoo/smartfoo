@@ -64,6 +64,11 @@ public class FooString
         return (value == null || value.length() == 0 || value.equals(""));
     }
 
+    public static boolean isNullOrEmpty(Object value)
+    {
+        return (value == null || isNullOrEmpty(value.toString()));
+    }
+
     /**
      * Creates a String from a null-terminated array of default String encoded bytes.
      *

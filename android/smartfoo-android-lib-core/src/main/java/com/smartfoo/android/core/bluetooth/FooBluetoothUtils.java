@@ -1,13 +1,21 @@
 package com.smartfoo.android.core.bluetooth;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
 import com.smartfoo.android.core.FooString;
@@ -20,32 +28,105 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-/**
- * "Compat" API18 port of hidden API21 {@link android.bluetooth.le.BluetoothLeUtils}
- * Helper class for Bluetooth LE utils.
- */
 public class FooBluetoothUtils
 {
-    //
-    // Non-BluetoothLeUtils: BEGIN
-    //
+    private FooBluetoothUtils()
+    {
+    }
 
-    public static long gattDeviceAddressToLong(BluetoothGatt gatt)
+    public static boolean isBluetoothSupported(
+            @NonNull
+            Context context)
+    {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
+    }
+
+    public static boolean isBluetoothLowEnergySupported(
+            @NonNull
+            Context context)
+    {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+    }
+
+    /**
+     * @param context
+     * @return null if Bluetooth is not supported
+     */
+    @TargetApi(VERSION_CODES.JELLY_BEAN_MR2)
+    @Nullable
+    public static BluetoothManager getBluetoothManager(
+            @NonNull
+            Context context)
+    {
+        BluetoothManager bluetoothManager = null;
+
+        if (isBluetoothSupported(context))
+        {
+            bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        }
+
+        return bluetoothManager;
+    }
+
+    /**
+     * Per: http://developer.android.com/reference/android/bluetooth/BluetoothAdapter.html
+     * "To get a BluetoothAdapter representing the local Bluetooth adapter, when running on JELLY_BEAN_MR1 and below,
+     * call the static getDefaultAdapter() method; when running on JELLY_BEAN_MR2 and higher, retrieve it through
+     * getSystemService(String) with BLUETOOTH_SERVICE. Fundamentally, this is your starting point for all Bluetooth
+     * actions."
+     *
+     * @return null if Bluetooth is not supported
+     */
+    @Nullable
+    public static BluetoothAdapter getBluetoothAdapter(
+            @NonNull
+            Context context)
+    {
+        BluetoothAdapter bluetoothAdapter = null;
+
+        if (isBluetoothSupported(context))
+        {
+            if (VERSION.SDK_INT <= VERSION_CODES.JELLY_BEAN_MR1)
+            {
+                bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            }
+            else
+            {
+                BluetoothManager bluetoothManager = getBluetoothManager(context);
+                if (bluetoothManager != null)
+                {
+                    bluetoothAdapter = bluetoothManager.getAdapter();
+                }
+            }
+        }
+
+        return bluetoothAdapter;
+    }
+
+    public static long gattDeviceAddressToLong(
+            @NonNull
+            BluetoothGatt gatt)
     {
         return bluetoothDeviceAddressToLong(gatt.getDevice());
     }
 
-    public static long bluetoothDeviceAddressToLong(BluetoothDevice device)
+    public static long bluetoothDeviceAddressToLong(
+            @NonNull
+            BluetoothDevice device)
     {
         return macAddressStringToLong(device.getAddress());
     }
 
-    public static String gattDeviceAddressToPrettyString(BluetoothGatt gatt)
+    public static String gattDeviceAddressToPrettyString(
+            @NonNull
+            BluetoothGatt gatt)
     {
         return bluetoothDeviceAddressToPrettyString(gatt.getDevice());
     }
 
-    public static String bluetoothDeviceAddressToPrettyString(BluetoothDevice device)
+    public static String bluetoothDeviceAddressToPrettyString(
+            @NonNull
+            BluetoothDevice device)
     {
         return macAddressStringToPrettyString(device.getAddress());
     }
@@ -71,16 +152,16 @@ public class FooBluetoothUtils
         return getShortDeviceAddressString(macAddressLongToString(deviceAddress));
     }
 
-    public static String macAddressStringToStrippedLowerCaseString(String macAddress)
+    public static String macAddressStringToStrippedLowerCaseString(
+            @NonNull
+            String macAddress)
     {
-        if (FooString.isNullOrEmpty(macAddress))
-        {
-            throw new IllegalArgumentException("macAddress must not be null/\"\"");
-        }
         return macAddress.replace(":", "").toLowerCase();
     }
 
-    public static long macAddressStringToLong(String macAddress)
+    public static long macAddressStringToLong(
+            @NonNull
+            String macAddress)
     {
         /*
         if (macAddress == null || macAddress.length() != 17)
@@ -92,7 +173,9 @@ public class FooBluetoothUtils
         return Long.parseLong(macAddressStringToStrippedLowerCaseString(macAddress), 16);
     }
 
-    public static String macAddressStringToPrettyString(String macAddress)
+    public static String macAddressStringToPrettyString(
+            @NonNull
+            String macAddress)
     {
         return macAddressLongToPrettyString(macAddressStringToLong(macAddress));
     }
@@ -112,14 +195,6 @@ public class FooBluetoothUtils
     public static String macAddressLongToString(long macAddressLong)
     {
         return String.format(Locale.US, "%012x", macAddressLong);
-    }
-
-    //
-    // Non-BluetoothLeUtils: END
-    //
-
-    private FooBluetoothUtils()
-    {
     }
 
     public static String bluetoothAdapterStateToString(int bluetoothAdapterState)
@@ -215,12 +290,20 @@ public class FooBluetoothUtils
         return name + '(' + value + ')';
     }
 
-    public static String toString(BluetoothGattService service, BluetoothGattCharacteristic characteristic, Object value)
+    public static String toString(
+            @NonNull
+            BluetoothGattService service,
+            @NonNull
+            BluetoothGattCharacteristic characteristic, Object value)
     {
         return toString(service.getUuid(), characteristic.getUuid(), value);
     }
 
-    public static String toString(UUID uuidService, UUID uuidCharacteristic, Object value)
+    public static String toString(
+            @NonNull
+            UUID uuidService,
+            @NonNull
+            UUID uuidCharacteristic, Object value)
     {
         return FooString.quote(FooGattUuids.get(uuidService).getName())
                + "\\" + FooString.quote(FooGattUuids.get(uuidCharacteristic).getName())
