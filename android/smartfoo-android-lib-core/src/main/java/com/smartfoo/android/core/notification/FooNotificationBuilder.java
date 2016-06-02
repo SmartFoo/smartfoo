@@ -17,9 +17,12 @@ import android.widget.RemoteViews;
 public class FooNotificationBuilder
         extends Builder
 {
+    private final Context mContext;
+
     public FooNotificationBuilder(Context context)
     {
         super(context);
+        mContext = context;
     }
 
     @Override
@@ -58,16 +61,31 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setContentTitle(title);
     }
 
+    public FooNotificationBuilder setContentTitle(int title)
+    {
+        return setContentTitle(mContext.getString(title));
+    }
+
     @Override
     public FooNotificationBuilder setContentText(CharSequence text)
     {
         return (FooNotificationBuilder) super.setContentText(text);
     }
 
+    public FooNotificationBuilder setContentText(int text)
+    {
+        return setContentText(mContext.getString(text));
+    }
+
     @Override
     public FooNotificationBuilder setSubText(CharSequence text)
     {
         return (FooNotificationBuilder) super.setSubText(text);
+    }
+
+    public FooNotificationBuilder setSubText(int text)
+    {
+        return setSubText(mContext.getString(text));
     }
 
     @Override
@@ -100,6 +118,11 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setContentIntent(intent);
     }
 
+    public FooNotificationBuilder setContentIntent(int requestCode, Intent contentIntent, int flags)
+    {
+        setContentIntent(PendingIntent.getActivity(mContext, requestCode, contentIntent, flags));
+        return this;
+    }
 
     @Override
     public FooNotificationBuilder setDeleteIntent(PendingIntent intent)
@@ -107,9 +130,10 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setDeleteIntent(intent);
     }
 
-    public void setDeleteIntent()
+    public FooNotificationBuilder setDeleteIntent(int requestCode, Intent contentIntent, int flags)
     {
-        //...
+        setDeleteIntent(PendingIntent.getActivity(mContext, requestCode, contentIntent, flags));
+        return this;
     }
 
     @Override
@@ -147,7 +171,6 @@ public class FooNotificationBuilder
     {
         return (FooNotificationBuilder) super.setSound(sound, streamType);
     }
-
 
     @Override
     public FooNotificationBuilder setVibrate(long[] pattern)
