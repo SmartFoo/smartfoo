@@ -28,12 +28,22 @@ public abstract class FooLogFormatter
 
     protected abstract int getTid();
 
-    public String format(String tag, int level, String msg, Throwable e)
+    public String format(int level, String tag, String msg, Throwable e)
+    {
+        return format(new Date(), level, tag, msg, e);
+    }
+
+    public String format(Date dateTime, int level, String tag, String msg, Throwable e)
+    {
+        return format(dateTime, getPid(), getTid(), level, tag, msg, e);
+    }
+
+    public String format(Date dateTime, int pid, int tid, int level, String tag, String msg, Throwable e)
     {
         StringBuilder sb = new StringBuilder() //
-                .append(DATE_FORMAT.format(new Date())) //
-                .append(' ').append(FooString.padNumber(getPid(), ' ', 5)) //
-                .append(' ').append(FooString.padNumber(getTid(), ' ', 5)) //
+                .append(DATE_FORMAT.format(dateTime)) //
+                .append(' ').append(FooString.padNumber(pid, ' ', 5)) //
+                .append(' ').append(FooString.padNumber(tid, ' ', 5)) //
                 .append(' ').append(LEVEL_NAMES[level]) //
                 .append(' ').append(tag) //
                 .append(' ').append(msg);

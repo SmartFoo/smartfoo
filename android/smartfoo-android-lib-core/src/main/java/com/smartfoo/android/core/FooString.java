@@ -2,6 +2,13 @@ package com.smartfoo.android.core;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
@@ -297,13 +304,13 @@ public class FooString
      * @param limit     Determines the maximum number of entries in the resulting array, and the treatment of trailing
      *                  empty strings.
      *                  <ul>
-     *                  <li>For n > 0, the resulting array contains at most n entries. If this is fewer than the number
-     *                  of matches, the final entry will contain all remaining input.</li>
-     *                  <li>For n < 0, the length of the resulting array is exactly the number of occurrences of the
+     *                  <li>For n &gt; 0, the resulting array contains at most n entries. If this is fewer than the
+     *                  number of matches, the final entry will contain all remaining input.</li>
+     *                  <li>For n &lt; 0, the length of the resulting array is exactly the number of occurrences of the
      *                  Pattern plus one for the text after the final separator. All entries are included.</li>
-     *                  <li>For n == 0, the result is as for n < 0, except trailing empty strings will not be returned.
-     *                  (Note that the case where the input is itself an empty string is special, as described above,
-     *                  and the limit parameter does not apply there.)</li>
+     *                  <li>For n == 0, the result is as for n &lt; 0, except trailing empty strings will not be
+     *                  returned. (Note that the case where the input is itself an empty string is special, as
+     *                  described above, and the limit parameter does not apply there.)</li>
      *                  </ul>
      * @return An array whose elements contain the substrings in a source string that are delimited by a separator
      * string.
@@ -392,7 +399,7 @@ public class FooString
     }
 
     /**
-     * @param msElapsed
+     * @param msElapsed msElapsed
      * @return HH:MM:SS.MMM
      */
     public static String getTimeElapsedString(long msElapsed)
@@ -460,7 +467,7 @@ public class FooString
     /**
      * Identical to {@link #repr}, but grammatically intended for Strings.
      *
-     * @param value
+     * @param value value
      * @return "null", or '\"' + value.toString + '\"', or value.toString()
      */
     public static String quote(Object value)
@@ -471,7 +478,7 @@ public class FooString
     /**
      * Identical to {@link #quote}, but grammatically intended for Objects.
      *
-     * @param value
+     * @param value value
      * @return "null", or '\"' + value.toString + '\"', or value.toString()
      */
     public static String repr(Object value)
@@ -480,8 +487,8 @@ public class FooString
     }
 
     /**
-     * @param value
-     * @param typeOnly
+     * @param value    value
+     * @param typeOnly typeOnly
      * @return "null", or '\"' + value.toString + '\"', or value.toString(), or getShortClassName(value)
      */
     public static String repr(Object value, boolean typeOnly)
@@ -533,7 +540,7 @@ public class FooString
     }
 
     /**
-     * @param flags
+     * @param flags flags
      * @return String in the form of "(flag1|flag3|flag5)"
      */
     public static String toFlagString(Vector flags)
@@ -555,13 +562,13 @@ public class FooString
     }
 
     /**
-     * @param str1
-     * @param str2
-     * @return (str1 == null) ? str1 == str2 : str1.equals(str2)
+     * @param str1 str1
+     * @param str2 str2
+     * @return str1 != null ? str1.equals(str2) : str2 == null
      */
     public static boolean equals(String str1, String str2)
     {
-        return (str1 == null) ? str1 == str2 : str1.equals(str2);
+        return str1 != null ? str1.equals(str2) : str2 == null;
     }
 
     /*
@@ -603,12 +610,12 @@ public class FooString
     }
 
     /**
-     * @param context
-     * @param elapsedMillis
+     * @param context         context
+     * @param elapsedMillis   elapsedMillis
      * @param expanded        if true then formatted as "X days, X hours, X minutes, X seconds, ...", otherwise,
      *                        formatted as "XX minutes", or "XX hours", or "X days"
-     * @param minimumTimeUnit must be >= TimeUnit.MILLISECONDS, or null to default to TimeUnit.SECONDS
-     * @return
+     * @param minimumTimeUnit must be &gt;= TimeUnit.MILLISECONDS, or null to default to TimeUnit.SECONDS
+     * @return null if elapsedMillis &lt; 0
      */
     public static String getTimeDurationString(Context context, long elapsedMillis, boolean expanded, TimeUnit minimumTimeUnit)
     {
@@ -751,7 +758,7 @@ public class FooString
     }
 
     /**
-     * @param msElapsed
+     * @param msElapsed msElapsed
      * @return HH:MM:SS.MMM
      */
     public static String getTimeDurationFormattedString(long msElapsed)
@@ -813,5 +820,52 @@ public class FooString
     public static boolean startsWithVowel(String vowels, String s)
     {
         return s != null && s.matches("^[" + vowels + "].*");
+    }
+
+    //
+    //
+    //
+
+    /**
+     * @param text            text to set the SpannableString to
+     * @param foregroundColor One of Color.*, or any other 0xaarrggbb value
+     * @param backgroundColor One of Color.*, or any other 0xaarrggbb value; -1 to ignore
+     * @param style           Typeface.*; -1 to ignore
+     * @param family          The font family for this typeface.  Examples include "monospace", "serif", and
+     *                        "sans-serif"; null to ignore
+     * @param proportion      Size of the font; Example 1.0f, 0.8f, ...; Float.NaN to ignore
+     * @return a SpannableString with the given text, color, and optional style
+     */
+    public static SpannableString newSpannableString(String text,
+                                                     int foregroundColor, int backgroundColor,
+                                                     int style,
+                                                     String family,
+                                                     float proportion)
+    {
+        SpannableString value = new SpannableString(text);
+        int length = value.length();
+        if (backgroundColor != -1)
+        {
+            value.setSpan(new BackgroundColorSpan(backgroundColor), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            length = value.length();
+        }
+        value.setSpan(new ForegroundColorSpan(foregroundColor), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (style != -1)
+        {
+            value.setSpan(new StyleSpan(style), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            length = value.length();
+        }
+        if (!isNullOrEmpty(family))
+        {
+            value.setSpan(new TypefaceSpan(family), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            length = value.length();
+        }
+        if (proportion != Float.NaN)
+        {
+            value.setSpan(new RelativeSizeSpan(proportion), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            //noinspection UnusedAssignment
+            length = value.length();
+        }
+        return value;
     }
 }

@@ -41,7 +41,7 @@ public class FooBluetoothAdapterStateListener
     }
 
     /**
-     * @param callbacks
+     * @param callbacks callbacks
      * @return {@link #isBluetoothAdapterEnabled()}
      */
     public boolean start(FooBluetoothAdapterStateCallbacks callbacks)

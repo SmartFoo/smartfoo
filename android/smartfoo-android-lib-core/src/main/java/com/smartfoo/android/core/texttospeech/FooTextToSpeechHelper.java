@@ -50,10 +50,10 @@ public class FooTextToSpeechHelper
      *             {
      *                 case TextToSpeech.Engine.CHECK_VOICE_DATA_PASS:
      *                 {
-     *                     ArrayList<String> availableVoices = data.getStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES);
+     *                     ArrayList&lt;String&gt; availableVoices = data.getStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES);
      *                     FooLog.d(TAG, "onActivityResult: availableVoices=" + availableVoices);
      *
-     *                     ArrayAdapter<String> spinnerVoicesAdapter = new ArrayAdapter&lt;&gt;(this,
+     *                     ArrayAdapter&lt;String&gt; spinnerVoicesAdapter = new ArrayAdapter&lt;&gt;(this,
      * android.R.layout.simple_spinner_dropdown_item, availableVoices);
      *                     mSpinnerVoices.setAdapter(spinnerVoicesAdapter);
      *                     break;
@@ -65,8 +65,8 @@ public class FooTextToSpeechHelper
      * }
      * </pre>
      *
-     * @param activity
-     * @param requestCode
+     * @param activity activity
+     * @param requestCode requestCode
      */
     public static void requestTextToSpeechData(Activity activity, int requestCode)
     {

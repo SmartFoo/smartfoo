@@ -21,25 +21,29 @@ import java.util.NoSuchElementException;
  * <li>throws IllegalArgumentException for null values</li>
  * <li>Extra debug logging</li>
  * </ul>
- * <p/>
+ * <p>
  * One note to the original code's below comment is that the advantage of using this type of collection is that the
  * keys are always sorted!
- * <p/>
+ * </p>
+ * <p>
  * SparseArray mapping longs to Objects, a version of the platform's {@link android.util.LongSparseArray} that can be
  * used on older versions of the platform.  Unlike a normal array of Objects, there can be gaps in the indices.  It is
  * intended to be more memory efficient than using a HashMap to map Longs to Objects, both because it avoids
  * auto-boxing keys and its data structure doesn't rely on an extra entry object for each mapping.
- * <p/>
- * <p>Note that this container keeps its mappings in an array data structure, using a binary search to find keys.  The
+ * </p>
+ * <p>
+ * Note that this container keeps its mappings in an array data structure, using a binary search to find keys.  The
  * implementation is not intended to be appropriate for data structures that may contain large numbers of items.  It is
  * generally slower than a traditional HashMap, since lookups require a binary search and adds and removes require
  * inserting and deleting entries in the array.  For containers holding up to hundreds of items, the performance
- * difference is not significant, less than 50%.</p>
- * <p/>
- * <p>To help with performance, the container includes an optimization when removing keys: instead of compacting its
+ * difference is not significant, less than 50%.
+ * </p>
+ * <p>
+ * To help with performance, the container includes an optimization when removing keys: instead of compacting its
  * array immediately, it leaves the removed entry marked as deleted.  The entry can then be re-used for the same key,
  * or compacted later in a single garbage collection step of all removed entries.  This garbage collection will need to
- * be performed at any time the array needs to be grown or the the map size or entry values are retrieved.</p>
+ * be performed at any time the array needs to be grown or the the map size or entry values are retrieved.
+ * </p>
  */
 public class FooLongSparseArray<E>
         implements Cloneable
@@ -138,6 +142,8 @@ public class FooLongSparseArray<E>
 
     /**
      * Creates a new LongSparseArray containing no mappings.
+     *
+     * @param debugName debugName
      */
     public FooLongSparseArray(String debugName)
     {
@@ -145,11 +151,12 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Creates a new LongSparseArray containing no mappings that will not
-     * require any additional memory allocation to store the specified
-     * number of mappings.  If you supply an initial capacity of 0, the
-     * sparse array will be initialized with a light-weight representation
-     * not requiring any additional array allocations.
+     * Creates a new LongSparseArray containing no mappings that will not require any additional memory allocation to
+     * store the specified number of mappings.  If you supply an initial capacity of 0, the sparse array will be
+     * initialized with a light-weight representation not requiring any additional array allocations.
+     *
+     * @param debugName       debugName
+     * @param initialCapacity initialCapacity
      */
     public FooLongSparseArray(String debugName, int initialCapacity)
     {
@@ -193,8 +200,8 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Gets the Object mapped from the specified key, or <code>null</code>
-     * if no such mapping has been made.
+     * @param key key
+     * @return the Object mapped from the specified key, or <code>null</code> if no such mapping has been made
      */
     public E get(long key)
     {
@@ -202,8 +209,9 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Gets the Object mapped from the specified key, or the specified Object
-     * if no such mapping has been made.
+     * @param key                key
+     * @param valueIfKeyNotFound valueIfKeyNotFound
+     * @return the Object mapped from the specified key, or the specified Object if no such mapping has been made.
      */
     public E get(long key, E valueIfKeyNotFound)
     {
@@ -238,6 +246,7 @@ public class FooLongSparseArray<E>
     /**
      * Alias for {@link #remove(long)}.
      *
+     * @param key key
      * @deprecated Use {@link #remove(long)}
      */
     public void delete(long key)
@@ -258,6 +267,7 @@ public class FooLongSparseArray<E>
     /**
      * Removes the mapping from the specified key, if there was any.
      *
+     * @param key key
      * @return the removed value, or null
      */
     public E remove(long key)
@@ -287,6 +297,7 @@ public class FooLongSparseArray<E>
     /**
      * Removes the mapping at the specified index.
      *
+     * @param index index
      * @return the removed value, or null
      */
     public E removeAt(int index)
@@ -354,12 +365,13 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Adds a mapping from the specified key to the specified value,
-     * replacing the previous mapping from the specified key if there
-     * was one.
+     * Adds a mapping from the specified key to the specified value, replacing the previous mapping from the specified
+     * key if there was one.
      *
-     * @return the non-negative index of the updated element, or the negative index which
-     * is {@code -index - 1} where of the newly inserted element.
+     * @param key   key
+     * @param value value
+     * @return the non-negative index of the updated element, or the negative index which is {@code -index - 1} where of
+     * the newly inserted element.
      */
     public int put(long key, E value)
     {
@@ -437,8 +449,7 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Returns the number of key-value mappings that this LongSparseArray
-     * currently stores.
+     * @return the number of key-value mappings that this LongSparseArray currently stores.
      */
     public int size()
     {
@@ -461,9 +472,8 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, returns
-     * the key from the <code>index</code>th key-value mapping that this
-     * LongSparseArray stores.
+     * @param index an index in the range <code>0...size()-1</code>
+     * @return the key from the <code>index</code>th key-value mapping that this LongSparseArray stores
      */
     public long keyAt(int index)
     {
@@ -486,9 +496,8 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, returns
-     * the value from the <code>index</code>th key-value mapping that this
-     * LongSparseArray stores.
+     * @param index an index in the range <code>0...size()-1</code>
+     * @return value the value from the <code>index</code>th key-value mapping that this LongSparseArray stores
      */
     public E valueAt(int index)
     {
@@ -515,9 +524,8 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, sets a new
-     * value for the <code>index</code>th key-value mapping that this
-     * LongSparseArray stores.
+     * @param index an index in the range <code>0...size()-1</code>
+     * @param value value
      */
     public void setValueAt(int index, E value)
     {
@@ -545,9 +553,9 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Returns the index for which {@link #keyAt} would return the
-     * specified key, or a negative number if the specified
-     * key is not mapped.
+     * @param key key
+     * @return the index for which {@link #keyAt} would return the specified key, or a negative number if the specified
+     * key is not mapped
      */
     public int indexOfKey(long key)
     {
@@ -570,12 +578,12 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Returns an index for which {@link #valueAt} would return the
-     * specified key, or a negative number if no keys map to the
-     * specified value.
-     * Beware that this is a linear search, unlike lookups by key,
-     * and that multiple keys can map to the same value and this will
-     * find only one of them.
+     * Beware that this is a linear search, unlike lookups by key, and that multiple keys can map to the same value and
+     * this will find only one of them.
+     *
+     * @param value value
+     * @return the index for which {@link #valueAt} would return the specified key, or a negative number if no keys map
+     * to the specified value-1 if the value does not exist in the collection
      */
     public int indexOfValue(E value)
     {
@@ -628,8 +636,11 @@ public class FooLongSparseArray<E>
     }
 
     /**
-     * Puts a key/value pair into the array, optimizing for the case where
-     * the key is greater than all existing keys in the array.
+     * Puts a key/value pair into the array, optimizing for the case where the key is greater than all existing keys in
+     * the array.
+     *
+     * @param key   key
+     * @param value value
      */
     public void append(long key, E value)
     {
@@ -683,10 +694,10 @@ public class FooLongSparseArray<E>
 
     /**
      * {@inheritDoc}
-     * <p/>
-     * <p>This implementation composes a string by iterating over its mappings. If
-     * this map contains itself as a value, the string "(this Map)"
-     * will appear in its place.
+     * <p>This implementation composes a string by iterating over its mappings. If this map contains itself as a value,
+     * the string "(this Map)" will appear in its place.</p>
+     *
+     * @return never null
      */
     @Override
     public String toString()

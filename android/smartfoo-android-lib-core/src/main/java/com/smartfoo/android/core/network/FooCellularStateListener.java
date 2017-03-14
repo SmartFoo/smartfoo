@@ -191,7 +191,7 @@ public class FooCellularStateListener
 
     /**
      * @param networkType See {@link TelephonyManager#getNetworkType()}
-     * @return
+     * @return never null
      */
     public static String networkTypeToString(int networkType)
     {

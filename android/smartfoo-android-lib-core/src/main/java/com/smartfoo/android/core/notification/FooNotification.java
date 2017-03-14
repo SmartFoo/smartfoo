@@ -49,11 +49,6 @@ public class FooNotification
         return PendingIntent.getActivity(context, requestCode, intent, pendingIntentFlags);
     }
 
-    /**
-     * @param context
-     * @param soundResId
-     * @return
-     */
     public static Uri createSoundUri(Context context, int soundResId)
     {
         return Uri.parse("android.resource://" + context.getPackageName() + "/" + soundResId);
@@ -77,21 +72,21 @@ public class FooNotification
 
     public FooNotification(int requestCode,
                            @NonNull
-                           FooNotificationBuilder builder)
+                                   FooNotificationBuilder builder)
     {
         this(requestCode, builder.build());
     }
 
     public FooNotification(int requestCode,
                            @NonNull
-                           Builder builder)
+                                   Builder builder)
     {
         this(requestCode, builder.build());
     }
 
     public FooNotification(int requestCode,
                            @NonNull
-                           Notification notification)
+                                   Notification notification)
     {
         mRequestCode = requestCode;
         mNotification = notification;
@@ -99,7 +94,7 @@ public class FooNotification
 
     private FooNotification(
             @NonNull
-            Parcel in)
+                    Parcel in)
     {
         this(in.readInt(), (Notification) in.readParcelable(Notification.class.getClassLoader()));
     }
@@ -139,6 +134,7 @@ public class FooNotification
     }
 
     /**
+     * @param context context
      * @return true if the FooNotificationService was started, otherwise false and no notification.
      */
     public boolean show(Context context)
@@ -158,6 +154,7 @@ public class FooNotification
     }
 
     /**
+     * @param context context
      * @return true if the FooNotificationService was stopped, otherwise false and no notification.
      */
     public boolean cancel(Context context)

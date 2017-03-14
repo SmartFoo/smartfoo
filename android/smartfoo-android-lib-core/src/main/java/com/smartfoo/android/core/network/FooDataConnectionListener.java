@@ -535,8 +535,8 @@ public class FooDataConnectionListener
     }
 
     /**
-     * @param networkInfo
-     * @param ssid
+     * @param networkInfo networkInfo
+     * @param ssid ssid
      */
     public void onDataConnected(NetworkInfo networkInfo, String ssid)
     {
@@ -687,8 +687,8 @@ public class FooDataConnectionListener
      * it look this way).</li>
      * </ul>
      *
-     * @param networkInfo
-     * @param ssid
+     * @param networkInfo networkInfo
+     * @param ssid ssid
      */
     public void onDataDisconnected(NetworkInfo networkInfo, String ssid)
     {

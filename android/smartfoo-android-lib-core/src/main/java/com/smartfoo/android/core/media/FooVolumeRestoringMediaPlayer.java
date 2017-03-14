@@ -40,7 +40,7 @@ public class FooVolumeRestoringMediaPlayer
 
     public FooVolumeRestoringMediaPlayer(
             @NonNull
-            Context context)
+                    Context context)
     {
         mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -48,18 +48,18 @@ public class FooVolumeRestoringMediaPlayer
     }
 
     /**
-     * @param mediaUri
-     * @param streamType
+     * @param mediaUri            mediaUri
+     * @param streamType          streamType
      * @param streamVolumePercent 0.0 to 1.0 to set respective min to max volume, or &lt; 0 to use the current volume
-     * @param looping
-     * @return
+     * @param looping             looping
+     * @return true if successful, otherwise false
      */
     public boolean play(
             @NonNull
-            Uri mediaUri,
-            int streamType,
+            final Uri mediaUri,
+            final int streamType,
             double streamVolumePercent,
-            boolean looping)
+            final boolean looping)
     {
         FooLog.v(TAG, "play(...)");
 

@@ -53,12 +53,12 @@ public class FooGattManager
     /**
      * Allocates a GattHandler. To free the GattHandler, call {@link FooGattHandler#close()}
      *
-     * @param deviceAddress
+     * @param deviceAddress deviceAddress
      * @return never null
      */
     public FooGattHandler getGattHandler(long deviceAddress)
     {
-        FooGattHandler.throwExceptionIfInvalidBluetoothAddress(deviceAddress);
+        FooGattUtils.throwExceptionIfInvalidBluetoothAddress(deviceAddress);
 
         synchronized (mGattHandlers)
         {

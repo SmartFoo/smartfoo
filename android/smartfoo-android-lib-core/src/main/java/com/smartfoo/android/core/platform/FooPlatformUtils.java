@@ -46,7 +46,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param resId   resource id of the string to toast, or -1 for none
      */
     public static void toastLong(Context context, int resId)
@@ -55,7 +55,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param resId   resource id of the string to toast, or -1 for none
      * @param gravity one of Gravity.*
      */
@@ -65,7 +65,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param text    string to toast, or null/empty for none
      */
     public static void toastLong(Context context, String text)
@@ -74,7 +74,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param text    string to toast, or null/empty for none
      * @param gravity one of Gravity.*
      */
@@ -84,7 +84,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param resId   resource id of the string to toast, or -1 for none
      */
     public static void toastShort(Context context, int resId)
@@ -93,7 +93,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param resId   resource id of the string to toast, or -1 for none
      * @param gravity one of Gravity.*
      */
@@ -103,7 +103,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param text    string to toast, or null/empty for none
      */
     public static void toastShort(Context context, String text)
@@ -112,7 +112,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @param text    string to toast, or null/empty for none
      * @param gravity one of Gravity.*
      */
@@ -122,9 +122,10 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context  context
      * @param resId    resource id of the string to toast, or -1 for none
      * @param duration One of Toast.LENGTH_*
+     * @param gravity  gravity
      */
     public static void toast(Context context, int resId, int duration, int gravity)
     {
@@ -142,9 +143,10 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context  context
      * @param text     string to toast, or null/empty for none
      * @param duration One of Toast.LENGTH_*
+     * @param gravity  gravity
      */
     public static void toast(Context context, String text, int duration, int gravity)
     {
@@ -168,7 +170,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @return never null
      */
     public static String getPackageName(Context context)
@@ -204,7 +206,7 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
+     * @param context context
      * @return PackageInfo of the context's package name, or null if one does not exist (should never happen)
      */
     public static PackageInfo getPackageInfo(Context context)
@@ -222,8 +224,8 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
-     * @param defaultValue
+     * @param context      context
+     * @param defaultValue defaultValue
      * @return the context's package's versionName, or defaultValue if one does not exist
      */
     public static String getVersionName(Context context, String defaultValue)
@@ -240,8 +242,8 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param context
-     * @param defaultValue
+     * @param context      context
+     * @param defaultValue defaultValue
      * @return the context's package's versionCode, or defaultValue if one does not exist
      */
     public static int getVersionCode(Context context, int defaultValue)
@@ -276,6 +278,7 @@ public class FooPlatformUtils
     }
 
     /**
+     * @param permissionsChecker permissionsChecker
      * @return An ID that is unique for every device
      */
     public static String getDeviceId(FooPermissionsChecker permissionsChecker)
@@ -347,7 +350,7 @@ public class FooPlatformUtils
     */
 
     /**
-     * @param context
+     * @param context context
      * @return null if the package does not exist or has no meta-data
      */
     public static Bundle getMetaData(Context context)
@@ -474,23 +477,30 @@ public class FooPlatformUtils
     }
 
     /**
+     * <p>
      * I originally just wanted to be able to change the System Development Debug Layout property.
      * I thought that I could duplicate what com.android.settings.DevelopmentSettings does:
      * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L941
      * ie: Use Reflection to set the SystemProperty and then pokeSystemProperties
-     * <p/>
+     * </p>
+     * <p>
      * After several hours of work I learned that the SystemProperties are ACL protected to only allow the Google
      * Signed Settings app to change them.
-     * http://stackoverflow.com/a/11136242 -> http://stackoverflow.com/a/11123609/252308
-     * <p/>
+     * http://stackoverflow.com/a/11136242 -&gt; http://stackoverflow.com/a/11123609/252308
+     * </p>
+     * <p>
      * Rather than continue to try to get this to work (if it is even possible),
      * I have chosen to just launch the SettingsActivity DevelopmentSettings fragment.
-     * <p/>
+     * </p>
+     * <p>
      * Other references for my wasted efforts:
      * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L1588
      * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/os/SystemProperties.java#L122
      * https://github.com/android/platform_frameworks_base/blob/master/core/java/android/view/View.java#L706
      * https://github.com/Androguide/CMDProcessorLibrary/blob/master/CMDProcessorLibrary/src/com/androguide/cmdprocessor/SystemPropertiesReflection.java
+     * </p>
+     *
+     * @param context context
      */
     public static void showDevelopmentSettings(Context context)
     {
@@ -539,7 +549,7 @@ public class FooPlatformUtils
     /**
      * Reference: http://stackoverflow.com/a/11438245/252308
      *
-     * @param context
+     * @param context context
      */
     public static void enableDeviceMenuButtonToShowOverflowMenu(Context context)
     {
@@ -581,12 +591,12 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param view
-     * @param start
-     * @param kind
-     * @param whats
-     * @param <T>
-     * @return
+     * @param view  view
+     * @param start start
+     * @param kind  kind
+     * @param whats whats
+     * @param <T>   type of span
+     * @return -1 if there are no more spans
      */
     public static <T> int setNextSpan(TextView view, int start, Class<T> kind, Object[] whats)
     {
@@ -624,9 +634,9 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param delegate
-     * @param dx
-     * @param dy
+     * @param delegate delegate
+     * @param dx       dx
+     * @param dy       dy
      */
     public static void enlargeHitRect(final View delegate, final int dx, final int dy)
     {
@@ -651,8 +661,10 @@ public class FooPlatformUtils
     }
 
     /**
-     * @param show if true, shows the progress view and hides the main view;
-     *             if false, shows the main view and hides the progress view
+     * @param show     if true, shows the progress view and hides the main view;
+     *                 if false, shows the main view and hides the progress view
+     * @param main     main
+     * @param progress progress
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     public static void showProgress(final boolean show, final View main, final View progress)

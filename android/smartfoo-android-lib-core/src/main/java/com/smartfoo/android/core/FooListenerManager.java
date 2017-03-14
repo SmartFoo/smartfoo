@@ -67,6 +67,23 @@ public class FooListenerManager<T>
         }
     }
 
+    public void clear()
+    {
+        synchronized (mListeners)
+        {
+            mListenersToAdd.clear();
+            if (mIsTraversingListeners)
+            {
+                mListenersToRemove.addAll(mListeners);
+            }
+            else
+            {
+                mListeners.clear();
+                mListenersToRemove.clear();
+            }
+        }
+    }
+
     public Set<T> beginTraversing()
     {
         synchronized (mListeners)

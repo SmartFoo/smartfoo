@@ -36,27 +36,27 @@ public class FooBluetoothUtils
 
     public static boolean isBluetoothSupported(
             @NonNull
-            Context context)
+                    Context context)
     {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
     }
 
     public static boolean isBluetoothLowEnergySupported(
             @NonNull
-            Context context)
+                    Context context)
     {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
     /**
-     * @param context
+     * @param context context
      * @return null if Bluetooth is not supported
      */
     @TargetApi(VERSION_CODES.JELLY_BEAN_MR2)
     @Nullable
     public static BluetoothManager getBluetoothManager(
             @NonNull
-            Context context)
+                    Context context)
     {
         BluetoothManager bluetoothManager = null;
 
@@ -75,12 +75,13 @@ public class FooBluetoothUtils
      * getSystemService(String) with BLUETOOTH_SERVICE. Fundamentally, this is your starting point for all Bluetooth
      * actions."
      *
+     * @param context context
      * @return null if Bluetooth is not supported
      */
     @Nullable
     public static BluetoothAdapter getBluetoothAdapter(
             @NonNull
-            Context context)
+                    Context context)
     {
         BluetoothAdapter bluetoothAdapter = null;
 
@@ -105,28 +106,28 @@ public class FooBluetoothUtils
 
     public static long gattDeviceAddressToLong(
             @NonNull
-            BluetoothGatt gatt)
+                    BluetoothGatt gatt)
     {
         return bluetoothDeviceAddressToLong(gatt.getDevice());
     }
 
     public static long bluetoothDeviceAddressToLong(
             @NonNull
-            BluetoothDevice device)
+                    BluetoothDevice device)
     {
         return macAddressStringToLong(device.getAddress());
     }
 
     public static String gattDeviceAddressToPrettyString(
             @NonNull
-            BluetoothGatt gatt)
+                    BluetoothGatt gatt)
     {
         return bluetoothDeviceAddressToPrettyString(gatt.getDevice());
     }
 
     public static String bluetoothDeviceAddressToPrettyString(
             @NonNull
-            BluetoothDevice device)
+                    BluetoothDevice device)
     {
         return macAddressStringToPrettyString(device.getAddress());
     }
@@ -154,14 +155,14 @@ public class FooBluetoothUtils
 
     public static String macAddressStringToStrippedLowerCaseString(
             @NonNull
-            String macAddress)
+                    String macAddress)
     {
         return macAddress.replace(":", "").toLowerCase();
     }
 
     public static long macAddressStringToLong(
             @NonNull
-            String macAddress)
+                    String macAddress)
     {
         /*
         if (macAddress == null || macAddress.length() != 17)
@@ -175,7 +176,7 @@ public class FooBluetoothUtils
 
     public static String macAddressStringToPrettyString(
             @NonNull
-            String macAddress)
+                    String macAddress)
     {
         return macAddressLongToPrettyString(macAddressStringToLong(macAddress));
     }
@@ -292,18 +293,18 @@ public class FooBluetoothUtils
 
     public static String toString(
             @NonNull
-            BluetoothGattService service,
+                    BluetoothGattService service,
             @NonNull
-            BluetoothGattCharacteristic characteristic, Object value)
+                    BluetoothGattCharacteristic characteristic, Object value)
     {
         return toString(service.getUuid(), characteristic.getUuid(), value);
     }
 
     public static String toString(
             @NonNull
-            UUID uuidService,
+                    UUID uuidService,
             @NonNull
-            UUID uuidCharacteristic, Object value)
+                    UUID uuidCharacteristic, Object value)
     {
         return FooString.quote(FooGattUuids.get(uuidService).getName())
                + "\\" + FooString.quote(FooGattUuids.get(uuidCharacteristic).getName())
@@ -312,6 +313,9 @@ public class FooBluetoothUtils
 
     /**
      * Returns a string composed from a {@link SparseArray}.
+     *
+     * @param array array
+     * @return never null
      */
     public static String toString(SparseArray<byte[]> array)
     {

@@ -20,7 +20,7 @@ public class FooBluetoothManager
 
     public FooBluetoothManager(
             @NonNull
-            Context applicationContext)
+                    Context applicationContext)
     {
         mIsBluetoothSupported = FooBluetoothUtils.isBluetoothSupported(applicationContext);
         mIsBluetoothLowEnergySupported = FooBluetoothUtils.isBluetoothLowEnergySupported(applicationContext);
@@ -66,7 +66,7 @@ public class FooBluetoothManager
     }
 
     /**
-     * @param on
+     * @param on on
      * @return true if successfully set; false if the set failed
      * @see <ul>
      * <li><a href="https://code.google.com/p/android/issues/detail?id=67272">https://code.google.com/p/android/issues/detail?id=67272</a></li>

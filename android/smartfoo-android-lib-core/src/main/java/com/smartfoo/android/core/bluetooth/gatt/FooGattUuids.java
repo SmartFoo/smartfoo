@@ -13,10 +13,11 @@ import java.util.UUID;
  * From:
  * https://developer.bluetooth.org/gatt/services/Pages/ServicesHome.aspx
  * https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicsHome.aspx
- * <p/>
+ * <p>
  * Other References:
  * https://github.com/movisens/SmartGattLib/blob/master/src/main/java/com/movisens/smartgattlib/Service.java
  * https://github.com/movisens/SmartGattLib/blob/master/src/main/java/com/movisens/smartgattlib/Characteristic.java
+ * </p>
  */
 public class FooGattUuids
 {
@@ -101,7 +102,7 @@ public class FooGattUuids
     private static final HashMap<UUID, FooGattUuid> lookup = new HashMap<>();
 
     /**
-     * Reverse look up UUID -> GattUuid
+     * Reverse look up UUID -&gt; GattUuid
      *
      * @param uuid The UUID to get a look up a GattUuid value for.
      * @return GattUuid that matches the given UUID, or null if not found
@@ -115,7 +116,7 @@ public class FooGattUuids
             {
                 int modifiers = field.getModifiers();
                 if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) &&
-                        field.getType() == FooGattUuid.class)
+                    field.getType() == FooGattUuid.class)
                 {
                     try
                     {

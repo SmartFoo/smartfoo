@@ -9,6 +9,7 @@ import com.smartfoo.android.core.texttospeech.FooTextToSpeech;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class FooLog
 {
     private static final boolean FORCE_TEXT_LOGGING = true;
@@ -84,7 +85,7 @@ public class FooLog
     /**
      * Limits the tag length to {@link #LOG_TAG_LENGTH_LIMIT}
      *
-     * @param tag
+     * @param tag tag
      * @return the tag limited to {@link #LOG_TAG_LENGTH_LIMIT}
      */
     public static String TAG(String tag)
@@ -102,7 +103,7 @@ public class FooLog
     /**
      * Harmless if called multiple times with the same logPrinter
      *
-     * @param logPrinter
+     * @param logPrinter logPrinter
      */
     public static void addPrinter(FooLogPrinter logPrinter)
     {

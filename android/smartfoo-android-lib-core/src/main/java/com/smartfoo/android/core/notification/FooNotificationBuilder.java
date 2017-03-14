@@ -118,9 +118,21 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setContentIntent(intent);
     }
 
-    public FooNotificationBuilder setContentIntent(int requestCode, Intent contentIntent, int flags)
+    public FooNotificationBuilder setContentIntentActivity(int requestCode, Intent intent, int flags)
     {
-        setContentIntent(PendingIntent.getActivity(mContext, requestCode, contentIntent, flags));
+        setContentIntent(PendingIntent.getActivity(mContext, requestCode, intent, flags));
+        return this;
+    }
+
+    public FooNotificationBuilder setContentIntentBroadcast(int requestCode, Intent intent, int flags)
+    {
+        setContentIntent(PendingIntent.getBroadcast(mContext, requestCode, intent, flags));
+        return this;
+    }
+
+    public FooNotificationBuilder setContentIntentService(int requestCode, Intent intent, int flags)
+    {
+        setContentIntent(PendingIntent.getService(mContext, requestCode, intent, flags));
         return this;
     }
 
@@ -130,9 +142,21 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setDeleteIntent(intent);
     }
 
-    public FooNotificationBuilder setDeleteIntent(int requestCode, Intent contentIntent, int flags)
+    public FooNotificationBuilder setDeleteIntentActivity(int requestCode, Intent intent, int flags)
     {
-        setDeleteIntent(PendingIntent.getActivity(mContext, requestCode, contentIntent, flags));
+        setDeleteIntent(PendingIntent.getActivity(mContext, requestCode, intent, flags));
+        return this;
+    }
+
+    public FooNotificationBuilder setDeleteIntentBroadcast(int requestCode, Intent intent, int flags)
+    {
+        setDeleteIntent(PendingIntent.getBroadcast(mContext, requestCode, intent, flags));
+        return this;
+    }
+
+    public FooNotificationBuilder setDeleteIntentService(int requestCode, Intent intent, int flags)
+    {
+        setDeleteIntent(PendingIntent.getService(mContext, requestCode, intent, flags));
         return this;
     }
 
@@ -268,6 +292,41 @@ public class FooNotificationBuilder
     public Bundle getExtras()
     {
         return super.getExtras();
+    }
+
+    public FooNotificationBuilder addActionActivity(int icon, int title, int requestCode, Intent intent, int flags)
+    {
+        return addActionActivity(icon, mContext.getString(title), requestCode, intent, flags);
+    }
+
+    public FooNotificationBuilder addActionActivity(int icon, CharSequence title, int requestCode, Intent intent, int flags)
+    {
+        return addAction(icon, title, PendingIntent.getActivity(mContext, requestCode, intent, flags));
+    }
+
+    public FooNotificationBuilder addActionBroadcast(int icon, int title, int requestCode, Intent intent, int flags)
+    {
+        return addActionBroadcast(icon, mContext.getString(title), requestCode, intent, flags);
+    }
+
+    public FooNotificationBuilder addActionBroadcast(int icon, CharSequence title, int requestCode, Intent intent, int flags)
+    {
+        return addAction(icon, title, PendingIntent.getBroadcast(mContext, requestCode, intent, flags));
+    }
+
+    public FooNotificationBuilder addActionService(int icon, int title, int requestCode, Intent intent, int flags)
+    {
+        return addActionService(icon, mContext.getString(title), requestCode, intent, flags);
+    }
+
+    public FooNotificationBuilder addActionService(int icon, CharSequence title, int requestCode, Intent intent, int flags)
+    {
+        return addAction(icon, title, PendingIntent.getService(mContext, requestCode, intent, flags));
+    }
+
+    public FooNotificationBuilder addAction(int icon, int title, PendingIntent intent)
+    {
+        return addAction(icon, mContext.getString(title), intent);
     }
 
     @Override

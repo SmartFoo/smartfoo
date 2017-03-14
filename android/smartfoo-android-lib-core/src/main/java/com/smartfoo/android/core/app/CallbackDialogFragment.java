@@ -4,27 +4,30 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatDialogFragment;
+
+import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
 /**
+ * <p>
  * TODO:(pv) Get this to work for non-interface class instances
- * <p/>
+ * </p>
  * Usage:
  * <pre>
- * public interface MyDialogFragmentListener
- * {
- *     SomeObject getSomeObject();
- * }
- *
  * public class MyDialogFragment extends CallbackDialogFragment&lt;MyDialogFragmentListener&gt;
  * {
+ *     public interface MyDialogFragmentListener
+ *     {
+ *         SomeObject getSomeObject();
+ *     }
+ *
  *     public MyDialogFragment()
  *     {
  *         super(new MyDialogFragmentListener()
  *         {
- *             &amp;Override
+ *             &#064;Override
  *             public SomeObject getSomeObject()
  *             {
  *                 return null;
@@ -34,10 +37,10 @@ import android.support.v4.app.FragmentActivity;
  * }
  * </pre>
  *
- * @param <T>
+ * @param <T> type
  */
 public abstract class CallbackDialogFragment<T>
-        extends DialogFragment
+        extends AppCompatDialogFragment
 {
     private final T mDummyCallback;
 
@@ -58,7 +61,7 @@ public abstract class CallbackDialogFragment<T>
     @Override
     public void onCreate(
             @Nullable
-            Bundle savedInstanceState)
+                    Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         Fragment parentFragment = getParentFragment();
@@ -77,7 +80,7 @@ public abstract class CallbackDialogFragment<T>
     {
         super.onAttach(context);
 
-        if (CallbackFragment.isAssignableFrom(mDummyCallback, this))
+        if (FooReflectionUtils.isAssignableFrom(mDummyCallback, this))
         {
             //noinspection unchecked
             mCallback = (T) this;
@@ -85,7 +88,7 @@ public abstract class CallbackDialogFragment<T>
         else
         {
             Fragment parentFragment = getParentFragment();
-            if (CallbackFragment.isAssignableFrom(mDummyCallback, parentFragment))
+            if (FooReflectionUtils.isAssignableFrom(mDummyCallback, parentFragment))
             {
                 //noinspection unchecked
                 mCallback = (T) parentFragment;
@@ -93,7 +96,7 @@ public abstract class CallbackDialogFragment<T>
             else
             {
                 FragmentActivity activity = getActivity();
-                if (CallbackFragment.isAssignableFrom(mDummyCallback, activity))
+                if (FooReflectionUtils.isAssignableFrom(mDummyCallback, activity))
                 {
                     //noinspection unchecked
                     mCallback = (T) activity;
@@ -104,7 +107,7 @@ public abstract class CallbackDialogFragment<T>
                                                     ", getParentFragment()[" + parentFragment + ']' +
                                                     ", or getActivity()[" + activity + ']' +
                                                     " must be an instance of class that " +
-                                                    CallbackFragment.getInstanceSignature(mDummyCallback));
+                                                    FooReflectionUtils.getInstanceSignature(mDummyCallback));
                 }
             }
         }

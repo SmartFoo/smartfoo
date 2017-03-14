@@ -68,11 +68,6 @@ public class FooPermissionsChecker
             return mPermissionsRequestCodeCallbacks.getPermissionsRequestCode();
         }
 
-        /**
-         * @param requestCode
-         * @param permissionsDenied
-         * @return
-         */
         protected abstract boolean onPermissionsDenied(int requestCode, String[] permissionsDenied);
     }
 
@@ -144,9 +139,9 @@ public class FooPermissionsChecker
     /**
      * {@link Activity#onRequestPermissionsResult(int, String[], int[])} will get the result of the request.
      *
-     * @param activity
+     * @param activity    activity
      * @param permission  One of {@link android.Manifest.permission}.*
-     * @param requestCode
+     * @param requestCode requestCode
      */
     @SuppressWarnings("unused")
     public static void requestPermission(Activity activity, String permission, int requestCode)
@@ -159,9 +154,9 @@ public class FooPermissionsChecker
     /**
      * {@link Activity#onRequestPermissionsResult(int, String[], int[])} will get the result of the request.
      *
-     * @param activity
+     * @param activity    activity
      * @param permissions One of {@link android.Manifest.permission}.*
-     * @param requestCode
+     * @param requestCode requestCode
      */
     @SuppressWarnings("unused")
     public static void requestPermissions(Activity activity, List<String> permissions, int requestCode)
@@ -174,9 +169,9 @@ public class FooPermissionsChecker
     /**
      * {@link Activity#onRequestPermissionsResult(int, String[], int[])} will get the result of the request.
      *
-     * @param activity
+     * @param activity    activity
      * @param permissions One of {@link android.Manifest.permission}.*
-     * @param requestCode
+     * @param requestCode requestCode
      */
     public static void requestPermissions(Activity activity, String[] permissions, int requestCode)
     {
@@ -194,9 +189,9 @@ public class FooPermissionsChecker
     /**
      * {@link Fragment#onRequestPermissionsResult(int, String[], int[])} will get the result of the request.
      *
-     * @param fragment
+     * @param fragment    fragment
      * @param permission  One of {@link android.Manifest.permission}.*
-     * @param requestCode
+     * @param requestCode requestCode
      */
     @SuppressWarnings("unused")
     public static void requestPermission(Fragment fragment, String permission, int requestCode)
@@ -209,9 +204,9 @@ public class FooPermissionsChecker
     /**
      * {@link Fragment#onRequestPermissionsResult(int, String[], int[])} will get the result of the request.
      *
-     * @param fragment
+     * @param fragment    fragment
      * @param permissions One of {@link android.Manifest.permission}.*
-     * @param requestCode
+     * @param requestCode requestCode
      */
     @SuppressWarnings("unused")
     public static void requestPermissions(Fragment fragment, List<String> permissions, int requestCode)
@@ -224,9 +219,9 @@ public class FooPermissionsChecker
     /**
      * {@link Fragment#onRequestPermissionsResult(int, String[], int[])} will get the result of the request.
      *
-     * @param fragment
+     * @param fragment    fragment
      * @param permissions One of {@link android.Manifest.permission}.*
-     * @param requestCode
+     * @param requestCode requestCode
      */
     public static void requestPermissions(Fragment fragment, String[] permissions, int requestCode)
     {

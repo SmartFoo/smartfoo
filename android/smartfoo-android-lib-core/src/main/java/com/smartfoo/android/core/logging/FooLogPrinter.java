@@ -18,10 +18,10 @@ public abstract class FooLogPrinter
      * Must not call {@link FooLog#v}, {@link FooLog#d}, {@link FooLog#i}, {@link FooLog#w}, {@link FooLog#e}, or
      * {@link FooLog#f}, or infinite recursion might occur.
      *
-     * @param tag
-     * @param level
-     * @param msg
-     * @param e
+     * @param tag   tag
+     * @param level level
+     * @param msg   msg
+     * @param e     e
      */
     public void println(String tag, int level, String msg, Throwable e)
     {
@@ -40,10 +40,10 @@ public abstract class FooLogPrinter
      * Must not call {@link FooLog#v}, {@link FooLog#d}, {@link FooLog#i}, {@link FooLog#w}, {@link FooLog#e}, or
      * {@link FooLog#f}, or infinite recursion might occur.
      *
-     * @param tag
-     * @param level
-     * @param msg
-     * @param e
+     * @param tag   tag
+     * @param level level
+     * @param msg   msg
+     * @param e     e
      * @return true for success and to remain enabled, false for failure and to disable this printer
      */
     protected abstract boolean printlnInternal(String tag, int level, String msg, Throwable e);

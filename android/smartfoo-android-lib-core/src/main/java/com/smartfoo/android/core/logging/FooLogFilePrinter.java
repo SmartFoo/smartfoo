@@ -107,8 +107,8 @@ public class FooLogFilePrinter
     /**
      * @param compress true to compress the data (may throw IOException), false to just get the path (will never throw
      *                 IOException)
-     * @return
-     * @throws IOException
+     * @return never null
+     * @throws IOException IOException
      */
     public File getCompressedLogFile(boolean compress)
             throws IOException

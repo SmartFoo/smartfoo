@@ -55,8 +55,8 @@ public class FooLogAdbPrinter
      * You can also create a local.prop file that with the following in it:
      * 'log.tag.&lt;YOUR_LOG_TAG&gt;=&lt;LEVEL&gt;' and place that in /data/local.prop.
      *
-     * @param tag
-     * @param level
+     * @param tag   tag
+     * @param level level
      */
     public static void setTagLevel(String tag, int level)
     {
@@ -67,8 +67,13 @@ public class FooLogAdbPrinter
      * Prints a line to LogCat.
      * On Android, "System.out.println(...)" also prints to LogCat.
      * Do *NOT* "System.out.println(...)"; it would add a [near] duplicated line to LogCat.
-     * <p/>
+     * <p>
      * {@inheritDoc}
+     *
+     * @param tag   tag
+     * @param level level
+     * @param msg   msg
+     * @param e     e
      */
     @Override
     protected boolean printlnInternal(String tag, int level, String msg, Throwable e)
