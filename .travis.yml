@@ -2,43 +2,42 @@ language: android
 
 branches:
   only:
-  - master
+    - master
 
 env:
   global:
-  - secure: Myt+h1f8En1hCkg+3OuuH26AwIQmwqDRQ2mAVWnbg7fjCAAq+JdUPd3XY72zhTQ0oMorgvh7sANWqVH6vypxRzEovvIj5K0i8STwaZpaixYMhhpj6VhrUZzJiMd6pB6EDAStvnrMHfkQrUYaosmLwz+r2oMBTT88mXDAf1bBJiuebBxmeXO3SqRCShgBdlqn9HEof1C388OexvHLklIHmm6yYliTGw3MmvcBLUViW9TYh+Zc6X9bNdgNfbWFjIubT59qy3Z+mkr/yi9dFi+OlacZzbyRUKo68AUb7F09OXDrFklzzPwmqY25X19NdUvkDzPftZP4gW5TtgTm5cDM7DhFRiw9RdlBLC809VfRGnxuqkjeEC1fA409bmdAAaC7+nwROf653GoQQPJK/E/7MoVAnA28BYnpR5orTz5hwEwDUhOtifTEK2iJC1aThDuEQ9B9NPtsmgtuYdnaukoR+Nx7afevq5Qfr0MustsLikfsMULH/eMEx30yxrfSw1YIyZ7kCXORUd0mNNc6GJpJKRJdMu6r7gTLG+uxNv2cb2qDNAL3Gep8wcdR1gs9oHFWcREQi0F3y1ej6dJELzbubpIG89mxk8cORZFcwxfU0bP/qIKwlaAUweC5Qe8Oh8JtvcCMys6aweSfo9/IEDoFLudUMO9aDHPKtCWR35CAzNs=
-  - secure: ReAbThGgOG6i9P2x0JWbHyMURrT1fbMzTQOj4SkhsJsbA8zaxsOZOg3i1gK1fqs46QW1+4dw/+Zhn6m+9zaGgHeA7byUlU3oZ5OjVLJYX8ibeu/fhFf3LNVz0iktsjYqYuBhVchS3oV5s/LcaF8HLi/TIJUC9XJghn0SnqmdjG48cwYmLsHf1vthXA6JnOU6aZj2kxFUyG7talTqcy0V0alYinB3zoaiFcJx7RlY+W4g/4eds0GlPSkvTd2yg70BRTyaBsMGY3M7O0eZr56txjquG5Z43rNwIyEG710RwjdWuKVfyaV2vEbkEw2g6zu0/68ffrmzCWZXgeojfRsnmfco6rjy2iTWWdG0eaHUekuXKq5zbPF1KfXon5OpviBEPbDn+Bn7XEMb9hZ6QN3d8M1Dtmn4ifrPKcdZ9AtnxfgoiQi5+xC+TGbv4eumfPRLIzpotLbMc4lHl/zH/Y1TxRIAOoczwE47e2rdtM+gCL+z0zU1h/yGS5039LT2vV7PxTdrtL1q6aRgi0hkL3Oe9sws4MEGg0JJ+VoVA9gpGmqFtr/9jhcYI6ItGO2HBZ9R+KX+bbDG9QGmcXMIdwSdpVLlX0tQNV+FUM/IFnwWPX561Ye9hN4ohu4o/qebsDjqiW5iGOQWLoJYnH8rOQAHrR6UK47uDj3b3/vyUSOZ44s=
+    - secure: Myt+h1f8En1hCkg+3OuuH26AwIQmwqDRQ2mAVWnbg7fjCAAq+JdUPd3XY72zhTQ0oMorgvh7sANWqVH6vypxRzEovvIj5K0i8STwaZpaixYMhhpj6VhrUZzJiMd6pB6EDAStvnrMHfkQrUYaosmLwz+r2oMBTT88mXDAf1bBJiuebBxmeXO3SqRCShgBdlqn9HEof1C388OexvHLklIHmm6yYliTGw3MmvcBLUViW9TYh+Zc6X9bNdgNfbWFjIubT59qy3Z+mkr/yi9dFi+OlacZzbyRUKo68AUb7F09OXDrFklzzPwmqY25X19NdUvkDzPftZP4gW5TtgTm5cDM7DhFRiw9RdlBLC809VfRGnxuqkjeEC1fA409bmdAAaC7+nwROf653GoQQPJK/E/7MoVAnA28BYnpR5orTz5hwEwDUhOtifTEK2iJC1aThDuEQ9B9NPtsmgtuYdnaukoR+Nx7afevq5Qfr0MustsLikfsMULH/eMEx30yxrfSw1YIyZ7kCXORUd0mNNc6GJpJKRJdMu6r7gTLG+uxNv2cb2qDNAL3Gep8wcdR1gs9oHFWcREQi0F3y1ej6dJELzbubpIG89mxk8cORZFcwxfU0bP/qIKwlaAUweC5Qe8Oh8JtvcCMys6aweSfo9/IEDoFLudUMO9aDHPKtCWR35CAzNs=
+    - secure: ReAbThGgOG6i9P2x0JWbHyMURrT1fbMzTQOj4SkhsJsbA8zaxsOZOg3i1gK1fqs46QW1+4dw/+Zhn6m+9zaGgHeA7byUlU3oZ5OjVLJYX8ibeu/fhFf3LNVz0iktsjYqYuBhVchS3oV5s/LcaF8HLi/TIJUC9XJghn0SnqmdjG48cwYmLsHf1vthXA6JnOU6aZj2kxFUyG7talTqcy0V0alYinB3zoaiFcJx7RlY+W4g/4eds0GlPSkvTd2yg70BRTyaBsMGY3M7O0eZr56txjquG5Z43rNwIyEG710RwjdWuKVfyaV2vEbkEw2g6zu0/68ffrmzCWZXgeojfRsnmfco6rjy2iTWWdG0eaHUekuXKq5zbPF1KfXon5OpviBEPbDn+Bn7XEMb9hZ6QN3d8M1Dtmn4ifrPKcdZ9AtnxfgoiQi5+xC+TGbv4eumfPRLIzpotLbMc4lHl/zH/Y1TxRIAOoczwE47e2rdtM+gCL+z0zU1h/yGS5039LT2vV7PxTdrtL1q6aRgi0hkL3Oe9sws4MEGg0JJ+VoVA9gpGmqFtr/9jhcYI6ItGO2HBZ9R+KX+bbDG9QGmcXMIdwSdpVLlX0tQNV+FUM/IFnwWPX561Ye9hN4ohu4o/qebsDjqiW5iGOQWLoJYnH8rOQAHrR6UK47uDj3b3/vyUSOZ44s=
 
 android:
   components:
-  #
-  # To get a list of components:
-  # $ android list sdk --no-ui --all --extended
-  #
+    #
+    # To get a list of components:
+    # $ android list sdk --no-ui --all --extended
+    #
 
-  # Uncomment the lines below if you want to
-  # use the latest revision of Android SDK Tools
-  - platform-tools
-  - tools
+    # Uncomment the lines below if you want to
+    # use the latest revision of Android SDK Tools
+    - tools # to get the new `repository-11.xml`
+    - tools # see https://github.com/travis-ci/travis-ci/issues/6040#issuecomment-219367943)
+    - platform-tools
+    # The BuildTools version used by your project
+    - build-tools-25.0.2
+    # The SDK version used to compile your project
+    - android-25
 
-  # The BuildTools version used by your project
-  - build-tools-25.0.2
+    # Additional components
+    #- addon-google_apis-google-23
+    - extra-android-m2repository
+    - extra-android-support
+    #- extra-google-google_play_services
+    #- extra-google-m2repository
 
-  # The SDK version used to compile your project
-  - android-25
-
-  # Additional components
-  #- addon-google_apis-google-23
-  - extra-android-m2repository
-  - extra-android-support
-  #- extra-google-google_play_services
-  #- extra-google-m2repository
-
-  # Specify at least one system image,
-  # if you need to run emulator(s) during your tests
-  # - sys-img-armeabi-v7a-android-19
-  # - sys-img-x86-android-17
+    # Specify at least one system image,
+    # if you need to run emulator(s) during your tests
+    # - sys-img-armeabi-v7a-android-19
+    # - sys-img-x86-android-17
 
 script:
-- cd android
-- ./gradlew bintrayUpload --info
+  - cd android
+  - ./gradlew bintrayUpload --info
