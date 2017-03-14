@@ -258,7 +258,7 @@ public class FooLogFilePrinter
     @Override
     protected boolean printlnInternal(String tag, int level, String msg, Throwable e)
     {
-        msg = mFormatter.format(tag, level, msg, e);
+        msg = mFormatter.format(level, tag, msg, e);
 
         synchronized (mLogFile)
         {

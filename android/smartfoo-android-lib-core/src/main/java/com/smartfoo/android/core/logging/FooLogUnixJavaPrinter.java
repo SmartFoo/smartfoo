@@ -24,7 +24,7 @@ public class FooLogUnixJavaPrinter
     @Override
     protected boolean printlnInternal(String tag, int level, String msg, Throwable e)
     {
-        System.out.println(mFormatter.format(tag, level, msg, e));
+        System.out.println(mFormatter.format(level, tag, msg, e));
         return true;
     }
 
