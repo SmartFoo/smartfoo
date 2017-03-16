@@ -1,5 +1,7 @@
 package com.smartfoo.android.core.logging;
 
+import com.smartfoo.android.core.FooRun;
+
 public class FooLogConsolePrinter
         extends FooLogPrinter
 {
@@ -18,6 +20,8 @@ public class FooLogConsolePrinter
 
     private FooLogConsolePrinter(FooLogFormatter formatter)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(formatter, "formatter");
+
         mFormatter = formatter;
     }
 

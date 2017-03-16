@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -31,7 +32,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.notification.FooPermissionsChecker;
 
 import java.lang.reflect.Field;
@@ -169,56 +172,96 @@ public class FooPlatformUtils
         toast.show();
     }
 
-    /**
-     * @param context context
-     * @return never null
-     */
-    public static String getPackageName(Context context)
+    @NonNull
+    private static Context getContext(
+            @NonNull
+                    Context context)
     {
-        return context.getPackageName();
+        return FooRun.toNonNull(context, "context");
     }
 
-    public static String getApplicationName(Context context)
+    @NonNull
+    public static PackageManager getPackageManager(
+            @NonNull
+                    Context context)
+    {
+        return getContext(context).getPackageManager();
+    }
+
+    @NonNull
+    public static String getPackageName(
+            @NonNull
+                    Context context)
+    {
+        return getContext(context).getPackageName();
+    }
+
+    public static String getApplicationName(
+            @NonNull
+                    Context context)
     {
         return getApplicationName(context, getPackageName(context));
     }
 
-    public static String getApplicationName(Context context, String packageName)
+    public static String getApplicationName(
+            @NonNull
+                    Context context,
+            String packageName)
     {
-        PackageManager pm = context.getPackageManager();
+        ApplicationInfo ai = getApplicationInfo(context, packageName);
+        if (ai == null)
+        {
+            return null;
+        }
+
+        CharSequence applicationLabel = getPackageManager(context).getApplicationLabel(ai);
+        if (applicationLabel == null)
+        {
+            return null;
+        }
+
+        return applicationLabel.toString();
+    }
+
+    public static ApplicationInfo getApplicationInfo(
+            @NonNull
+                    Context context,
+            String packageName)
+    {
         try
         {
-            ApplicationInfo ai = pm.getApplicationInfo(packageName, 0);
-            if (ai != null)
-            {
-                CharSequence applicationLabel = pm.getApplicationLabel(ai);
-                if (applicationLabel != null)
-                {
-                    return applicationLabel.toString();
-                }
-            }
+            return getPackageManager(context).getApplicationInfo(packageName, 0);
         }
         catch (NameNotFoundException e)
         {
-            // ignore
+            return null;
         }
-        return null;
     }
 
     /**
      * @param context context
      * @return PackageInfo of the context's package name, or null if one does not exist (should never happen)
      */
-    public static PackageInfo getPackageInfo(Context context)
+    public static PackageInfo getPackageInfo(
+            @NonNull
+                    Context context)
     {
-        String packageName = context.getPackageName();
+        return getPackageInfo(context, getPackageName(context));
+    }
+
+    public static PackageInfo getPackageInfo(
+            @NonNull
+                    Context context,
+            @NonNullNonEmpty
+                    String packageName)
+    {
         try
         {
-            return context.getPackageManager().getPackageInfo(packageName, PackageManager.GET_META_DATA);
+            return getPackageManager(context)
+                    .getPackageInfo(FooRun.toNonNullNonEmpty(packageName, "packageName"), PackageManager.GET_META_DATA);
         }
         catch (NameNotFoundException e)
         {
-            // ignore
             return null;
         }
     }

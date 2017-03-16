@@ -1,5 +1,7 @@
 package com.smartfoo.android.core.reflection;
 
+import com.smartfoo.android.core.FooRun;
+
 public class FooReflectionUtils
 {
     private FooReflectionUtils()
@@ -13,10 +15,7 @@ public class FooReflectionUtils
 
     public static <T> String getInstanceSignature(T instance)
     {
-        if (instance == null)
-        {
-            throw new IllegalArgumentException("instance must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(instance, "instance");
 
         StringBuilder sb = new StringBuilder();
 
@@ -57,21 +56,18 @@ public class FooReflectionUtils
         return sb.toString().trim();
     }
 
-    public static boolean isAssignableFrom(Object expectedInstance, Object actualInstance)
+    public static boolean isAssignableFrom(Object instanceExpected, Object instanceActual)
     {
-        if (expectedInstance == null)
-        {
-            throw new IllegalArgumentException("expectedInstance must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(instanceExpected, "instanceExpected");
 
-        if (actualInstance == null)
+        if (instanceActual == null)
         {
             return false;
         }
 
-        Class<?> expectedInstanceClass = getClass(expectedInstance);
+        Class<?> expectedInstanceClass = getClass(instanceExpected);
 
-        Class<?> actualInstanceClass = getClass(actualInstance);
+        Class<?> actualInstanceClass = getClass(instanceActual);
 
         //
         // Verify that actualInstanceClass is an instance of all subclasses and interfaces of expectedClass...

@@ -11,6 +11,8 @@ import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 
+import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.media.FooAudioUtils;
@@ -37,6 +39,11 @@ public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
 
+    public interface FooTextToSpeechCallbacks
+    {
+        void onInitialized();
+    }
+
     public static boolean VERBOSE_LOG_SPEECH             = false;
     public static boolean VERBOSE_LOG_UTTERANCE_IDS      = false;
     public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = false;
@@ -61,15 +68,15 @@ public class FooTextToSpeech
         }
     }
 
-    private final List<UtteranceInfo>   mTextToSpeechQueue  = new LinkedList<>();
-    private final Map<String, Runnable> mUtteranceCallbacks = new HashMap<>();
+    private final FooListenerManager<FooTextToSpeechCallbacks> mListeners;
+    private final List<UtteranceInfo>                          mTextToSpeechQueue;
+    private final Map<String, Runnable>                        mUtteranceCallbacks;
 
     private AudioManager mAudioManager;
     private TextToSpeech mTextToSpeech;
     private boolean      mIsInitialized;
     private int          mNextUtteranceId;
     private String       mVoiceName;
-    private Voice        mVoice;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
 
@@ -84,8 +91,36 @@ public class FooTextToSpeech
 
     private FooTextToSpeech()
     {
+        mListeners = new FooListenerManager<>();
+        mTextToSpeechQueue = new LinkedList<>();
+        mUtteranceCallbacks = new HashMap<>();
+
         mAudioStreamType = TextToSpeech.Engine.DEFAULT_STREAM;
         mVolumeRelativeToAudioStream = 1.0f;
+    }
+
+    public void attach(FooTextToSpeechCallbacks listener)
+    {
+        synchronized (sInstance)
+        {
+            mListeners.attach(listener);
+        }
+    }
+
+    public void detach(FooTextToSpeechCallbacks listener)
+    {
+        synchronized (sInstance)
+        {
+            mListeners.detach(listener);
+        }
+    }
+
+    public boolean isInitialized()
+    {
+        synchronized (sInstance)
+        {
+            return mIsInitialized;
+        }
     }
 
     public Set<Voice> getVoices()
@@ -96,73 +131,69 @@ public class FooTextToSpeech
         }
     }
 
-    public Voice getVoice()
+    public String getVoiceName()
     {
         synchronized (sInstance)
         {
-            return mTextToSpeech != null ? mTextToSpeech.getVoice() : null;
+            return mVoiceName;
         }
     }
 
-    public void setVoice(Voice voice)
+    /**
+     * @param voiceName null to set default voice, or the name of a voice in {@link #getVoices()}
+     * @return true if changed, otherwise false
+     */
+    public boolean setVoiceName(String voiceName)
     {
-        synchronized (sInstance)
+        FooLog.e(TAG, "setVoiceName(" + FooString.quote(voiceName) + ')');
+
+        if (FooString.isNullOrEmpty(voiceName))
         {
-            mVoice = voice;
-
-            if (mVoice != null)
-            {
-                mVoiceName = mVoice.getName();
-            }
-
-            if (!mIsInitialized)
-            {
-                return;
-            }
-
-            if (mVoice == null)
-            {
-                mVoice = mTextToSpeech.getDefaultVoice();
-            }
-
-            mTextToSpeech.setVoice(mVoice);
-
-            mVoiceName = mVoice.getName();
+            voiceName = null;
         }
-    }
 
-    public void setVoiceName(String voiceName)
-    {
+        final String oldValue;
+        final boolean changed;
+
         synchronized (sInstance)
         {
-            mVoiceName = voiceName;
+            oldValue = mVoiceName;
 
-            if (!mIsInitialized)
+            if (mTextToSpeech == null)
             {
-                return;
-            }
-
-            Voice foundVoice = null;
-
-            if (mVoiceName == null)
-            {
-                foundVoice = mTextToSpeech.getDefaultVoice();
+                mVoiceName = voiceName;
+                changed = !FooString.equals(oldValue, mVoiceName);
             }
             else
             {
-                Set<Voice> voices = mTextToSpeech.getVoices();
-                for (Voice voice : voices)
+                Voice foundVoice = mTextToSpeech.getDefaultVoice();
+
+                if (voiceName != null)
                 {
-                    if (voice.getName().equalsIgnoreCase(mVoiceName))
+                    Set<Voice> voices = getVoices();
+                    if (voices != null)
                     {
-                        foundVoice = voice;
-                        break;
+                        for (Voice voice : voices)
+                        {
+                            //FooLog.e(TAG, "setVoiceName: voice=" + FooString.quote(voice.getName()));
+                            if (voiceName.equalsIgnoreCase(voice.getName()))
+                            {
+                                foundVoice = voice;
+                                break;
+                            }
+                        }
                     }
                 }
-            }
 
-            setVoice(foundVoice);
+                mVoiceName = foundVoice.getName();
+
+                changed = !FooString.equals(oldValue, mVoiceName);
+
+                mTextToSpeech.setVoice(foundVoice);
+            }
         }
+
+        return changed;
     }
 
     public int getAudioStreamType()
@@ -207,8 +238,25 @@ public class FooTextToSpeech
         return mIsInitialized;
     }
 
-    public FooTextToSpeech start(Context applicationContext)
+    public void stop()
     {
+        synchronized (sInstance)
+        {
+            clear();
+            if (mIsInitialized)
+            {
+                mTextToSpeech.stop();
+                mTextToSpeech.shutdown();
+                mTextToSpeech = null;
+                mIsInitialized = false;
+            }
+        }
+    }
+
+    public FooTextToSpeech start(@NonNull Context context)
+    {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+
         synchronized (sInstance)
         {
             if (mTextToSpeech != null)
@@ -216,9 +264,9 @@ public class FooTextToSpeech
                 return this;
             }
 
-            mAudioManager = (AudioManager) applicationContext.getSystemService(Context.AUDIO_SERVICE);
+            mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-            mTextToSpeech = new TextToSpeech(applicationContext, new TextToSpeech.OnInitListener()
+            mTextToSpeech = new TextToSpeech(context, new TextToSpeech.OnInitListener()
             {
                 @Override
                 public void onInit(int status)
@@ -226,6 +274,7 @@ public class FooTextToSpeech
                     FooTextToSpeech.this.onInit(status);
                 }
             });
+
             mTextToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener()
             {
                 @Override
@@ -272,15 +321,26 @@ public class FooTextToSpeech
 
             synchronized (sInstance)
             {
-                mIsInitialized = (status == TextToSpeech.SUCCESS);
+                if (mIsInitialized)
+                {
+                    return;
+                }
 
-                if (!mIsInitialized)
+                if (status != TextToSpeech.SUCCESS)
                 {
                     FooLog.w(TAG, "onInit: TextToSpeech failed to initialize: status=" + statusToString(status));
                     return;
                 }
 
-                setVoice(mVoice);
+                setVoiceName(mVoiceName);
+
+                mIsInitialized = true;
+
+                for (FooTextToSpeechCallbacks listener : mListeners.beginTraversing())
+                {
+                    listener.onInitialized();
+                }
+                mListeners.endTraversing();
 
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
@@ -375,21 +435,6 @@ public class FooTextToSpeech
             mUtteranceCallbacks.clear();
         }
         FooLog.d(TAG, "-clear()");
-    }
-
-    public void stop()
-    {
-        synchronized (sInstance)
-        {
-            clear();
-            if (mIsInitialized)
-            {
-                mTextToSpeech.stop();
-                mTextToSpeech.shutdown();
-                mTextToSpeech = null;
-                mIsInitialized = false;
-            }
-        }
     }
 
     /**
@@ -488,16 +533,18 @@ public class FooTextToSpeech
 
     public boolean speak(
             @NonNull
-            FooTextToSpeechBuilder builder)
+                    FooTextToSpeechBuilder builder)
     {
         return speak(builder, false, null);
     }
 
     public boolean speak(
             @NonNull
-            FooTextToSpeechBuilder builder,
+                    FooTextToSpeechBuilder builder,
             boolean clear, Runnable runAfter)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(builder, "builder");
+
         if (runAfter == null)
         {
             runAfter = mRunAfterSpeak;
@@ -535,9 +582,11 @@ public class FooTextToSpeech
 
     private boolean speak(
             @NonNull
-            FooTextToSpeechPart part,
+                    FooTextToSpeechPart part,
             Boolean clear, Runnable runAfter)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(part, "part");
+
         if (part instanceof FooTextToSpeechPartSpeech)
         {
             String text = ((FooTextToSpeechPartSpeech) part).mText;
