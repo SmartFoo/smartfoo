@@ -38,7 +38,7 @@ public class FooBluetoothHeadsetConnectionListener
 
     public FooBluetoothHeadsetConnectionListener(
             @NonNull
-            Context applicationContext)
+                    Context applicationContext)
     {
         mBluetoothConnectionBroadcastReceiver = new FooBluetoothHeadsetConnectionBroadcastReceiver(applicationContext);
         mListenerManager = new FooListenerManager<>();
@@ -55,14 +55,14 @@ public class FooBluetoothHeadsetConnectionListener
         return mBluetoothConnectionBroadcastReceiver.getConnectedBluetoothHeadsets();
     }
 
-    public boolean isStarted()
+    private boolean isStarted()
     {
         return mBluetoothConnectionBroadcastReceiver.isStarted();
     }
 
     public void attach(
             @NonNull
-            OnBluetoothHeadsetConnectionCallbacks callbacks)
+                    OnBluetoothHeadsetConnectionCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
 
@@ -99,7 +99,7 @@ public class FooBluetoothHeadsetConnectionListener
 
     public void detach(
             @NonNull
-            OnBluetoothHeadsetConnectionCallbacks callbacks)
+                    OnBluetoothHeadsetConnectionCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);
 
@@ -114,19 +114,19 @@ public class FooBluetoothHeadsetConnectionListener
     {
         private static final String TAG = FooLog.TAG(FooBluetoothHeadsetConnectionBroadcastReceiver.class);
 
-        public class FooBluetoothServiceListener
+        class FooBluetoothServiceListener
                 implements ServiceListener
         {
             private final BluetoothAdapter                      mBluetoothAdapter;
             private final int                                   mBluetoothProfileId;
             private final OnBluetoothHeadsetConnectionCallbacks mCallbacks;
 
-            public FooBluetoothServiceListener(
+            FooBluetoothServiceListener(
                     @NonNull
-                    BluetoothAdapter bluetoothAdapter,
+                            BluetoothAdapter bluetoothAdapter,
                     int bluetoothProfileId,
                     @NonNull
-                    OnBluetoothHeadsetConnectionCallbacks callbacks)
+                            OnBluetoothHeadsetConnectionCallbacks callbacks)
             {
                 mBluetoothAdapter = bluetoothAdapter;
                 mBluetoothProfileId = bluetoothProfileId;
@@ -167,7 +167,7 @@ public class FooBluetoothHeadsetConnectionListener
 
         public FooBluetoothHeadsetConnectionBroadcastReceiver(
                 @NonNull
-                Context applicationContext)
+                        Context applicationContext)
         {
             mApplicationContext = applicationContext;
             mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(applicationContext);
@@ -200,7 +200,7 @@ public class FooBluetoothHeadsetConnectionListener
 
         public boolean start(
                 @NonNull
-                OnBluetoothHeadsetConnectionCallbacks callbacks)
+                        OnBluetoothHeadsetConnectionCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
 
@@ -314,7 +314,7 @@ public class FooBluetoothHeadsetConnectionListener
 
         private void onBluetoothHeadsetConnected(
                 @NonNull
-                BluetoothDevice bluetoothDevice)
+                        BluetoothDevice bluetoothDevice)
         {
             String bluetoothDeviceAddress = bluetoothDevice.getAddress();
             synchronized (mSyncLock)
@@ -330,7 +330,7 @@ public class FooBluetoothHeadsetConnectionListener
 
         private void onBluetoothHeadsetDisconnected(
                 @NonNull
-                BluetoothDevice bluetoothDevice)
+                        BluetoothDevice bluetoothDevice)
         {
             String bluetoothDeviceAddress = bluetoothDevice.getAddress();
             synchronized (mSyncLock)
