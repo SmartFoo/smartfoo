@@ -14,8 +14,7 @@ import java.util.Map;
 public class FooHeadsetConnectionListener
 {
     public interface OnHeadsetConnectionCallbacks
-            extends
-            OnWiredHeadsetConnectionCallbacks,
+            extends OnWiredHeadsetConnectionCallbacks,
             OnBluetoothHeadsetConnectionCallbacks
     {
     }
@@ -23,9 +22,7 @@ public class FooHeadsetConnectionListener
     private final FooWiredHeadsetConnectionListener     mWiredHeadsetConnectionListener;
     private final FooBluetoothHeadsetConnectionListener mBluetoothHeadsetConnectionListener;
 
-    public FooHeadsetConnectionListener(
-            @NonNull
-            Context applicationContext)
+    public FooHeadsetConnectionListener(@NonNull Context applicationContext)
     {
         mWiredHeadsetConnectionListener = new FooWiredHeadsetConnectionListener(applicationContext);
         mBluetoothHeadsetConnectionListener = new FooBluetoothHeadsetConnectionListener(applicationContext);

@@ -22,7 +22,7 @@ public class FooHandler
      */
     public FooHandler()
     {
-        this((Callback) null);
+        this((Looper) null);
     }
 
     /**
@@ -34,7 +34,7 @@ public class FooHandler
      */
     public FooHandler(Callback callback)
     {
-        this(null, Looper.getMainLooper(), callback);
+        this(null, null, callback);
     }
 
     /**
@@ -61,16 +61,18 @@ public class FooHandler
 
     public FooHandler(FooIncrementingIntegerValue messageCodes, Callback callback)
     {
-        this(messageCodes, Looper.getMainLooper(), callback);
+        this(messageCodes, null, callback);
     }
 
     public FooHandler(FooIncrementingIntegerValue messageCodes, Looper looper, Callback callback)
     {
-        super(looper, callback);
+        super(looper != null ? looper : Looper.getMainLooper(), callback);
+
         if (messageCodes == null)
         {
             messageCodes = new FooIncrementingIntegerValue();
         }
+
         mMessageCodes = messageCodes;
     }
 

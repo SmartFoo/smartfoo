@@ -70,16 +70,12 @@ public class FooNotification
     private int          mRequestCode;
     private Notification mNotification;
 
-    public FooNotification(int requestCode,
-                           @NonNull
-                                   FooNotificationBuilder builder)
+    public FooNotification(int requestCode, @NonNull FooNotificationBuilder builder)
     {
         this(requestCode, builder.build());
     }
 
-    public FooNotification(int requestCode,
-                           @NonNull
-                                   Builder builder)
+    public FooNotification(int requestCode, @NonNull Builder builder)
     {
         this(requestCode, builder.build());
     }
@@ -92,9 +88,7 @@ public class FooNotification
         mNotification = notification;
     }
 
-    private FooNotification(
-            @NonNull
-                    Parcel in)
+    private FooNotification(@NonNull Parcel in)
     {
         this(in.readInt(), (Notification) in.readParcelable(Notification.class.getClassLoader()));
     }

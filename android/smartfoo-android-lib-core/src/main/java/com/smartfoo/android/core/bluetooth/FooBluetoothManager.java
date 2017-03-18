@@ -11,16 +11,14 @@ public class FooBluetoothManager
 {
     private static final String TAG = FooLog.TAG(FooBluetoothManager.class);
 
-    private final boolean                               mIsBluetoothSupported;
-    private final boolean                               mIsBluetoothLowEnergySupported;
-    private final BluetoothManager                      mBluetoothManager;
-    private final BluetoothAdapter                      mBluetoothAdapter;
-    private final FooBluetoothHeadsetConnectionListener mBluetoothHeadsetConnectionListener;
-    private final FooBluetoothAdapterStateListener      mBluetoothAdapterStateListener;
+    private final boolean                          mIsBluetoothSupported;
+    private final boolean                          mIsBluetoothLowEnergySupported;
+    private final BluetoothManager                 mBluetoothManager;
+    private final BluetoothAdapter                 mBluetoothAdapter;
+    //private final FooBluetoothHeadsetConnectionListener mBluetoothHeadsetConnectionListener;
+    private final FooBluetoothAdapterStateListener mBluetoothAdapterStateListener;
 
-    public FooBluetoothManager(
-            @NonNull
-                    Context applicationContext)
+    public FooBluetoothManager(@NonNull Context applicationContext)
     {
         mIsBluetoothSupported = FooBluetoothUtils.isBluetoothSupported(applicationContext);
         mIsBluetoothLowEnergySupported = FooBluetoothUtils.isBluetoothLowEnergySupported(applicationContext);
@@ -28,7 +26,7 @@ public class FooBluetoothManager
         mBluetoothManager = FooBluetoothUtils.getBluetoothManager(applicationContext);
         mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(applicationContext);
 
-        mBluetoothHeadsetConnectionListener = new FooBluetoothHeadsetConnectionListener(applicationContext);
+        //mBluetoothHeadsetConnectionListener = new FooBluetoothHeadsetConnectionListener(applicationContext);
 
         mBluetoothAdapterStateListener = new FooBluetoothAdapterStateListener(applicationContext);
     }
@@ -51,6 +49,22 @@ public class FooBluetoothManager
     public BluetoothAdapter getBluetoothAdapter()
     {
         return mBluetoothAdapter;
+    }
+
+    public boolean isBluetoothAdapterEnabled()
+    {
+        try
+        {
+            // TODO:(pv) Known to sometimes throw DeadObjectException
+            //  https://code.google.com/p/android/issues/detail?id=67272
+            //  https://github.com/RadiusNetworks/android-ibeacon-service/issues/16
+            return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+        }
+        catch (Exception e)
+        {
+            FooLog.v(TAG, "isBluetoothAdapterEnabled: mBluetoothAdapter.isEnabled()", e);
+            return false;
+        }
     }
 
     /**
@@ -112,26 +126,12 @@ public class FooBluetoothManager
         }
     }
 
-    public boolean isBluetoothAdapterEnabled()
-    {
-        try
-        {
-            // TODO:(pv) Known to sometimes throw DeadObjectException
-            //  https://code.google.com/p/android/issues/detail?id=67272
-            //  https://github.com/RadiusNetworks/android-ibeacon-service/issues/16
-            return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
-        }
-        catch (Exception e)
-        {
-            FooLog.v(TAG, "isBluetoothAdapterEnabled: mBluetoothAdapter.isEnabled()", e);
-            return false;
-        }
-    }
-
+    /*
     public FooBluetoothHeadsetConnectionListener getBluetoothHeadsetConnectionListener()
     {
         return mBluetoothHeadsetConnectionListener;
     }
+    */
 
     public FooBluetoothAdapterStateListener getBluetoothAdapterStateListener()
     {

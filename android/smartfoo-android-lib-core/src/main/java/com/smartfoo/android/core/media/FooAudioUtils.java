@@ -2,13 +2,10 @@ package com.smartfoo.android.core.media;
 
 import android.content.Context;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnCompletionListener;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
@@ -120,32 +117,24 @@ public class FooAudioUtils
         return s + '(' + audioFocus + ')';
     }
 
-    public static int getVolumePercentFromAbsolute(
-            @NonNull
-            AudioManager audioManager, int audioStreamType, int volume)
+    public static int getVolumePercentFromAbsolute(@NonNull AudioManager audioManager, int audioStreamType, int volume)
     {
         float maxVolume = audioManager.getStreamMaxVolume(audioStreamType);
         return Math.round(volume / maxVolume * 100f);
     }
 
-    public static int getVolumeAbsoluteFromPercent(
-            @NonNull
-            AudioManager audioManager, int audioStreamType, int percent)
+    public static int getVolumeAbsoluteFromPercent(@NonNull AudioManager audioManager, int audioStreamType, int percent)
     {
         int maxVolume = audioManager.getStreamMaxVolume(audioStreamType);
         return Math.round(maxVolume * (percent / 100f));
     }
 
-    public static int getVolumeAbsolute(
-            @NonNull
-            AudioManager audioManager, int audioStreamType)
+    public static int getVolumeAbsolute(@NonNull AudioManager audioManager, int audioStreamType)
     {
         return audioManager.getStreamVolume(audioStreamType);
     }
 
-    public static int getVolumePercent(
-            @NonNull
-            AudioManager audioManager, int audioStreamType)
+    public static int getVolumePercent(@NonNull AudioManager audioManager, int audioStreamType)
     {
         int volume = audioManager.getStreamVolume(audioStreamType);
         return getVolumePercentFromAbsolute(audioManager, audioStreamType, volume);

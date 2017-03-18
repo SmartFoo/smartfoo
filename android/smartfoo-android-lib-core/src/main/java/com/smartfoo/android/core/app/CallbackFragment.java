@@ -43,9 +43,7 @@ public abstract class CallbackFragment<T>
 
     protected T mCallback;
 
-    protected CallbackFragment(
-            @NonNull
-                    T dummyCallback)
+    protected CallbackFragment(@NonNull T dummyCallback)
     {
         mDummyCallback = dummyCallback;
 

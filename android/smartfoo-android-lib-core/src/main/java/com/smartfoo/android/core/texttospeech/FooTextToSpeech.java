@@ -41,7 +41,7 @@ public class FooTextToSpeech
 
     public interface FooTextToSpeechCallbacks
     {
-        void onInitialized();
+        void onTextToSpeechInitialized();
     }
 
     public static boolean VERBOSE_LOG_SPEECH             = false;
@@ -99,25 +99,25 @@ public class FooTextToSpeech
         mVolumeRelativeToAudioStream = 1.0f;
     }
 
-    public void attach(FooTextToSpeechCallbacks listener)
+    public void attach(FooTextToSpeechCallbacks callbacks)
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
-            mListeners.attach(listener);
+            mListeners.attach(callbacks);
         }
     }
 
-    public void detach(FooTextToSpeechCallbacks listener)
+    public void detach(FooTextToSpeechCallbacks callbacks)
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
-            mListeners.detach(listener);
+            mListeners.detach(callbacks);
         }
     }
 
     public boolean isInitialized()
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             return mIsInitialized;
         }
@@ -125,7 +125,7 @@ public class FooTextToSpeech
 
     public Set<Voice> getVoices()
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             return mTextToSpeech != null ? mTextToSpeech.getVoices() : null;
         }
@@ -133,7 +133,7 @@ public class FooTextToSpeech
 
     public String getVoiceName()
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             return mVoiceName;
         }
@@ -155,7 +155,7 @@ public class FooTextToSpeech
         final String oldValue;
         final boolean changed;
 
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             oldValue = mVoiceName;
 
@@ -203,7 +203,7 @@ public class FooTextToSpeech
 
     public void setAudioStreamType(int audioStreamType)
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             mAudioStreamType = audioStreamType;
         }
@@ -222,7 +222,7 @@ public class FooTextToSpeech
      */
     public void setVolumeRelativeToAudioStream(float volumeRelativeToAudioStream)
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             mVolumeRelativeToAudioStream = volumeRelativeToAudioStream;
         }
@@ -240,7 +240,7 @@ public class FooTextToSpeech
 
     public void stop()
     {
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             clear();
             if (mIsInitialized)
@@ -257,7 +257,7 @@ public class FooTextToSpeech
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             if (mTextToSpeech != null)
             {
@@ -319,7 +319,7 @@ public class FooTextToSpeech
         {
             FooLog.v(TAG, "+onInit(status=" + statusToString(status) + ')');
 
-            synchronized (sInstance)
+            synchronized (mListeners)
             {
                 if (mIsInitialized)
                 {
@@ -336,9 +336,9 @@ public class FooTextToSpeech
 
                 mIsInitialized = true;
 
-                for (FooTextToSpeechCallbacks listener : mListeners.beginTraversing())
+                for (FooTextToSpeechCallbacks callbacks : mListeners.beginTraversing())
                 {
-                    listener.onInitialized();
+                    callbacks.onTextToSpeechInitialized();
                 }
                 mListeners.endTraversing();
 
@@ -382,7 +382,7 @@ public class FooTextToSpeech
         }
 
         Runnable runAfter;
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             runAfter = mUtteranceCallbacks.remove(utteranceId);
         }
@@ -406,7 +406,7 @@ public class FooTextToSpeech
         }
 
         Runnable runAfter;
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             runAfter = mUtteranceCallbacks.remove(utteranceId);
         }
@@ -425,7 +425,7 @@ public class FooTextToSpeech
     public void clear()
     {
         FooLog.d(TAG, "+clear()");
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             mTextToSpeechQueue.clear();
             if (mIsInitialized)
@@ -531,17 +531,12 @@ public class FooTextToSpeech
         return speak(new FooTextToSpeechBuilder(text), clear, runAfter);
     }
 
-    public boolean speak(
-            @NonNull
-                    FooTextToSpeechBuilder builder)
+    public boolean speak(@NonNull FooTextToSpeechBuilder builder)
     {
         return speak(builder, false, null);
     }
 
-    public boolean speak(
-            @NonNull
-                    FooTextToSpeechBuilder builder,
-            boolean clear, Runnable runAfter)
+    public boolean speak(@NonNull FooTextToSpeechBuilder builder, boolean clear, Runnable runAfter)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(builder, "builder");
 
@@ -580,10 +575,7 @@ public class FooTextToSpeech
         return anySuccess;
     }
 
-    private boolean speak(
-            @NonNull
-                    FooTextToSpeechPart part,
-            Boolean clear, Runnable runAfter)
+    private boolean speak(@NonNull FooTextToSpeechPart part, Boolean clear, Runnable runAfter)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(part, "part");
 
@@ -624,7 +616,7 @@ public class FooTextToSpeech
 
             boolean success = false;
 
-            synchronized (sInstance)
+            synchronized (mListeners)
             {
                 if (mTextToSpeech == null)
                 {
@@ -701,7 +693,7 @@ public class FooTextToSpeech
     {
         boolean success = false;
 
-        synchronized (sInstance)
+        synchronized (mListeners)
         {
             if (mTextToSpeech == null)
             {

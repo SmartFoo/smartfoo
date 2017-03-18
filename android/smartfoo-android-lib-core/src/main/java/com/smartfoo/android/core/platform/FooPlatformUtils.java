@@ -173,40 +173,29 @@ public class FooPlatformUtils
     }
 
     @NonNull
-    private static Context getContext(
-            @NonNull
-                    Context context)
+    private static Context getContext(@NonNull Context context)
     {
         return FooRun.toNonNull(context, "context");
     }
 
     @NonNull
-    public static PackageManager getPackageManager(
-            @NonNull
-                    Context context)
+    public static PackageManager getPackageManager(@NonNull Context context)
     {
         return getContext(context).getPackageManager();
     }
 
     @NonNull
-    public static String getPackageName(
-            @NonNull
-                    Context context)
+    public static String getPackageName(@NonNull Context context)
     {
         return getContext(context).getPackageName();
     }
 
-    public static String getApplicationName(
-            @NonNull
-                    Context context)
+    public static String getApplicationName(@NonNull Context context)
     {
         return getApplicationName(context, getPackageName(context));
     }
 
-    public static String getApplicationName(
-            @NonNull
-                    Context context,
-            String packageName)
+    public static String getApplicationName(@NonNull Context context, String packageName)
     {
         ApplicationInfo ai = getApplicationInfo(context, packageName);
         if (ai == null)
@@ -223,10 +212,7 @@ public class FooPlatformUtils
         return applicationLabel.toString();
     }
 
-    public static ApplicationInfo getApplicationInfo(
-            @NonNull
-                    Context context,
-            String packageName)
+    public static ApplicationInfo getApplicationInfo(@NonNull Context context, String packageName)
     {
         try
         {
@@ -242,18 +228,12 @@ public class FooPlatformUtils
      * @param context context
      * @return PackageInfo of the context's package name, or null if one does not exist (should never happen)
      */
-    public static PackageInfo getPackageInfo(
-            @NonNull
-                    Context context)
+    public static PackageInfo getPackageInfo(@NonNull Context context)
     {
         return getPackageInfo(context, getPackageName(context));
     }
 
-    public static PackageInfo getPackageInfo(
-            @NonNull
-                    Context context,
-            @NonNullNonEmpty
-                    String packageName)
+    public static PackageInfo getPackageInfo(@NonNull Context context, @NonNullNonEmpty String packageName)
     {
         try
         {

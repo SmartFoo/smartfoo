@@ -28,9 +28,7 @@ public class GenericPromptPositiveNegativeDialogFragment
          * @param dialogFragment dialogFragment
          * @return true if handled, false if not handled
          */
-        boolean onGenericPromptPositiveNegativeDialogFragmentResult(
-                @NonNull
-                        GenericPromptPositiveNegativeDialogFragment dialogFragment);
+        boolean onGenericPromptPositiveNegativeDialogFragmentResult(@NonNull GenericPromptPositiveNegativeDialogFragment dialogFragment);
     }
 
     public enum Result
@@ -48,8 +46,7 @@ public class GenericPromptPositiveNegativeDialogFragment
 
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(
-            @NonNull
-                    Context context,
+            @NonNull Context context,
             int title,
             int message,
             int textPositiveButton,
@@ -60,8 +57,7 @@ public class GenericPromptPositiveNegativeDialogFragment
 
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(
-            @NonNull
-                    Context context,
+            @NonNull Context context,
             int title,
             int message,
             int checkboxMessage,
@@ -76,6 +72,13 @@ public class GenericPromptPositiveNegativeDialogFragment
                 showCheckboxMessage && checkboxChecked,
                 context.getString(textPositiveButton),
                 context.getString(textNegativeButton));
+    }
+
+    @NonNull
+    public static GenericPromptPositiveNegativeDialogFragment newInstance(String title,
+                                                                          String message)
+    {
+        return newInstance(title, message, null, null);
     }
 
     @NonNull
@@ -113,30 +116,22 @@ public class GenericPromptPositiveNegativeDialogFragment
 
     @NonNull
     protected Bundle makeArguments(
-            @NonNullNonEmpty
-                    String title,
-            @NonNullNonEmpty
-                    String message,
-            @NonNullNonEmpty
-                    String textPositiveButton,
-            @NonNullNonEmpty
-                    String textNegativeButton)
+            @NonNullNonEmpty String title,
+            @NonNullNonEmpty String message,
+            String textPositiveButton,
+            String textNegativeButton)
     {
         return makeArguments(title, message, null, false, textPositiveButton, textNegativeButton);
     }
 
     @NonNull
     protected Bundle makeArguments(
-            @NonNullNonEmpty
-                    String title,
-            @NonNullNonEmpty
-                    String message,
+            @NonNullNonEmpty String title,
+            @NonNullNonEmpty String message,
             String checkboxMessage,
             boolean checkboxChecked,
-            @NonNullNonEmpty
-                    String textPositiveButton,
-            @NonNullNonEmpty
-                    String textNegativeButton)
+            String textPositiveButton,
+            String textNegativeButton)
     {
         Bundle arguments = new Bundle();
         arguments.putString(ARG_TITLE, title);
@@ -161,9 +156,7 @@ public class GenericPromptPositiveNegativeDialogFragment
         super(new GenericPromptPositiveNegativeDialogFragmentCallbacks()
         {
             @Override
-            public boolean onGenericPromptPositiveNegativeDialogFragmentResult(
-                    @NonNull
-                            GenericPromptPositiveNegativeDialogFragment dialogFragment)
+            public boolean onGenericPromptPositiveNegativeDialogFragmentResult(@NonNull GenericPromptPositiveNegativeDialogFragment dialogFragment)
             {
                 return false;
             }

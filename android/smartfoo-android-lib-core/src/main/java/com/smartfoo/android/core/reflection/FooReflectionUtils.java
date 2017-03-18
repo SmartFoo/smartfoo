@@ -1,6 +1,7 @@
 package com.smartfoo.android.core.reflection;
 
 import com.smartfoo.android.core.FooRun;
+import com.smartfoo.android.core.FooString;
 
 public class FooReflectionUtils
 {
@@ -11,6 +12,60 @@ public class FooReflectionUtils
     public static Class<?> getClass(Object o)
     {
         return (o instanceof Class<?>) ? (Class<?>) o : (o != null ? o.getClass() : null);
+    }
+
+    public static String getClassName(Object o)
+    {
+        return getClassName(getClass(o));
+    }
+
+    public static String getClassName(Class c)
+    {
+        return getClassName(c == null ? null : c.getName(), true);
+    }
+
+    public static String getClassName(String className, boolean shortClassName)
+    {
+        if (FooString.isNullOrEmpty(className))
+        {
+            className = "null";
+        }
+        return shortClassName ? className.substring(className.lastIndexOf('.') + 1) : className;
+    }
+
+    public static String getShortClassName(String className)
+    {
+        return getClassName(className, true);
+    }
+
+    public static String getShortClassName(Object o)
+    {
+        Class c = (o == null) ? null : o.getClass();
+        return getShortClassName(c);
+    }
+
+    public static String getShortClassName(Class c)
+    {
+        String className = (c == null) ? null : c.getName();
+        return getShortClassName(className);
+    }
+
+    public static String getMethodName(String methodName)
+    {
+        if (methodName == null)
+        {
+            methodName = "()";
+        }
+        if (methodName.compareTo("()") != 0)
+        {
+            methodName = "." + methodName;
+        }
+        return methodName;
+    }
+
+    public static String getShortClassAndMethodName(Object o, String methodName)
+    {
+        return getShortClassName(o) + getMethodName(methodName);
     }
 
     public static <T> String getInstanceSignature(T instance)

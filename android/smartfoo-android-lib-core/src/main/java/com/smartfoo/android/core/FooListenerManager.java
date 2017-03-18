@@ -1,30 +1,41 @@
 package com.smartfoo.android.core;
 
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 public class FooListenerManager<T>
 {
-    private final Set<T> mListeners;
-    private final Set<T> mListenersToAdd;
-    private final Set<T> mListenersToRemove;
+    private final List<T> mListeners;
+    private final List<T> mListenersToAdd;
+    private final List<T> mListenersToRemove;
 
     private boolean mIsTraversingListeners;
 
     public FooListenerManager()
     {
-        mListeners = new LinkedHashSet<>();
-        mListenersToAdd = new LinkedHashSet<>();
-        mListenersToRemove = new LinkedHashSet<>();
+        mListeners = new LinkedList<>();
+        mListenersToAdd = new LinkedList<>();
+        mListenersToRemove = new LinkedList<>();
+    }
+
+    public int size()
+    {
+        synchronized (mListeners)
+        {
+            if (mIsTraversingListeners)
+            {
+                throw new IllegalStateException("must not call size() between beginTraversing() and endTraversing()");
+            }
+            updateListeners();
+            return mListeners.size();
+        }
     }
 
     public boolean isEmpty()
     {
-        synchronized (mListeners)
-        {
-            return mListeners.size() == 0;
-        }
+        return size() == 0;
     }
 
     public void attach(T listener)
@@ -84,12 +95,12 @@ public class FooListenerManager<T>
         }
     }
 
-    public Set<T> beginTraversing()
+    public List<T> beginTraversing()
     {
         synchronized (mListeners)
         {
             mIsTraversingListeners = true;
-            return mListeners;
+            return Collections.unmodifiableList(mListeners);
         }
     }
 

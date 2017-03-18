@@ -24,12 +24,10 @@ public class FooAudioStreamVolumeObserver
         private int mLastVolume;
 
         public AudioStreamVolumeContentObserver(
-                @NonNull
-                Handler handler,
-                @NonNull
-                AudioManager audioManager, int audioStreamType,
-                @NonNull
-                OnAudioStreamVolumeChangedListener listener)
+                @NonNull Handler handler,
+                @NonNull AudioManager audioManager,
+                int audioStreamType,
+                @NonNull OnAudioStreamVolumeChangedListener listener)
         {
             super(handler);
 
@@ -58,16 +56,12 @@ public class FooAudioStreamVolumeObserver
 
     private AudioStreamVolumeContentObserver mAudioStreamVolumeContentObserver;
 
-    public FooAudioStreamVolumeObserver(
-            @NonNull
-            Context context)
+    public FooAudioStreamVolumeObserver(@NonNull Context context)
     {
         mContext = context;
     }
 
-    public void start(int audioStreamType,
-                      @NonNull
-                      OnAudioStreamVolumeChangedListener listener)
+    public void start(int audioStreamType, @NonNull OnAudioStreamVolumeChangedListener listener)
     {
         stop();
 

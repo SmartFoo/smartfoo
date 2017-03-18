@@ -10,6 +10,8 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 
+import com.smartfoo.android.core.reflection.FooReflectionUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
@@ -425,45 +427,6 @@ public class FooString
                formatNumber(msElapsed, 3);
     }
 
-    public static String getShortClassName(String className)
-    {
-        if (isNullOrEmpty(className))
-        {
-            return "null";
-        }
-        return className.substring(className.lastIndexOf('.') + 1);
-    }
-
-    public static String getShortClassName(Object o)
-    {
-        Class c = (o == null) ? null : o.getClass();
-        return getShortClassName(c);
-    }
-
-    public static String getShortClassName(Class c)
-    {
-        String className = (c == null) ? null : c.getName();
-        return getShortClassName(className);
-    }
-
-    public static String getMethodName(String methodName)
-    {
-        if (methodName == null)
-        {
-            methodName = "()";
-        }
-        if (methodName.compareTo("()") != 0)
-        {
-            methodName = "." + methodName;
-        }
-        return methodName;
-    }
-
-    public static String getShortClassAndMethodName(Object o, String methodName)
-    {
-        return getShortClassName(o) + getMethodName(methodName);
-    }
-
     /**
      * Identical to {@link #repr}, but grammatically intended for Strings.
      *
@@ -494,7 +457,7 @@ public class FooString
     public static String repr(Object value, boolean typeOnly)
     {
         return (value == null) ? "null" : (value instanceof String) ? ('\"' + value.toString() + '\"') //
-                : ((typeOnly) ? getShortClassName(value) : value.toString());
+                : ((typeOnly) ? FooReflectionUtils.getShortClassName(value) : value.toString());
     }
 
     public static String toString(Object[] items)

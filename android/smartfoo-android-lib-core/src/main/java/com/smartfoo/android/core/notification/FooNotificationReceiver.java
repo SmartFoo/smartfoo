@@ -9,8 +9,6 @@ import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 
-import java.util.Set;
-
 public class FooNotificationReceiver
         extends BroadcastReceiver
 {
@@ -18,9 +16,7 @@ public class FooNotificationReceiver
 
     public interface FooNotificationReceiverCallbacks
     {
-        void onFooNotificationReceived(
-                @NonNull
-                Intent intent);
+        void onFooNotificationReceived(@NonNull Intent intent);
     }
 
     private static final FooListenerManager<FooNotificationReceiverCallbacks> mListenerManager;
@@ -30,16 +26,12 @@ public class FooNotificationReceiver
         mListenerManager = new FooListenerManager<>();
     }
 
-    public static void attach(
-            @NonNull
-            FooNotificationReceiverCallbacks callbacks)
+    public static void attach(@NonNull FooNotificationReceiverCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
     }
 
-    public static void detach(
-            @NonNull
-            FooNotificationReceiverCallbacks callbacks)
+    public static void detach(@NonNull FooNotificationReceiverCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);
     }
@@ -50,11 +42,9 @@ public class FooNotificationReceiver
         try
         {
             FooLog.i(TAG, "+onReceive(context, intent=" + FooPlatformUtils.toString(intent) + ')');
-
-            Set<FooNotificationReceiverCallbacks> callbacks = mListenerManager.beginTraversing();
-            for (FooNotificationReceiverCallbacks callback : callbacks)
+            for (FooNotificationReceiverCallbacks callbacks : mListenerManager.beginTraversing())
             {
-                callback.onFooNotificationReceived(intent);
+                callbacks.onFooNotificationReceived(intent);
             }
             mListenerManager.endTraversing();
         }

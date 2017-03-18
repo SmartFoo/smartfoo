@@ -110,10 +110,7 @@ public class FooGattUtils
      * @param gatt       gatt
      * @return true if both gatt.disconnect() and gatt.close() were called successfully, otherwise false
      */
-    public static boolean safeDisconnectAndClose(
-            @NonNull
-            final String callerName,
-            final BluetoothGatt gatt)
+    public static boolean safeDisconnectAndClose(@NonNull final String callerName, final BluetoothGatt gatt)
     {
         return safeDisconnect(callerName, gatt, true) && safeClose(callerName, gatt);
     }
@@ -128,19 +125,12 @@ public class FooGattUtils
      * @param gatt       gatt
      * @return true if gatt.disconnect() was called successfully, otherwise false
      */
-    public static boolean safeDisconnect(
-            @NonNull
-            final String callerName,
-            final BluetoothGatt gatt)
+    public static boolean safeDisconnect(@NonNull final String callerName, final BluetoothGatt gatt)
     {
         return safeDisconnect(callerName, gatt, false);
     }
 
-    private static boolean safeDisconnect(
-            @NonNull
-            final String callerName,
-            final BluetoothGatt gatt,
-            boolean ignoreException)
+    private static boolean safeDisconnect(@NonNull final String callerName, final BluetoothGatt gatt, boolean ignoreException)
     {
         String debugInfo = gattDeviceAddressString(gatt) + FooString.quote(callerName) + "->safeDisconnect";
         FooLog.v(TAG, debugInfo + "(gatt=" + gatt + ')');
@@ -173,10 +163,7 @@ public class FooGattUtils
      * @param gatt       gatt
      * @return true if gatt.close() was called successfully, otherwise false
      */
-    public static boolean safeClose(
-            @NonNull
-            final String callerName,
-            final BluetoothGatt gatt)
+    public static boolean safeClose(@NonNull final String callerName, final BluetoothGatt gatt)
     {
         String debugInfo = gattDeviceAddressString(gatt) + ' ' + callerName + "->safeClose";
         FooLog.v(TAG, debugInfo + "(gatt=" + gatt + ')');

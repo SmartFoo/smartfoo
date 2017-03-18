@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.smartfoo.android.core.BuildConfig;
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.reflection.FooReflectionUtils;
 import com.smartfoo.android.core.texttospeech.FooTextToSpeech;
 
 import java.util.LinkedHashSet;
@@ -74,7 +75,7 @@ public class FooLog
 
     public static String TAG(Class c)
     {
-        return TAG(FooString.getShortClassName(c));
+        return TAG(FooReflectionUtils.getShortClassName(c));
     }
 
     /**

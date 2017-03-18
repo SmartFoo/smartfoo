@@ -38,9 +38,7 @@ public class FooVolumeRestoringMediaPlayer
                 }
             };
 
-    public FooVolumeRestoringMediaPlayer(
-            @NonNull
-                    Context context)
+    public FooVolumeRestoringMediaPlayer(@NonNull Context context)
     {
         mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -55,8 +53,7 @@ public class FooVolumeRestoringMediaPlayer
      * @return true if successful, otherwise false
      */
     public boolean play(
-            @NonNull
-            final Uri mediaUri,
+            @NonNull final Uri mediaUri,
             final int streamType,
             double streamVolumePercent,
             final boolean looping)

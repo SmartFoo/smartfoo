@@ -12,11 +12,9 @@ import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 
-import java.util.Set;
-
 /**
  * Inspiration:
- *  http://blog.urvatechlabs.com/detect-programatically-if-headphone-or-bluetooth-headsets-attached-with-android-phone/
+ * http://blog.urvatechlabs.com/detect-programatically-if-headphone-or-bluetooth-headsets-attached-with-android-phone/
  */
 public class FooWiredHeadsetConnectionListener
 {
@@ -30,9 +28,7 @@ public class FooWiredHeadsetConnectionListener
     private final WiredHeadsetBroadcastReceiver                         mWiredHeadsetBroadcastReceiver;
     private final FooListenerManager<OnWiredHeadsetConnectionCallbacks> mListenerManager;
 
-    public FooWiredHeadsetConnectionListener(
-            @NonNull
-            Context applicationContext)
+    public FooWiredHeadsetConnectionListener(@NonNull Context applicationContext)
     {
         mWiredHeadsetBroadcastReceiver = new WiredHeadsetBroadcastReceiver(applicationContext);
         mListenerManager = new FooListenerManager<>();
@@ -48,9 +44,7 @@ public class FooWiredHeadsetConnectionListener
         return mWiredHeadsetBroadcastReceiver.isStarted();
     }
 
-    public void attach(
-            @NonNull
-            OnWiredHeadsetConnectionCallbacks callbacks)
+    public void attach(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
 
@@ -64,10 +58,9 @@ public class FooWiredHeadsetConnectionListener
             @Override
             public void onWiredHeadsetConnected(String name, boolean hasMicrophone)
             {
-                Set<OnWiredHeadsetConnectionCallbacks> callbacks = mListenerManager.beginTraversing();
-                for (OnWiredHeadsetConnectionCallbacks callback : callbacks)
+                for (OnWiredHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
                 {
-                    callback.onWiredHeadsetConnected(name, hasMicrophone);
+                    callbacks.onWiredHeadsetConnected(name, hasMicrophone);
                 }
                 mListenerManager.endTraversing();
             }
@@ -75,19 +68,16 @@ public class FooWiredHeadsetConnectionListener
             @Override
             public void onWiredHeadsetDisconnected(String name, boolean hasMicrophone)
             {
-                Set<OnWiredHeadsetConnectionCallbacks> callbacks = mListenerManager.beginTraversing();
-                for (OnWiredHeadsetConnectionCallbacks callback : callbacks)
+                for (OnWiredHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
                 {
-                    callback.onWiredHeadsetDisconnected(name, hasMicrophone);
+                    callbacks.onWiredHeadsetDisconnected(name, hasMicrophone);
                 }
                 mListenerManager.endTraversing();
             }
         });
     }
 
-    public void detach(
-            @NonNull
-            OnWiredHeadsetConnectionCallbacks callbacks)
+    public void detach(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);
 
@@ -130,9 +120,7 @@ public class FooWiredHeadsetConnectionListener
             }
         }
 
-        public void start(
-                @NonNull
-                OnWiredHeadsetConnectionCallbacks callbacks)
+        public void start(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
             synchronized (mSyncLock)

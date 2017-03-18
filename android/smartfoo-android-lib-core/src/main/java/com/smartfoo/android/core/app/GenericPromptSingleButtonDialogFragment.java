@@ -22,9 +22,7 @@ public class GenericPromptSingleButtonDialogFragment
          * @param dialogFragment dialogFragment
          * @return true if handled, false if not handled
          */
-        boolean onGenericPromptSingleButtonDialogFragmentResult(
-                @NonNull
-                        GenericPromptSingleButtonDialogFragment dialogFragment);
+        boolean onGenericPromptSingleButtonDialogFragmentResult(@NonNull GenericPromptSingleButtonDialogFragment dialogFragment);
     }
 
     public enum Result
@@ -34,8 +32,7 @@ public class GenericPromptSingleButtonDialogFragment
     }
 
     public static GenericPromptSingleButtonDialogFragment newInstance(
-            @NonNull
-                    Context context,
+            @NonNull Context context,
             int title,
             int message,
             int textButton)
