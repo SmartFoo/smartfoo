@@ -3,8 +3,10 @@ package com.smartfoo.android.core.texttospeech;
 import android.app.Activity;
 import android.content.Intent;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 
 import java.util.Collections;
@@ -65,11 +67,16 @@ public class FooTextToSpeechHelper
      * }
      * </pre>
      *
-     * @param activity activity
+     * @param activity    activity
      * @param requestCode requestCode
      */
-    public static void requestTextToSpeechData(Activity activity, int requestCode)
+    public static void requestTextToSpeechData(@NonNull Activity activity, int requestCode)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(activity, "activity");
+        if (activity.isFinishing() || activity.isDestroyed())
+        {
+            return;
+        }
         activity.startActivityForResult(getIntentRequestTextToSpeechData(), requestCode);
     }
 

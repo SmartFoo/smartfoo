@@ -48,12 +48,17 @@ public class FooTextToSpeech
     public static boolean VERBOSE_LOG_UTTERANCE_IDS      = false;
     public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = false;
 
-    private static final FooTextToSpeech sInstance = new FooTextToSpeech();
-
     @NonNull
     public static FooTextToSpeech getInstance()
     {
         return sInstance;
+    }
+
+    private static final FooTextToSpeech sInstance;
+
+    static
+    {
+        sInstance = new FooTextToSpeech();
     }
 
     private class UtteranceInfo
@@ -68,9 +73,12 @@ public class FooTextToSpeech
         }
     }
 
+    private final Object                                       mSyncLock;
     private final FooListenerManager<FooTextToSpeechCallbacks> mListeners;
     private final List<UtteranceInfo>                          mTextToSpeechQueue;
     private final Map<String, Runnable>                        mUtteranceCallbacks;
+    private final OnAudioFocusChangeListener                   mOnAudioFocusChangeListener;
+    private final Runnable                                     mRunAfterSpeak;
 
     private AudioManager mAudioManager;
     private TextToSpeech mTextToSpeech;
@@ -80,28 +88,40 @@ public class FooTextToSpeech
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
 
-    private final OnAudioFocusChangeListener mOnAudioFocusChangeListener = new OnAudioFocusChangeListener()
+    public FooTextToSpeech()
     {
-        @Override
-        public void onAudioFocusChange(int focusChange)
-        {
-            FooTextToSpeech.this.onAudioFocusChange(focusChange);
-        }
-    };
+        FooLog.v(TAG, "+FooTextToSpeech()");
 
-    private FooTextToSpeech()
-    {
+        mSyncLock = new Object();
         mListeners = new FooListenerManager<>();
         mTextToSpeechQueue = new LinkedList<>();
         mUtteranceCallbacks = new HashMap<>();
+        mOnAudioFocusChangeListener = new OnAudioFocusChangeListener()
+        {
+            @Override
+            public void onAudioFocusChange(int focusChange)
+            {
+                FooTextToSpeech.this.onAudioFocusChange(focusChange);
+            }
+        };
+        mRunAfterSpeak = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                FooTextToSpeech.this.audioFocusStop();
+            }
+        };
 
         mAudioStreamType = TextToSpeech.Engine.DEFAULT_STREAM;
         mVolumeRelativeToAudioStream = 1.0f;
+
+        FooLog.v(TAG, "-FooTextToSpeech()");
     }
 
     public void attach(FooTextToSpeechCallbacks callbacks)
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             mListeners.attach(callbacks);
         }
@@ -109,23 +129,15 @@ public class FooTextToSpeech
 
     public void detach(FooTextToSpeechCallbacks callbacks)
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             mListeners.detach(callbacks);
         }
     }
 
-    public boolean isInitialized()
-    {
-        synchronized (mListeners)
-        {
-            return mIsInitialized;
-        }
-    }
-
     public Set<Voice> getVoices()
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             return mTextToSpeech != null ? mTextToSpeech.getVoices() : null;
         }
@@ -133,7 +145,7 @@ public class FooTextToSpeech
 
     public String getVoiceName()
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             return mVoiceName;
         }
@@ -145,7 +157,7 @@ public class FooTextToSpeech
      */
     public boolean setVoiceName(String voiceName)
     {
-        FooLog.e(TAG, "setVoiceName(" + FooString.quote(voiceName) + ')');
+        FooLog.v(TAG, "setVoiceName(" + FooString.quote(voiceName) + ')');
 
         if (FooString.isNullOrEmpty(voiceName))
         {
@@ -155,7 +167,7 @@ public class FooTextToSpeech
         final String oldValue;
         final boolean changed;
 
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             oldValue = mVoiceName;
 
@@ -203,7 +215,7 @@ public class FooTextToSpeech
 
     public void setAudioStreamType(int audioStreamType)
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             mAudioStreamType = audioStreamType;
         }
@@ -214,7 +226,10 @@ public class FooTextToSpeech
      */
     public float getVolumeRelativeToAudioStream()
     {
-        return mVolumeRelativeToAudioStream;
+        synchronized (mSyncLock)
+        {
+            return mVolumeRelativeToAudioStream;
+        }
     }
 
     /**
@@ -222,45 +237,72 @@ public class FooTextToSpeech
      */
     public void setVolumeRelativeToAudioStream(float volumeRelativeToAudioStream)
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             mVolumeRelativeToAudioStream = volumeRelativeToAudioStream;
         }
     }
 
-    public boolean isStartingOrStarted()
-    {
-        return mTextToSpeech != null;
-    }
-
     public boolean isStarted()
     {
-        return mIsInitialized;
+        synchronized (mSyncLock)
+        {
+            return mTextToSpeech != null;
+        }
+    }
+
+    public boolean isInitialized()
+    {
+        synchronized (mSyncLock)
+        {
+            return mIsInitialized;
+        }
+    }
+
+    private void onTextToSpeechInitialized()
+    {
+        for (FooTextToSpeechCallbacks callbacks : mListeners.beginTraversing())
+        {
+            callbacks.onTextToSpeechInitialized();
+        }
+        mListeners.endTraversing();
     }
 
     public void stop()
     {
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             clear();
-            if (mIsInitialized)
+            if (mTextToSpeech != null)
             {
                 mTextToSpeech.stop();
                 mTextToSpeech.shutdown();
                 mTextToSpeech = null;
-                mIsInitialized = false;
             }
+            mIsInitialized = false;
         }
     }
 
     public FooTextToSpeech start(@NonNull Context context)
     {
+        return start(context, null);
+    }
+
+    public FooTextToSpeech start(@NonNull Context context, FooTextToSpeechCallbacks callbacks)
+    {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
-            if (mTextToSpeech != null)
+            attach(callbacks);
+
+            if (isStarted())
             {
+                if (isInitialized())
+                {
+                    onTextToSpeechInitialized();
+                }
+
                 return this;
             }
 
@@ -271,7 +313,7 @@ public class FooTextToSpeech
                 @Override
                 public void onInit(int status)
                 {
-                    FooTextToSpeech.this.onInit(status);
+                    FooTextToSpeech.this.onTextToSpeechInitialized(status);
                 }
             });
 
@@ -313,22 +355,28 @@ public class FooTextToSpeech
         }
     }
 
-    private void onInit(int status)
+    private void onTextToSpeechInitialized(int status)
     {
         try
         {
-            FooLog.v(TAG, "+onInit(status=" + statusToString(status) + ')');
+            FooLog.v(TAG, "+onTextToSpeechInitialized(status=" + statusToString(status) + ')');
 
-            synchronized (mListeners)
+            synchronized (mSyncLock)
             {
-                if (mIsInitialized)
+                if (!isStarted())
+                {
+                    return;
+                }
+
+                if (isInitialized())
                 {
                     return;
                 }
 
                 if (status != TextToSpeech.SUCCESS)
                 {
-                    FooLog.w(TAG, "onInit: TextToSpeech failed to initialize: status=" + statusToString(status));
+                    FooLog.w(TAG, "onTextToSpeechInitialized: TextToSpeech failed to initialize: status=" +
+                                  statusToString(status));
                     return;
                 }
 
@@ -336,11 +384,7 @@ public class FooTextToSpeech
 
                 mIsInitialized = true;
 
-                for (FooTextToSpeechCallbacks callbacks : mListeners.beginTraversing())
-                {
-                    callbacks.onTextToSpeechInitialized();
-                }
-                mListeners.endTraversing();
+                onTextToSpeechInitialized();
 
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
@@ -355,7 +399,7 @@ public class FooTextToSpeech
         }
         finally
         {
-            FooLog.v(TAG, "-onInit(status=" + statusToString(status) + ')');
+            FooLog.v(TAG, "-onTextToSpeechInitialized(status=" + statusToString(status) + ')');
         }
     }
 
@@ -382,7 +426,7 @@ public class FooTextToSpeech
         }
 
         Runnable runAfter;
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             runAfter = mUtteranceCallbacks.remove(utteranceId);
         }
@@ -406,7 +450,7 @@ public class FooTextToSpeech
         }
 
         Runnable runAfter;
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             runAfter = mUtteranceCallbacks.remove(utteranceId);
         }
@@ -425,7 +469,7 @@ public class FooTextToSpeech
     public void clear()
     {
         FooLog.d(TAG, "+clear()");
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             mTextToSpeechQueue.clear();
             if (mIsInitialized)
@@ -501,15 +545,6 @@ public class FooTextToSpeech
             }
         }
     }
-
-    private final Runnable mRunAfterSpeak = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            audioFocusStop();
-        }
-    };
 
     public boolean speak(String text)
     {
@@ -616,7 +651,7 @@ public class FooTextToSpeech
 
             boolean success = false;
 
-            synchronized (mListeners)
+            synchronized (mSyncLock)
             {
                 if (mTextToSpeech == null)
                 {
@@ -693,7 +728,7 @@ public class FooTextToSpeech
     {
         boolean success = false;
 
-        synchronized (mListeners)
+        synchronized (mSyncLock)
         {
             if (mTextToSpeech == null)
             {

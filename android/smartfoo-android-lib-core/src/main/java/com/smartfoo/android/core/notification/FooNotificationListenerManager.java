@@ -111,7 +111,7 @@ public class FooNotificationListenerManager
             {
                 try
                 {
-                    FooLog.e(TAG, "+mRunIfNotBound.run()");
+                    FooLog.v(TAG, "+mRunIfNotBound.run()");
                     if (isNotificationListenerBound())
                     {
                         return;
@@ -121,7 +121,7 @@ public class FooNotificationListenerManager
                 }
                 finally
                 {
-                    FooLog.e(TAG, "-mRunIfNotBound.run()");
+                    FooLog.v(TAG, "-mRunIfNotBound.run()");
                 }
             }
         };

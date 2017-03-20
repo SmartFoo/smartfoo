@@ -51,6 +51,7 @@ public class FooPreferences
         return mApplicationContext.getSharedPreferences(name, Activity.MODE_PRIVATE);
     }
 
+    @SuppressLint("ApplySharedPref")
     protected void deleteKey(String name, String key)
     {
         getPrivatePreferences(name).edit().remove(key).commit();
@@ -62,7 +63,7 @@ public class FooPreferences
         clear(getPrivatePreferences(name));
     }
 
-    @SuppressLint("CommitPrefEdits")
+    @SuppressLint("ApplySharedPref")
     protected void clear(SharedPreferences preferences)
     {
         preferences.edit().clear().commit();
@@ -74,6 +75,7 @@ public class FooPreferences
         return getPrivatePreferences(name).getString(key, defaultValue);
     }
 
+    @SuppressLint("ApplySharedPref")
     protected void setString(String name, String key, String value)
     {
         getPrivatePreferences(name).edit().putString(key, value).commit();
@@ -85,6 +87,7 @@ public class FooPreferences
         return getPrivatePreferences(name).getBoolean(key, defaultValue);
     }
 
+    @SuppressLint("ApplySharedPref")
     protected void setBoolean(String name, String key, boolean value)
     {
         getPrivatePreferences(name).edit().putBoolean(key, value).commit();
@@ -96,6 +99,7 @@ public class FooPreferences
         return getPrivatePreferences(name).getInt(key, defaultValue);
     }
 
+    @SuppressLint("ApplySharedPref")
     protected void setInt(String name, String key, int value)
     {
         getPrivatePreferences(name).edit().putInt(key, value).commit();
@@ -107,6 +111,7 @@ public class FooPreferences
         return getPrivatePreferences(name).getLong(key, defaultValue);
     }
 
+    @SuppressLint("ApplySharedPref")
     protected void setLong(String name, String key, long value)
     {
         getPrivatePreferences(name).edit().putLong(key, value).commit();

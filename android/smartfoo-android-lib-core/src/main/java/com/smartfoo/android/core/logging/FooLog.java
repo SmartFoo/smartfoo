@@ -285,7 +285,7 @@ public class FooLog
         {
             sTextToSpeech = FooTextToSpeech.getInstance();
 
-            if (!sTextToSpeech.isStartingOrStarted())
+            if (!sTextToSpeech.isStarted())
             {
                 sTextToSpeech.start(context);
             }
@@ -300,9 +300,9 @@ public class FooLog
 
     public static void s(String tag, String text, boolean clear)
     {
-        if (sTextToSpeech == null || !sTextToSpeech.isStartingOrStarted())
+        if (sTextToSpeech == null || !sTextToSpeech.isStarted())
         {
-            throw new IllegalStateException("initializeSpeech must be called first");
+            throw new IllegalStateException("initializeSpeech(...) must be called first");
         }
 
         if (sIsEnabled && !FooString.isNullOrEmpty(text))
