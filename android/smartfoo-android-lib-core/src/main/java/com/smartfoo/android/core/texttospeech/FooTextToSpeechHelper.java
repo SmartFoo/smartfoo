@@ -8,6 +8,7 @@ import android.text.TextUtils;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.platform.FooPlatformUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,7 +78,12 @@ public class FooTextToSpeechHelper
         {
             return;
         }
-        activity.startActivityForResult(getIntentRequestTextToSpeechData(), requestCode);
+        Intent intent = getIntentRequestTextToSpeechData();
+        String signature = "activity.startActivityForResult(intent=" + FooPlatformUtils.toString(intent) +
+                           ", requestCode=" + requestCode + ')';
+        FooLog.v(TAG, "requestTextToSpeechData: +" + signature);
+        activity.startActivityForResult(intent, requestCode);
+        FooLog.v(TAG, "requestTextToSpeechData: -" + signature);
     }
 
     /**

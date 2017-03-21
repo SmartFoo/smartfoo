@@ -47,6 +47,7 @@ public class FooTextToSpeech
     public static boolean VERBOSE_LOG_SPEECH             = false;
     public static boolean VERBOSE_LOG_UTTERANCE_IDS      = false;
     public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = false;
+    public static boolean VERBOSE_LOG_AUDIO_FOCUS        = false;
 
     @NonNull
     public static FooTextToSpeech getInstance()
@@ -486,39 +487,53 @@ public class FooTextToSpeech
      */
     public boolean audioFocusStart()
     {
-        FooLog.i(TAG, "audioFocusStart()");
+        if (VERBOSE_LOG_AUDIO_FOCUS)
+        {
+            FooLog.v(TAG, "audioFocusStart()");
+        }
         int voiceAudioStreamType = getAudioStreamType();
         int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener, voiceAudioStreamType, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        if (success)
+        if (VERBOSE_LOG_AUDIO_FOCUS)
         {
-            FooLog.i(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
-        }
-        else
-        {
-            FooLog.w(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+            if (success)
+            {
+                FooLog.v(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+            }
+            else
+            {
+                FooLog.w(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+            }
         }
         return success;
     }
 
     private void onAudioFocusChange(int focusChange)
     {
-        FooLog.i(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
-
+        if (VERBOSE_LOG_AUDIO_FOCUS)
+        {
+            FooLog.v(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
+        }
     }
 
     public boolean audioFocusStop()
     {
-        FooLog.i(TAG, "audioFocusStop()");
+        if (VERBOSE_LOG_AUDIO_FOCUS)
+        {
+            FooLog.v(TAG, "audioFocusStop()");
+        }
         int result = mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        if (success)
+        if (VERBOSE_LOG_AUDIO_FOCUS)
         {
-            FooLog.i(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
-        }
-        else
-        {
-            FooLog.w(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+            if (success)
+            {
+                FooLog.v(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+            }
+            else
+            {
+                FooLog.w(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+            }
         }
         return success;
     }

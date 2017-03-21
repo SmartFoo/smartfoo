@@ -29,9 +29,18 @@ public class FooNotificationListenerManager
         return VERSION_SDK_INT >= 19;
     }
 
-    @TargetApi(21) // TODO:(pv) Does this work on API19-20?
-    public static boolean isNotificationAccessSettingEnabled(Context context)
+    /**
+     * NOTE:(pv) USE CAUTIOUSLY! The Notification Listener can still fail to bind [due to
+     * http://stackoverflow.com/a/37081128/252308] even if the setting is AND SHOWS as enabled.
+     *
+     * @param context context
+     * @return true if the OS Notification Access Setting is enable for this app's context
+     */
+    @TargetApi(21)
+    public static boolean isNotificationAccessSettingUnverifiedEnabled(@NonNull Context context)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+
         String packageName = context.getPackageName();
 
         ContentResolver contentResolver = context.getContentResolver();
@@ -167,9 +176,26 @@ public class FooNotificationListenerManager
         // TODO:(pv) Anything to do if mListenerManager.size() changed to 0?
     }
 
+    /**
+     * @return true if this Notification Listener successfully bound
+     */
     public boolean isNotificationListenerBound()
     {
         return mIsNotificationListenerBound != null && mIsNotificationListenerBound;
+    }
+
+    /**
+     * NOTE: Used to determine if the Notification Access Setting is enabled but mismatches its actual state [due to
+     * issue http://stackoverflow.com/a/37081128/252308]
+     *
+     * @param context context
+     * @return true if the Notification Access Setting is enabled for the context *AND* this Notification Listener
+     * successfully bound
+     */
+    public boolean isNotificationAccessSettingEnabledAndNotBound(@NonNull Context context)
+    {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        return isNotificationAccessSettingUnverifiedEnabled(context) && !isNotificationListenerBound();
     }
 
     void onNotificationListenerBound()

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
@@ -296,6 +297,11 @@ public class FooString
         }
         parts[1] = parts[1].substring(0, trailing);
         return parts[0] + '.' + parts[1];
+    }
+
+    public static String join(String delimiter, String... parts)
+    {
+        return TextUtils.join(delimiter, parts);
     }
 
     /**
