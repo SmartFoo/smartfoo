@@ -4,6 +4,7 @@ import android.speech.tts.TextToSpeech;
 
 import com.smartfoo.android.core.FooString;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class FooTextToSpeechBuilder
@@ -30,6 +31,12 @@ public class FooTextToSpeechBuilder
 
             mText = text;
         }
+
+        @Override
+        public String toString()
+        {
+            return "mText=" + FooString.quote(mText);
+        }
     }
 
     public static class FooTextToSpeechPartSilence
@@ -41,6 +48,12 @@ public class FooTextToSpeechBuilder
         public FooTextToSpeechPartSilence(int durationInMs)
         {
             mDurationInMs = durationInMs;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "mDurationInMs=" + mDurationInMs;
         }
     }
 
@@ -55,6 +68,24 @@ public class FooTextToSpeechBuilder
     {
         this();
         appendSpeech(text);
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for (Iterator<FooTextToSpeechPart> iterator = mParts.iterator(); iterator.hasNext(); )
+        {
+            FooTextToSpeechPart part = iterator.next();
+            sb.append(part);
+            if (iterator.hasNext())
+            {
+                sb.append(", ");
+            }
+        }
+        sb.append(']');
+        return sb.toString();
     }
 
     public boolean isEmpty()

@@ -462,8 +462,27 @@ public class FooString
      */
     public static String repr(Object value, boolean typeOnly)
     {
-        return (value == null) ? "null" : (value instanceof String) ? ('\"' + value.toString() + '\"') //
-                : ((typeOnly) ? FooReflectionUtils.getShortClassName(value) : value.toString());
+        if (value == null)
+        {
+            return "null";
+        }
+
+        if (typeOnly)
+        {
+            return FooReflectionUtils.getShortClassName(value);
+        }
+
+        if (value instanceof String)
+        {
+            return "\"" + value.toString() + '\"';
+        }
+
+        if (value instanceof CharSequence)
+        {
+            return "\"" + value.toString() + '\"';
+        }
+
+        return value.toString();
     }
 
     public static String toString(Object[] items)

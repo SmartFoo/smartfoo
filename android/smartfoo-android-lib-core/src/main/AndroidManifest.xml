@@ -35,7 +35,9 @@
                 <action android:name="com.smartfoo.android.core.notification.FooNotificationListener.ACTION_BIND_REMOTE_CONTROLLER"/>
             </intent-filter>
         </service>
+        -->
 
+        <!--
         <receiver
             android:name=".notification.FooNotificationReceiver"
             android:exported="false"

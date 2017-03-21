@@ -12,8 +12,9 @@ import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooListenerManager;
-import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.platform.FooPlatformUtils;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,13 +33,14 @@ public class FooBluetoothHeadsetConnectionListener
         void onBluetoothHeadsetDisconnected(BluetoothDevice bluetoothDevice);
     }
 
-    private final FooBluetoothHeadsetConnectionBroadcastReceiver            mBluetoothConnectionBroadcastReceiver;
     private final FooListenerManager<OnBluetoothHeadsetConnectionCallbacks> mListenerManager;
+    private final FooBluetoothHeadsetConnectionBroadcastReceiver            mBluetoothConnectionBroadcastReceiver;
 
-    public FooBluetoothHeadsetConnectionListener(@NonNull Context applicationContext)
+    public FooBluetoothHeadsetConnectionListener(@NonNull Context context)
     {
-        mBluetoothConnectionBroadcastReceiver = new FooBluetoothHeadsetConnectionBroadcastReceiver(applicationContext);
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         mListenerManager = new FooListenerManager<>();
+        mBluetoothConnectionBroadcastReceiver = new FooBluetoothHeadsetConnectionBroadcastReceiver(context);
     }
 
     public boolean isBluetoothHeadsetConnected()
@@ -52,49 +54,42 @@ public class FooBluetoothHeadsetConnectionListener
         return mBluetoothConnectionBroadcastReceiver.getConnectedBluetoothHeadsets();
     }
 
-    private boolean isStarted()
-    {
-        return mBluetoothConnectionBroadcastReceiver.isStarted();
-    }
-
     public void attach(@NonNull OnBluetoothHeadsetConnectionCallbacks callbacks)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         mListenerManager.attach(callbacks);
-
-        if (isStarted())
+        if (mListenerManager.size() == 1 && !mBluetoothConnectionBroadcastReceiver.isStarted())
         {
-            return;
+            mBluetoothConnectionBroadcastReceiver.start(new OnBluetoothHeadsetConnectionCallbacks()
+            {
+                @Override
+                public void onBluetoothHeadsetConnected(BluetoothDevice bluetoothDevice)
+                {
+                    for (OnBluetoothHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
+                    {
+                        callbacks.onBluetoothHeadsetConnected(bluetoothDevice);
+                    }
+                    mListenerManager.endTraversing();
+                }
+
+                @Override
+                public void onBluetoothHeadsetDisconnected(BluetoothDevice bluetoothDevice)
+                {
+                    for (OnBluetoothHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
+                    {
+                        callbacks.onBluetoothHeadsetDisconnected(bluetoothDevice);
+                    }
+                    mListenerManager.endTraversing();
+                }
+            });
         }
-
-        mBluetoothConnectionBroadcastReceiver.start(new OnBluetoothHeadsetConnectionCallbacks()
-        {
-            @Override
-            public void onBluetoothHeadsetConnected(BluetoothDevice bluetoothDevice)
-            {
-                for (OnBluetoothHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
-                {
-                    callbacks.onBluetoothHeadsetConnected(bluetoothDevice);
-                }
-                mListenerManager.endTraversing();
-            }
-
-            @Override
-            public void onBluetoothHeadsetDisconnected(BluetoothDevice bluetoothDevice)
-            {
-                for (OnBluetoothHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
-                {
-                    callbacks.onBluetoothHeadsetDisconnected(bluetoothDevice);
-                }
-                mListenerManager.endTraversing();
-            }
-        });
     }
 
     public void detach(@NonNull OnBluetoothHeadsetConnectionCallbacks callbacks)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         mListenerManager.detach(callbacks);
-
-        if (mListenerManager.isEmpty())
+        if (mListenerManager.size() == 0 && mBluetoothConnectionBroadcastReceiver.isStarted())
         {
             mBluetoothConnectionBroadcastReceiver.stop();
         }
@@ -112,7 +107,9 @@ public class FooBluetoothHeadsetConnectionListener
             private final int                                   mBluetoothProfileId;
             private final OnBluetoothHeadsetConnectionCallbacks mCallbacks;
 
-            FooBluetoothServiceListener(@NonNull BluetoothAdapter bluetoothAdapter, int bluetoothProfileId, @NonNull OnBluetoothHeadsetConnectionCallbacks callbacks)
+            FooBluetoothServiceListener(@NonNull BluetoothAdapter bluetoothAdapter,
+                                        int bluetoothProfileId,
+                                        @NonNull OnBluetoothHeadsetConnectionCallbacks callbacks)
             {
                 mBluetoothAdapter = bluetoothAdapter;
                 mBluetoothProfileId = bluetoothProfileId;
@@ -126,6 +123,14 @@ public class FooBluetoothHeadsetConnectionListener
                 {
                     return;
                 }
+
+                /*
+                if (proxy instanceof BluetoothHeadset)
+                {
+                    BluetoothHeadset bluetoothHeadset = (BluetoothHeadset) proxy;
+                    //...
+                }
+                */
 
                 for (BluetoothDevice bluetoothDevice : proxy.getConnectedDevices())
                 {
@@ -141,20 +146,19 @@ public class FooBluetoothHeadsetConnectionListener
             }
         }
 
-        private final Context                      mApplicationContext;
+        private final Context                      mContext;
+        private final Object                       mSyncLock;
         private final BluetoothAdapter             mBluetoothAdapter;
         private final Map<String, BluetoothDevice> mConnectedBluetoothHeadsets;
 
-        private final Object mSyncLock = new Object();
-
-        private boolean mIsStarted;
-
+        private boolean                               mIsStarted;
         private OnBluetoothHeadsetConnectionCallbacks mCallbacks;
 
-        public FooBluetoothHeadsetConnectionBroadcastReceiver(@NonNull Context applicationContext)
+        public FooBluetoothHeadsetConnectionBroadcastReceiver(@NonNull Context context)
         {
-            mApplicationContext = applicationContext;
-            mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(applicationContext);
+            mContext = context;
+            mSyncLock = new Object();
+            mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(context);
             mConnectedBluetoothHeadsets = new HashMap<>();
         }
 
@@ -166,6 +170,7 @@ public class FooBluetoothHeadsetConnectionListener
             }
         }
 
+        @NonNull
         public Map<String, BluetoothDevice> getConnectedBluetoothHeadsets()
         {
             synchronized (mSyncLock)
@@ -185,41 +190,38 @@ public class FooBluetoothHeadsetConnectionListener
         public boolean start(@NonNull OnBluetoothHeadsetConnectionCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
-
-            if (mBluetoothAdapter == null)
+            if (mBluetoothAdapter != null)
             {
-                return false;
-            }
-
-            synchronized (mSyncLock)
-            {
-                if (!mIsStarted)
+                synchronized (mSyncLock)
                 {
-                    mIsStarted = true;
-
-                    mCallbacks = callbacks;
-
-                    int bluetoothProfileId = BluetoothProfile.HEADSET;
-                    FooBluetoothServiceListener bluetoothServiceListener = new FooBluetoothServiceListener(mBluetoothAdapter, bluetoothProfileId, new OnBluetoothHeadsetConnectionCallbacks()
+                    if (!mIsStarted)
                     {
-                        @Override
-                        public void onBluetoothHeadsetConnected(BluetoothDevice bluetoothDevice)
-                        {
-                            FooBluetoothHeadsetConnectionBroadcastReceiver.this.onBluetoothHeadsetConnected(bluetoothDevice);
-                        }
+                        mIsStarted = true;
 
-                        @Override
-                        public void onBluetoothHeadsetDisconnected(BluetoothDevice bluetoothDevice)
-                        {
-                            // ignore during startup
-                        }
-                    });
-                    mBluetoothAdapter.getProfileProxy(mApplicationContext, bluetoothServiceListener, bluetoothProfileId);
+                        mCallbacks = callbacks;
 
-                    IntentFilter intentFilter = new IntentFilter();
-                    intentFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-                    intentFilter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
-                    mApplicationContext.registerReceiver(this, intentFilter);
+                        int bluetoothProfileId = BluetoothProfile.HEADSET;
+                        FooBluetoothServiceListener bluetoothServiceListener = new FooBluetoothServiceListener(mBluetoothAdapter, bluetoothProfileId, new OnBluetoothHeadsetConnectionCallbacks()
+                        {
+                            @Override
+                            public void onBluetoothHeadsetConnected(BluetoothDevice bluetoothDevice)
+                            {
+                                FooBluetoothHeadsetConnectionBroadcastReceiver.this.onBluetoothHeadsetConnected(bluetoothDevice);
+                            }
+
+                            @Override
+                            public void onBluetoothHeadsetDisconnected(BluetoothDevice bluetoothDevice)
+                            {
+                                // ignore during startup
+                            }
+                        });
+                        mBluetoothAdapter.getProfileProxy(mContext, bluetoothServiceListener, bluetoothProfileId);
+
+                        IntentFilter intentFilter = new IntentFilter();
+                        intentFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+                        intentFilter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
+                        mContext.registerReceiver(this, intentFilter);
+                    }
                 }
             }
             FooLog.v(TAG, "-start(...)");
@@ -235,7 +237,7 @@ public class FooBluetoothHeadsetConnectionListener
                 {
                     mIsStarted = false;
 
-                    mApplicationContext.unregisterReceiver(this);
+                    mContext.unregisterReceiver(this);
                 }
             }
             FooLog.v(TAG, "-stop()");
@@ -244,9 +246,8 @@ public class FooBluetoothHeadsetConnectionListener
         @Override
         public void onReceive(Context context, Intent intent)
         {
+            FooLog.v(TAG, "onReceive: intent == " + FooPlatformUtils.toString(intent));
             String action = intent.getAction();
-            FooLog.v(TAG, "onReceive: action=" + FooString.quote(action));
-
             switch (action)
             {
                 case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
@@ -254,10 +255,10 @@ public class FooBluetoothHeadsetConnectionListener
                     BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     int stateCurrent = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
                     int statePrevious = intent.getIntExtra(BluetoothHeadset.EXTRA_PREVIOUS_STATE, -1);
-                    FooLog.v(TAG, "onReceive: bluetoothDevice=" + bluetoothDevice);
-                    FooLog.v(TAG, "onReceive: stateCurrent=" +
+                    FooLog.v(TAG, "onReceive: bluetoothDevice == " + bluetoothDevice);
+                    FooLog.v(TAG, "onReceive: stateCurrent == " +
                                   FooBluetoothUtils.bluetoothProfileStateToString(stateCurrent));
-                    FooLog.v(TAG, "onReceive: statePrevious=" +
+                    FooLog.v(TAG, "onReceive: statePrevious == " +
                                   FooBluetoothUtils.bluetoothProfileStateToString(statePrevious));
                     onBluetoothHeadsetConnectionStateChanged(bluetoothDevice, stateCurrent, statePrevious);
                     break;
@@ -267,10 +268,10 @@ public class FooBluetoothHeadsetConnectionListener
                     BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     int stateCurrent = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
                     int statePrevious = intent.getIntExtra(BluetoothHeadset.EXTRA_PREVIOUS_STATE, -1);
-                    FooLog.v(TAG, "onReceive: bluetoothDevice=" + bluetoothDevice);
-                    FooLog.v(TAG, "onReceive: stateCurrent=" +
+                    FooLog.v(TAG, "onReceive: bluetoothDevice == " + bluetoothDevice);
+                    FooLog.v(TAG, "onReceive: stateCurrent == " +
                                   FooBluetoothUtils.bluetoothHeadsetAudioStateToString(stateCurrent));
-                    FooLog.v(TAG, "onReceive: statePrevious=" +
+                    FooLog.v(TAG, "onReceive: statePrevious == " +
                                   FooBluetoothUtils.bluetoothHeadsetAudioStateToString(statePrevious));
                     break;
                 }
@@ -279,10 +280,10 @@ public class FooBluetoothHeadsetConnectionListener
 
         private void onBluetoothHeadsetConnectionStateChanged(BluetoothDevice bluetoothDevice, int stateCurrent, int statePrevious)
         {
-            FooLog.v(TAG, "onBluetoothHeadsetConnectionStateChanged: bluetoothDevice=" + bluetoothDevice);
-            FooLog.v(TAG, "onBluetoothHeadsetConnectionStateChanged: stateCurrent=" +
+            FooLog.v(TAG, "onBluetoothHeadsetConnectionStateChanged: bluetoothDevice == " + bluetoothDevice);
+            FooLog.v(TAG, "onBluetoothHeadsetConnectionStateChanged: stateCurrent == " +
                           FooBluetoothUtils.bluetoothProfileStateToString(stateCurrent));
-            FooLog.v(TAG, "onBluetoothHeadsetConnectionStateChanged: statePrevious=" +
+            FooLog.v(TAG, "onBluetoothHeadsetConnectionStateChanged: statePrevious == " +
                           FooBluetoothUtils.bluetoothProfileStateToString(statePrevious));
             if (stateCurrent == BluetoothProfile.STATE_CONNECTED)
             {
@@ -302,7 +303,7 @@ public class FooBluetoothHeadsetConnectionListener
                 BluetoothDevice previousValue = mConnectedBluetoothHeadsets.put(bluetoothDeviceAddress, bluetoothDevice);
                 if (previousValue == null)
                 {
-                    FooLog.i(TAG, "onBluetoothHeadsetConnected: bluetoothDevice=" + bluetoothDevice);
+                    FooLog.i(TAG, "onBluetoothHeadsetConnected: bluetoothDevice == " + bluetoothDevice);
                     mCallbacks.onBluetoothHeadsetConnected(bluetoothDevice);
                 }
             }
@@ -316,7 +317,7 @@ public class FooBluetoothHeadsetConnectionListener
                 BluetoothDevice previousValue = mConnectedBluetoothHeadsets.remove(bluetoothDeviceAddress);
                 if (previousValue != null)
                 {
-                    FooLog.i(TAG, "onBluetoothHeadsetDisconnected: bluetoothDevice=" + bluetoothDevice);
+                    FooLog.i(TAG, "onBluetoothHeadsetDisconnected: bluetoothDevice == " + bluetoothDevice);
                     mCallbacks.onBluetoothHeadsetDisconnected(bluetoothDevice);
                 }
             }

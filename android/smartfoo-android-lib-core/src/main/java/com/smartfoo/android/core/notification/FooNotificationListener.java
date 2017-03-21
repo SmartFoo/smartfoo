@@ -22,6 +22,13 @@ public class FooNotificationListener
 {
     private static final String TAG = FooLog.TAG(FooNotificationListener.class);
 
+    private static FooNotificationListener sInstance;
+
+    static FooNotificationListener getInstance()
+    {
+        return sInstance;
+    }
+
     public static final String ACTION_BIND_REMOTE_CONTROLLER =
             FooReflectionUtils.getClassName(FooNotificationListener.class) +
             ".ACTION_BIND_REMOTE_CONTROLLER";
@@ -52,11 +59,13 @@ public class FooNotificationListener
         FooLog.d(TAG, "+onCreate()");
         super.onCreate();
 
+        sInstance = this;
+
         mListenerManager = FooNotificationListenerManager.getInstance();
 
         mHandler = new FooHandler();
 
-        resetInitializeActiveNotifications();
+        resetAttemptInitializeActiveNotifications();
 
         Context applicationContext = getApplicationContext();
 
@@ -99,81 +108,91 @@ public class FooNotificationListener
     private void onNotificationListenerBound()
     {
         mListenerManager.onNotificationListenerBound();
-        initializeActiveNotifications();
+        attemptInitializeActiveNotifications();
     }
 
     private void onNotificationListenerUnbound()
     {
         mListenerManager.onNotificationListenerUnbound();
-        resetInitializeActiveNotifications();
+        resetAttemptInitializeActiveNotifications();
     }
 
-    private static final int INITIALIZE_ACTIVE_NOTIFICATIONS_MAX_ATTEMPTS = 10;
+    private static final int ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX = 10;
 
-    private int     mInitializeActiveNotificationsAttempts;
-    private int     mInitializeActiveNotificationsDelay;
-    private boolean mInitializeActiveNotificationsSuccess;
+    private int     mAttemptInitializeActiveNotificationsAttempts;
+    private int     mAttemptInitializeActiveNotificationsDelay;
+    private boolean mAttemptInitializeActiveNotificationsSuccess;
 
-    private final Runnable mInitializeActiveNotificationsRunnable = new Runnable()
+    private final Runnable mAttemptInitializeActiveNotificationsRunnable = new Runnable()
     {
         @Override
         public void run()
         {
             try
             {
-                StatusBarNotification[] activeNotifications = getActiveNotifications();
-                //FooLog.e(TAG, "initializeActiveNotifications: activeNotifications=" + FooString.toString(activeNotifications));
-                if (activeNotifications != null)
-                {
-                    for (StatusBarNotification sbn : activeNotifications)
-                    {
-                        onNotificationPosted(sbn);
-                    }
-                }
+                initializeActiveNotifications();
 
-                mInitializeActiveNotificationsSuccess = true;
+                mAttemptInitializeActiveNotificationsSuccess = true;
 
-                FooLog.i(TAG, "initializeActiveNotifications: Success after " +
-                              mInitializeActiveNotificationsAttempts + " attempts");
+                FooLog.i(TAG, "mAttemptInitializeActiveNotificationsRunnable.run: Success after " +
+                              mAttemptInitializeActiveNotificationsAttempts + " attempts");
             }
             catch (SecurityException e)
             {
-                FooLog.w(TAG, "initializeActiveNotifications: EXCEPTION", e);
-                initializeActiveNotifications();
+                FooLog.w(TAG, "mAttemptInitializeActiveNotificationsRunnable.run: EXCEPTION", e);
+                attemptInitializeActiveNotifications();
             }
         }
     };
 
-    private boolean isInitializeActiveNotificationsSuccess()
+    private void attemptInitializeActiveNotifications()
     {
-        return mInitializeActiveNotificationsSuccess;
-    }
+        FooLog.v(TAG, "attemptInitializeActiveNotifications()");
 
-    private void initializeActiveNotifications()
-    {
+        FooLog.v(TAG, "attemptInitializeActiveNotifications: mAttemptInitializeActiveNotificationsAttempts == " +
+                      mAttemptInitializeActiveNotificationsAttempts);
+
         //
         // Hack required to read active notifications immediately after being bound
         //
-        if (mInitializeActiveNotificationsAttempts < INITIALIZE_ACTIVE_NOTIFICATIONS_MAX_ATTEMPTS)
+        if (mAttemptInitializeActiveNotificationsAttempts < ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX)
         {
-            mInitializeActiveNotificationsAttempts++;
-            mInitializeActiveNotificationsDelay += 100;
+            mAttemptInitializeActiveNotificationsAttempts++;
+            mAttemptInitializeActiveNotificationsDelay += 100; // linear backoff
 
-            mHandler.postDelayed(mInitializeActiveNotificationsRunnable, mInitializeActiveNotificationsDelay);
+            mHandler.postDelayed(mAttemptInitializeActiveNotificationsRunnable, mAttemptInitializeActiveNotificationsDelay);
         }
         else
         {
-            FooLog.w(TAG, "initializeActiveNotifications: Maximum number of attempts (" +
-                          INITIALIZE_ACTIVE_NOTIFICATIONS_MAX_ATTEMPTS + ") reached");
+            FooLog.w(TAG, "attemptInitializeActiveNotifications: Maximum number of attempts (" +
+                          ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX + ") reached");
         }
     }
 
-    private void resetInitializeActiveNotifications()
+    private void resetAttemptInitializeActiveNotifications()
     {
-        mHandler.removeCallbacks(mInitializeActiveNotificationsRunnable);
-        mInitializeActiveNotificationsAttempts = 0;
-        mInitializeActiveNotificationsDelay = 0;
-        mInitializeActiveNotificationsSuccess = false;
+        mHandler.removeCallbacks(mAttemptInitializeActiveNotificationsRunnable);
+        mAttemptInitializeActiveNotificationsAttempts = 0;
+        mAttemptInitializeActiveNotificationsDelay = 0;
+        mAttemptInitializeActiveNotificationsSuccess = false;
+    }
+
+    public boolean isAttemptInitializeActiveNotificationsSuccess()
+    {
+        return mAttemptInitializeActiveNotificationsSuccess;
+    }
+
+    public void initializeActiveNotifications()
+    {
+        StatusBarNotification[] activeNotifications = getActiveNotifications();
+        //FooLog.e(TAG, "initializeActiveNotifications: activeNotifications=" + FooString.toString(activeNotifications));
+        if (activeNotifications != null)
+        {
+            for (StatusBarNotification sbn : activeNotifications)
+            {
+                onNotificationPosted(sbn);
+            }
+        }
     }
 
     @Override

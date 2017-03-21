@@ -2,14 +2,15 @@ package com.smartfoo.android.core.notification;
 
 import android.app.Notification;
 import android.app.Service;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
+import com.smartfoo.android.core.platform.FooService;
 
 /**
  * NOTE:(pv) I originally thought that an IntentService might be appropriate here.
@@ -26,49 +27,25 @@ public class FooNotificationService
 
     public static boolean showNotification(Context context, FooNotification notification)
     {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context must not be null");
-        }
-
-        if (notification == null)
-        {
-            throw new IllegalArgumentException("notification must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        FooRun.throwIllegalArgumentExceptionIfNull(notification, "notification");
 
         Intent intent = new Intent(context, FooNotificationService.class);
         intent.putExtra(EXTRA_NOTIFICATION, notification);
 
-        return startService(context, intent);
+        return FooService.startService(context, intent);
     }
 
     public static boolean showNotification(Context context, int requestCode, Notification notification)
     {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context must not be null");
-        }
-
-        if (notification == null)
-        {
-            throw new IllegalArgumentException("notification must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        FooRun.throwIllegalArgumentExceptionIfNull(notification, "notification");
 
         Intent intent = new Intent(context, FooNotificationService.class);
         intent.putExtra(EXTRA_NOTIFICATION_REQUEST_CODE, requestCode);
         intent.putExtra(EXTRA_NOTIFICATION, notification);
 
-        return startService(context, intent);
-    }
-
-    private static boolean startService(Context context, Intent intent)
-    {
-        ComponentName componentName = context.startService(intent);
-
-        //noinspection UnnecessaryLocalVariable
-        boolean started = (componentName != null);
-
-        return started;
+        return FooService.startService(context, intent);
     }
 
     @Override
@@ -85,7 +62,8 @@ public class FooNotificationService
     {
         try
         {
-            FooLog.d(TAG, "+onStartCommand(intent=" + FooPlatformUtils.toString(intent) + ", flags=" + flags +
+            FooLog.d(TAG, "+onStartCommand(intent=" + FooPlatformUtils.toString(intent) +
+                          ", flags=" + flags +
                           ", startId=" + startId + ')');
             //FooLog.s(TAG, FooString.separateCamelCaseWords("onStartCommand"));
             if (intent != null)
@@ -120,7 +98,8 @@ public class FooNotificationService
         }
         finally
         {
-            FooLog.d(TAG, "-onStartCommand(intent=" + FooPlatformUtils.toString(intent) + ", flags=" + flags +
+            FooLog.d(TAG, "-onStartCommand(intent=" + FooPlatformUtils.toString(intent) +
+                          ", flags=" + flags +
                           ", startId=" + startId + ')');
         }
     }

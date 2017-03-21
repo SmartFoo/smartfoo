@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.bluetooth.gatt.FooGattUuids;
 
@@ -75,6 +76,8 @@ public class FooBluetoothUtils
     @Nullable
     public static BluetoothAdapter getBluetoothAdapter(@NonNull Context context)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+
         BluetoothAdapter bluetoothAdapter = null;
 
         if (isBluetoothSupported(context))

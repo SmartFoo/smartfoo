@@ -142,6 +142,19 @@ public class FooNotificationListenerManager
         context.startActivity(getIntentNotificationListenerSettings());
     }
 
+    public boolean refresh()
+    {
+        FooNotificationListener notificationListener = FooNotificationListener.getInstance();
+        if (notificationListener == null)
+        {
+            return false;
+        }
+
+        notificationListener.initializeActiveNotifications();
+
+        return true;
+    }
+
     public void attach(FooNotificationListenerManagerCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
