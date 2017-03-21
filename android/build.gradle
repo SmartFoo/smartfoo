@@ -44,3 +44,19 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+/**
+ * Checks for project.LOCAL_DEVELOPMENT_BUILD and uses local only projects
+ *
+ * @return true if project.LOCAL_DEVELOPMENT_BUILD == true, else false
+ */
+def getIsLocalDevelopmentBuild() {
+    def isLocalDevelopmentBuild = project.hasProperty('LOCAL_DEVELOPMENT_BUILD') ? project.LOCAL_DEVELOPMENT_BUILD.toBoolean() : false
+    println 'getIsLocalDevelopmentBuild: isLocalDevelopmentBuild=' + isLocalDevelopmentBuild
+    return isLocalDevelopmentBuild
+}
+
+ext {
+    getIsLocalDevelopmentBuild = this.&getIsLocalDevelopmentBuild
+}
+
