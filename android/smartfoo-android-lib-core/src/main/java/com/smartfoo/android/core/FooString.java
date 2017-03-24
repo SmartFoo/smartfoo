@@ -74,9 +74,9 @@ public class FooString
         return (value == null || value.length() == 0 || value.equals(""));
     }
 
-    public static boolean isNullOrEmpty(Object value)
+    public static String toString(Object value)
     {
-        return (value == null || isNullOrEmpty(value.toString()));
+        return value != null ? value.toString() : null;
     }
 
     /**

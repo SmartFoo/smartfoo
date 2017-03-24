@@ -10,19 +10,21 @@ public class FooRun
     {
     }
 
-    public static <T> void throwIllegalArgumentExceptionIfNull(T paramValue,
-                                                               @NonNullNonEmpty String paramName)
+    @NonNull
+    public static <T> T throwIllegalArgumentExceptionIfNull(T paramValue,
+                                                            @NonNullNonEmpty String paramName)
     {
-        throwIllegalArgumentExceptionNullOrEmpty(paramName, "paramName");
+        throwIllegalArgumentExceptionIfNullOrEmpty(paramName, "paramName");
         if (paramValue == null)
         {
             throw new IllegalArgumentException(paramName + " must not be null");
         }
+        return paramValue;
     }
 
-    @SuppressWarnings("InfiniteRecursion")
-    public static void throwIllegalArgumentExceptionNullOrEmpty(String paramValue,
-                                                                @NonNullNonEmpty String paramName)
+    @NonNullNonEmpty
+    public static String throwIllegalArgumentExceptionIfNullOrEmpty(String paramValue,
+                                                                    @NonNullNonEmpty String paramName)
     {
         if (FooString.isNullOrEmpty(paramName))
         {
@@ -32,8 +34,17 @@ public class FooRun
         {
             throw new IllegalArgumentException(paramName + " must not be null/\"\"");
         }
+        return paramName;
     }
 
+    /**
+     * Alias for {@link #throwIllegalArgumentExceptionIfNull(Object, String)}
+     *
+     * @param paramValue paramValue
+     * @param paramName  paramName
+     * @param <T>        type
+     * @return paramValue
+     */
     @NonNull
     public static <T> T toNonNull(T paramValue,
                                   @NonNullNonEmpty String paramName)
@@ -42,13 +53,19 @@ public class FooRun
         return paramValue;
     }
 
-    @SuppressWarnings("InfiniteRecursion")
+    /**
+     * Alias for {@link #throwIllegalArgumentExceptionIfNullOrEmpty(String, String)}
+     *
+     * @param paramValue paramValue
+     * @param paramName  paramName
+     * @return paramValue
+     */
     @NonNullNonEmpty
     public static String toNonNullNonEmpty(
             String paramValue,
             @NonNullNonEmpty String paramName)
     {
-        throwIllegalArgumentExceptionNullOrEmpty(paramValue, paramName);
+        throwIllegalArgumentExceptionIfNullOrEmpty(paramValue, paramName);
         return paramValue;
     }
 }

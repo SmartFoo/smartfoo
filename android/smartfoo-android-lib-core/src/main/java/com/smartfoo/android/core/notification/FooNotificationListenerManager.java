@@ -20,7 +20,7 @@ public class FooNotificationListenerManager
     private static final String TAG = FooLog.TAG(FooNotificationListenerManager.class);
 
     /**
-     * Used to force a specific OS Version # FOR TESTING!
+     * Usually VERSION.SDK_INT, but may be used to force a specific OS Version # FOR TESTING!
      */
     private static final int VERSION_SDK_INT = VERSION.SDK_INT;
 
@@ -29,23 +29,16 @@ public class FooNotificationListenerManager
         return VERSION_SDK_INT >= 19;
     }
 
-    /**
-     * NOTE:(pv) USE CAUTIOUSLY! The Notification Listener can still fail to bind [due to
-     * http://stackoverflow.com/a/37081128/252308] even if the setting is AND SHOWS as enabled.
-     *
-     * @param context context
-     * @return true if the OS Notification Access Setting is enable for this app's context
-     */
+    private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
+
     @TargetApi(21)
-    public static boolean isNotificationAccessSettingUnverifiedEnabled(@NonNull Context context)
+    public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
         String packageName = context.getPackageName();
 
         ContentResolver contentResolver = context.getContentResolver();
-
-        final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
 
         String enabledNotificationListeners = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
         if (enabledNotificationListeners != null)
@@ -54,12 +47,12 @@ public class FooNotificationListenerManager
             {
                 if (enabledNotificationListener.startsWith(packageName))
                 {
-                    return true;
+                    return false;
                 }
             }
         }
 
-        return false;
+        return true;
     }
 
     @SuppressLint("InlinedApi")
@@ -80,11 +73,27 @@ public class FooNotificationListenerManager
         return new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS);
     }
 
+    public static void startActivityNotificationListenerSettings(@NonNull Context context)
+    {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        context.startActivity(getIntentNotificationListenerSettings());
+    }
+
+    public enum DisabledCause
+    {
+        ConfirmedNotEnabled,
+        BindTimeout,
+        Unbind,
+    }
+
     public interface FooNotificationListenerManagerCallbacks
     {
-        void onNotificationListenerBound();
+        /**
+         * @return true to prevent {@link #initializeActiveNotifications()} from being automatically called
+         */
+        boolean onNotificationAccessSettingConfirmedEnabled();
 
-        void onNotificationListenerUnbound();
+        void onNotificationAccessSettingDisabled(DisabledCause disabledCause);
 
         void onNotificationPosted(StatusBarNotification sbn);
 
@@ -96,136 +105,255 @@ public class FooNotificationListenerManager
         return sInstance;
     }
 
-    private static FooNotificationListenerManager sInstance;
-
-    static
-    {
-        sInstance = new FooNotificationListenerManager();
-    }
+    private static FooNotificationListenerManager sInstance = new FooNotificationListenerManager();
 
     private final FooListenerManager<FooNotificationListenerManagerCallbacks> mListenerManager;
-    private final Runnable                                                    mRunIfNotBound;
+    private final FooHandler                                                  mHandler;
 
-    private FooHandler mHandler;
-    private Boolean    mIsNotificationListenerBound;
+    private FooNotificationListener mNotificationListener;
+    private boolean                 mIsWaitingForNotificationListenerBindTimeout;
 
     private FooNotificationListenerManager()
     {
         mListenerManager = new FooListenerManager<>();
-
-        mRunIfNotBound = new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    FooLog.v(TAG, "+mRunIfNotBound.run()");
-                    if (isNotificationListenerBound())
-                    {
-                        return;
-                    }
-
-                    onNotificationListenerUnbound();
-                }
-                finally
-                {
-                    FooLog.v(TAG, "-mRunIfNotBound.run()");
-                }
-            }
-        };
+        mHandler = new FooHandler();
     }
 
-    public void startActivityNotificationListenerSettings(@NonNull Context context)
+    /**
+     * @return true if Notification Access is confirmed enabled (ie: FooNotificationListener successfully bound)
+     */
+    public boolean isNotificationAccessSettingConfirmedEnabled()
+    {
+        return mNotificationListener != null;
+    }
+
+    public void attach(@NonNull Context context,
+                       @NonNull FooNotificationListenerManagerCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        context.startActivity(getIntentNotificationListenerSettings());
+        FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
+
+        mListenerManager.attach(callbacks);
+
+        if (isNotificationAccessSettingConfirmedNotEnabled(context))
+        {
+            callbacks.onNotificationAccessSettingDisabled(DisabledCause.ConfirmedNotEnabled);
+        }
+        else
+        {
+            if (mListenerManager.size() == 1)
+            {
+                if (!mIsWaitingForNotificationListenerBindTimeout)
+                {
+                    notificationListenerBindTimeoutStart(100);
+                }
+            }
+        }
     }
 
-    public boolean refresh()
+    public void detach(@NonNull FooNotificationListenerManagerCallbacks callbacks)
     {
-        FooNotificationListener notificationListener = FooNotificationListener.getInstance();
-        if (notificationListener == null)
+        FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
+        mListenerManager.detach(callbacks);
+        if (mListenerManager.size() == 0)
+        {
+            notificationListenerBindTimeoutStop();
+        }
+    }
+
+    public boolean initializeActiveNotifications()
+    {
+        return attemptInitializeActiveNotifications(true);
+    }
+
+    private boolean attemptInitializeActiveNotifications(boolean reset)
+    {
+        if (mNotificationListener == null)
         {
             return false;
         }
 
-        notificationListener.initializeActiveNotifications();
+        if (reset)
+        {
+            resetAttemptInitializeActiveNotifications();
+        }
 
-        return true;
+        try
+        {
+            StatusBarNotification[] activeNotifications = mNotificationListener.getActiveNotifications();
+            //FooLog.e(TAG, "initializeActiveNotifications: activeNotifications=" + FooString.toString(activeNotifications));
+            if (activeNotifications != null)
+            {
+                for (StatusBarNotification sbn : activeNotifications)
+                {
+                    onNotificationPosted(mNotificationListener, sbn);
+                }
+            }
+
+            resetAttemptInitializeActiveNotifications();
+
+            mAttemptInitializeActiveNotificationsSuccess = true;
+
+            FooLog.i(TAG, "initializeActiveNotifications: Success after " +
+                          mAttemptInitializeActiveNotificationsAttempts + " attempts");
+
+            return true;
+        }
+        catch (SecurityException e)
+        {
+            FooLog.w(TAG, "initializeActiveNotifications: EXCEPTION", e);
+
+            FooLog.v(TAG, "initializeActiveNotifications: mAttemptInitializeActiveNotificationsAttempts == " +
+                          mAttemptInitializeActiveNotificationsAttempts);
+
+            //
+            // Hack required to read active notifications immediately after being bound
+            //
+            if (mAttemptInitializeActiveNotificationsAttempts < ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX)
+            {
+                mAttemptInitializeActiveNotificationsAttempts++;
+                mAttemptInitializeActiveNotificationsDelay += 100; // linear backoff
+
+                mHandler.postDelayed(mAttemptInitializeActiveNotificationsRunnable, mAttemptInitializeActiveNotificationsDelay);
+            }
+            else
+            {
+                FooLog.w(TAG, "initializeActiveNotifications: Maximum number of attempts (" +
+                              ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX + ") reached");
+            }
+        }
+
+        return false;
     }
 
-    public void attach(FooNotificationListenerManagerCallbacks callbacks)
-    {
-        mListenerManager.attach(callbacks);
+    private static final int ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX = 10;
 
-        if (mHandler == null && mListenerManager.size() == 1)
+    private int     mAttemptInitializeActiveNotificationsAttempts;
+    private int     mAttemptInitializeActiveNotificationsDelay;
+    private boolean mAttemptInitializeActiveNotificationsSuccess;
+
+    private final Runnable mAttemptInitializeActiveNotificationsRunnable = new Runnable()
+    {
+        @Override
+        public void run()
         {
-            //
-            // HACK required to detect non-binding when re-installing app even if notification access is enabled:
-            // http://stackoverflow.com/a/37081128/252308
-            //
-            // Even if Notification Access is enabled, the Application always starts first, before FooNotificationListener has any chance to bind.
-            // After the Application start, if FooNotificationListener binds then it will call onNotificationListenerBound().
-            // On first run it will not bind because the user has not enabled the settings.
-            // Normally we would just directly call FooNotificationListener.isNotificationAccessSettingEnabled(Context context).
-            // Unfortunately, sometimes NotificationAccess is configured to be enabled, but FooNotificationListener never binds.
-            // This almost always happens when re-installing the app between development builds.
-            // NOTE:(pv) It is unknown if this is also an issue when the app does production updates through Google Play.
-            // Since we cannot reliably test for isNotificationAccessSettingEnabled, the next best thing is to timeout if
-            // FooNotificationListener does not bind within a small amount of time (we are using 250ms).
-            // If FooNotificationListener does not bind and call onNotificationListenerBound() within 250ms then we need to
-            // prompt the user to enable Notification Access.
-            //
-            mHandler = new FooHandler();
-            mHandler.postDelayed(mRunIfNotBound, 250);
+            attemptInitializeActiveNotifications(false);
+        }
+    };
+
+    private void resetAttemptInitializeActiveNotifications()
+    {
+        mHandler.removeCallbacks(mAttemptInitializeActiveNotificationsRunnable);
+        mAttemptInitializeActiveNotificationsAttempts = 0;
+        mAttemptInitializeActiveNotificationsDelay = 0;
+        mAttemptInitializeActiveNotificationsSuccess = false;
+    }
+
+    public boolean isAttemptInitializeActiveNotificationsSuccess()
+    {
+        return mAttemptInitializeActiveNotificationsSuccess;
+    }
+
+    /**
+     * HACK required to detect non-binding when re-installing app even if notification access says/shows it is enabled:
+     * http://stackoverflow.com/a/37081128/252308
+     * <p>
+     * Even if Notification Access is enabled, the Application always starts first, before FooNotificationListener has
+     * any chance to bind.
+     * After the Application start, if FooNotificationListener binds then it will call onNotificationListenerBound().
+     * On first run it will not bind because the user has not enabled the settings.
+     * Normally we would just directly call FooNotificationListener.isNotificationAccessSettingEnabled(Context
+     * context).
+     * Unfortunately, sometimes NotificationAccess is configured to be enabled, but FooNotificationListener never
+     * binds.
+     * This almost always happens when re-installing the app between development builds.
+     * NOTE:(pv) It is unknown if this is also an issue when the app does production updates through Google Play.
+     * Since we cannot reliably test for isNotificationAccessSettingEnabled, the next best thing is to timeout if
+     * FooNotificationListener does not bind within a small amount of time (we are using 100ms).
+     * If FooNotificationListener does not bind and call onNotificationListenerBound() within 250ms then we need to
+     * prompt the user to enable Notification Access.
+     *
+     * @param timeoutMillis
+     */
+    private void notificationListenerBindTimeoutStart(long timeoutMillis)
+    {
+        mIsWaitingForNotificationListenerBindTimeout = true;
+        mHandler.postDelayed(mNotificationListenerBindTimeout, timeoutMillis);
+    }
+
+    private void notificationListenerBindTimeoutStop()
+    {
+        mIsWaitingForNotificationListenerBindTimeout = false;
+        mHandler.removeCallbacks(mNotificationListenerBindTimeout);
+    }
+
+    private final Runnable mNotificationListenerBindTimeout = new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            try
+            {
+                FooLog.v(TAG, "+mNotificationListenerBindTimeout.run()");
+                if (isNotificationAccessSettingConfirmedEnabled())
+                {
+                    return;
+                }
+
+                onNotificationAccessSettingDisabled(null);
+            }
+            finally
+            {
+                FooLog.v(TAG, "-mNotificationListenerBindTimeout.run()");
+            }
+        }
+    };
+
+    void onNotificationAccessSettingConfirmedEnabled(FooNotificationListener notificationListener)
+    {
+        notificationListenerBindTimeoutStop();
+
+        mNotificationListener = notificationListener;
+
+        resetAttemptInitializeActiveNotifications();
+
+        boolean initialize = true;
+        for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+        {
+            initialize &= !callbacks.onNotificationAccessSettingConfirmedEnabled();
+        }
+        mListenerManager.endTraversing();
+
+        if (initialize)
+        {
+            attemptInitializeActiveNotifications(false);
         }
     }
 
-    public void detach(FooNotificationListenerManagerCallbacks callbacks)
+    void onNotificationAccessSettingDisabled(FooNotificationListener notificationListener)
     {
-        mListenerManager.detach(callbacks);
+        notificationListenerBindTimeoutStop();
 
-        // TODO:(pv) Anything to do if mListenerManager.size() changed to 0?
-    }
+        mNotificationListener = null;
 
-    /**
-     * @return true if this Notification Listener successfully bound
-     */
-    public boolean isNotificationListenerBound()
-    {
-        return mIsNotificationListenerBound != null && mIsNotificationListenerBound;
-    }
+        resetAttemptInitializeActiveNotifications();
 
-    /**
-     * NOTE: Used to determine if the Notification Access Setting is enabled but mismatches its actual state [due to
-     * issue http://stackoverflow.com/a/37081128/252308]
-     *
-     * @param context context
-     * @return true if the Notification Access Setting is enabled for the context *AND* this Notification Listener
-     * successfully bound
-     */
-    public boolean isNotificationAccessSettingEnabledAndNotBound(@NonNull Context context)
-    {
-        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        return isNotificationAccessSettingUnverifiedEnabled(context) && !isNotificationListenerBound();
-    }
-
-    void onNotificationListenerBound()
-    {
-        mHandler.removeCallbacks(mRunIfNotBound);
-
-        mIsNotificationListenerBound = true;
+        DisabledCause disabledCause = notificationListener == null ? DisabledCause.BindTimeout : DisabledCause.Unbind;
 
         for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
         {
-            callbacks.onNotificationListenerBound();
+            callbacks.onNotificationAccessSettingDisabled(disabledCause);
         }
         mListenerManager.endTraversing();
     }
 
-    void onNotificationPosted(StatusBarNotification sbn)
+    void onNotificationPosted(FooNotificationListener notificationListener, StatusBarNotification sbn)
     {
+        if (mNotificationListener == null || mNotificationListener != notificationListener)
+        {
+            return;
+        }
+
         for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
         {
             callbacks.onNotificationPosted(sbn);
@@ -233,27 +361,16 @@ public class FooNotificationListenerManager
         mListenerManager.endTraversing();
     }
 
-    void onNotificationRemoved(StatusBarNotification sbn)
+    void onNotificationRemoved(FooNotificationListener notificationListener, StatusBarNotification sbn)
     {
-        for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
-        {
-            callbacks.onNotificationRemoved(sbn);
-        }
-        mListenerManager.endTraversing();
-    }
-
-    void onNotificationListenerUnbound()
-    {
-        if (mIsNotificationListenerBound != null && !mIsNotificationListenerBound)
+        if (mNotificationListener == null || mNotificationListener != notificationListener)
         {
             return;
         }
 
-        mIsNotificationListenerBound = false;
-
         for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
         {
-            callbacks.onNotificationListenerUnbound();
+            callbacks.onNotificationRemoved(sbn);
         }
         mListenerManager.endTraversing();
     }

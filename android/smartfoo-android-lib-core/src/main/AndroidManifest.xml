@@ -24,6 +24,14 @@
 
         <!--
         <service
+            android:name="com.smartfoo.android.core.notification.FooNotificationService"
+            android:enabled="true"
+            android:exported="false"
+            />
+        -->
+
+        <!--
+        <service
             android:name="com.smartfoo.android.core.notification.FooNotificationListener"
             android:enabled="true"
             android:exported="true"

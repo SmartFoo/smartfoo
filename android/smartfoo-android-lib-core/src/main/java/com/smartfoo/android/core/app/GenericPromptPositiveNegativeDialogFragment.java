@@ -12,6 +12,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.app.GenericPromptPositiveNegativeDialogFragment.GenericPromptPositiveNegativeDialogFragmentCallbacks;
 import com.smartfoo.android.core.logging.FooLog;
@@ -65,6 +66,7 @@ public class GenericPromptPositiveNegativeDialogFragment
             int textPositiveButton,
             int textNegativeButton)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         boolean showCheckboxMessage = isValidResourceId(checkboxMessage);
         return newInstance(context.getString(title),
                 context.getString(message),
@@ -146,6 +148,7 @@ public class GenericPromptPositiveNegativeDialogFragment
         return arguments;
     }
 
+    protected String  mTitle;
     protected String  mMessage;
     protected boolean mShowCheckbox;
     protected boolean mIsChecked;
@@ -161,6 +164,11 @@ public class GenericPromptPositiveNegativeDialogFragment
                 return false;
             }
         });
+    }
+
+    public String getTitle()
+    {
+        return mTitle;
     }
 
     public String getMessage()
@@ -180,7 +188,7 @@ public class GenericPromptPositiveNegativeDialogFragment
         //FooLog.e(TAG, "onCreateDialog: savedInstanceState=" + savedInstanceState);
 
         Bundle arguments = getArguments();
-        String title = arguments.getString(ARG_TITLE);
+        mTitle = arguments.getString(ARG_TITLE);
         mMessage = arguments.getString(ARG_MESSAGE);
 
         String checkboxMessage = arguments.getString(ARG_CHECKBOX_MESSAGE);
@@ -202,7 +210,7 @@ public class GenericPromptPositiveNegativeDialogFragment
         Context context = getActivity();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                .setTitle(title)
+                .setTitle(mTitle)
                 .setMessage(mMessage);
 
         if (checkboxMessage != null)

@@ -312,7 +312,7 @@ public class FooLog
                 text = FooString.separateCamelCaseWords(tag) + " " + text;
             }
 
-            sTextToSpeech.speak(text, clear);
+            sTextToSpeech.speak(clear, text);
         }
     }
 

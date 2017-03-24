@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.app.NotificationManagerCompat;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 
 /**
@@ -24,33 +25,56 @@ public class FooNotification
 {
     private static final String TAG = FooLog.TAG(FooNotification.class);
 
-    public static NotificationManagerCompat getNotificationManager(Context context)
+    @NonNull
+    public static NotificationManagerCompat getNotificationManager(@NonNull Context context)
     {
         return NotificationManagerCompat.from(context);
     }
 
-    public static PendingIntent createPendingIntent(Context context, int requestCode, Class<?> intentClass)
+    @NonNull
+    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Class<?> intentClass)
     {
-        return createPendingIntent(context, requestCode, intentClass,
-                Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK,
-                PendingIntent.FLAG_UPDATE_CURRENT,
-                null);
+        return createPendingIntent(context, requestCode, intentClass, 0, 0, null);
     }
 
-    public static PendingIntent createPendingIntent(Context context, int requestCode, Class<?> intentClass, int intentFlags, int pendingIntentFlags, Bundle extras)
+    @NonNull
+    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Class<?> intentClass,
+                                                    int intentFlags, int pendingIntentFlags, Bundle extras)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         Intent intent = new Intent(context, intentClass);
-        intent.setFlags(intentFlags);
+        if (intentFlags != 0)
+        {
+            intent.setFlags(intentFlags);
+        }
         if (extras != null)
         {
             intent.putExtras(extras);
         }
+        return createPendingIntent(context, requestCode, intent, pendingIntentFlags);
+    }
 
+    @NonNull
+    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Intent intent)
+    {
+        return createPendingIntent(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    @NonNull
+    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Intent intent, int pendingIntentFlags)
+    {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        FooRun.throwIllegalArgumentExceptionIfNull(intent, "intent");
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        pendingIntentFlags &= ~PendingIntent.FLAG_NO_CREATE;
+        pendingIntentFlags |= PendingIntent.FLAG_UPDATE_CURRENT;
         return PendingIntent.getActivity(context, requestCode, intent, pendingIntentFlags);
     }
 
-    public static Uri createSoundUri(Context context, int soundResId)
+    @NonNull
+    public static Uri createSoundUri(@NonNull Context context, int soundResId)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         return Uri.parse("android.resource://" + context.getPackageName() + "/" + soundResId);
     }
 
@@ -80,9 +104,7 @@ public class FooNotification
         this(requestCode, builder.build());
     }
 
-    public FooNotification(int requestCode,
-                           @NonNull
-                                   Notification notification)
+    public FooNotification(int requestCode, @NonNull Notification notification)
     {
         mRequestCode = requestCode;
         mNotification = notification;

@@ -8,8 +8,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.logging.FooLog;
@@ -174,8 +176,10 @@ public class FooDataConnectionListener
             return sb.toString();
         }
 
-        public String toSpeech(Context context)
+        public String toSpeech(@NonNull Context context)
         {
+            FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+
             StringBuilder sb = new StringBuilder();
 
             int resId = getNetworkTypeResourceId(true);
@@ -536,7 +540,7 @@ public class FooDataConnectionListener
 
     /**
      * @param networkInfo networkInfo
-     * @param ssid ssid
+     * @param ssid        ssid
      */
     public void onDataConnected(NetworkInfo networkInfo, String ssid)
     {
@@ -688,7 +692,7 @@ public class FooDataConnectionListener
      * </ul>
      *
      * @param networkInfo networkInfo
-     * @param ssid ssid
+     * @param ssid        ssid
      */
     public void onDataDisconnected(NetworkInfo networkInfo, String ssid)
     {

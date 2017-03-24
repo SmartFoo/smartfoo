@@ -8,6 +8,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.app.GenericPromptSingleButtonDialogFragment.GenericPromptSingleButtonDialogFragmentCallbacks;
 import com.smartfoo.android.core.logging.FooLog;
 
@@ -37,6 +38,7 @@ public class GenericPromptSingleButtonDialogFragment
             int message,
             int textButton)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         return newInstance(context.getString(title),
                 context.getString(message),
                 context.getString(textButton));

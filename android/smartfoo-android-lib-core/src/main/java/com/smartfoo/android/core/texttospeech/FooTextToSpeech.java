@@ -41,7 +41,20 @@ public class FooTextToSpeech
 
     public interface FooTextToSpeechCallbacks
     {
-        void onTextToSpeechInitialized();
+        void onTextToSpeechInitialized(int status);
+    }
+
+    public static String statusToString(int status)
+    {
+        switch (status)
+        {
+            case TextToSpeech.SUCCESS:
+                return "TextToSpeech.SUCCESS(" + status + ')';
+            case TextToSpeech.ERROR:
+                return "TextToSpeech.ERROR(" + status + ')';
+            default:
+                return "UNKNOWN(" + status + ')';
+        }
     }
 
     public static boolean VERBOSE_LOG_SPEECH             = false;
@@ -260,15 +273,6 @@ public class FooTextToSpeech
         }
     }
 
-    private void onTextToSpeechInitialized()
-    {
-        for (FooTextToSpeechCallbacks callbacks : mListeners.beginTraversing())
-        {
-            callbacks.onTextToSpeechInitialized();
-        }
-        mListeners.endTraversing();
-    }
-
     public void stop()
     {
         synchronized (mSyncLock)
@@ -301,58 +305,45 @@ public class FooTextToSpeech
             {
                 if (isInitialized())
                 {
-                    onTextToSpeechInitialized();
+                    callbacks.onTextToSpeechInitialized(TextToSpeech.SUCCESS);
                 }
+            }
+            else
+            {
+                mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-                return this;
+                mTextToSpeech = new TextToSpeech(context, new TextToSpeech.OnInitListener()
+                {
+                    @Override
+                    public void onInit(int status)
+                    {
+                        FooTextToSpeech.this.onTextToSpeechInitialized(status);
+                    }
+                });
+
+                mTextToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener()
+                {
+                    @Override
+                    public void onStart(String utteranceId)
+                    {
+                        FooTextToSpeech.this.onStart(utteranceId);
+                    }
+
+                    @Override
+                    public void onDone(String utteranceId)
+                    {
+                        FooTextToSpeech.this.onDone(utteranceId);
+                    }
+
+                    @Override
+                    public void onError(String utteranceId)
+                    {
+                        FooTextToSpeech.this.onError(utteranceId);
+                    }
+                });
             }
 
-            mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
-            mTextToSpeech = new TextToSpeech(context, new TextToSpeech.OnInitListener()
-            {
-                @Override
-                public void onInit(int status)
-                {
-                    FooTextToSpeech.this.onTextToSpeechInitialized(status);
-                }
-            });
-
-            mTextToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener()
-            {
-                @Override
-                public void onStart(String utteranceId)
-                {
-                    FooTextToSpeech.this.onStart(utteranceId);
-                }
-
-                @Override
-                public void onDone(String utteranceId)
-                {
-                    FooTextToSpeech.this.onDone(utteranceId);
-                }
-
-                @Override
-                public void onError(String utteranceId)
-                {
-                    FooTextToSpeech.this.onError(utteranceId);
-                }
-            });
-
             return this;
-        }
-    }
-
-    private static String statusToString(int status)
-    {
-        switch (status)
-        {
-            case TextToSpeech.SUCCESS:
-                return "TextToSpeech.SUCCESS(" + status + ')';
-            case TextToSpeech.ERROR:
-                return "TextToSpeech.ERROR(" + status + ')';
-            default:
-                return "UNKNOWN(" + status + ')';
         }
     }
 
@@ -369,23 +360,29 @@ public class FooTextToSpeech
                     return;
                 }
 
-                if (isInitialized())
-                {
-                    return;
-                }
-
                 if (status != TextToSpeech.SUCCESS)
                 {
-                    FooLog.w(TAG, "onTextToSpeechInitialized: TextToSpeech failed to initialize: status=" +
+                    FooLog.w(TAG, "onTextToSpeechInitialized: TextToSpeech failed to initialize: status == " +
                                   statusToString(status));
+                }
+                else
+                {
+                    setVoiceName(mVoiceName);
+
+                    mIsInitialized = true;
+                }
+
+                for (FooTextToSpeechCallbacks callbacks : mListeners.beginTraversing())
+                {
+                    callbacks.onTextToSpeechInitialized(status);
+                }
+                mListeners.endTraversing();
+
+                if (!mIsInitialized)
+                {
                     return;
                 }
 
-                setVoiceName(mVoiceName);
-
-                mIsInitialized = true;
-
-                onTextToSpeechInitialized();
 
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
@@ -394,7 +391,7 @@ public class FooTextToSpeech
                     utteranceInfo = texts.next();
                     texts.remove();
 
-                    speak(utteranceInfo.mText, false, utteranceInfo.mRunAfter);
+                    speak(false, utteranceInfo.mText, utteranceInfo.mRunAfter);
                 }
             }
         }
@@ -563,30 +560,30 @@ public class FooTextToSpeech
 
     public boolean speak(String text)
     {
-        return speak(text, false);
+        return speak(false, text);
     }
 
-    public boolean speak(String text, boolean clear)
+    public boolean speak(boolean clear, String text)
     {
-        return speak(text, clear, null);
+        return speak(clear, text, null);
     }
 
     public boolean speak(String text, Runnable runAfter)
     {
-        return speak(text, false, runAfter);
+        return speak(false, text, runAfter);
     }
 
-    public boolean speak(String text, boolean clear, Runnable runAfter)
+    public boolean speak(boolean clear, String text, Runnable runAfter)
     {
-        return speak(new FooTextToSpeechBuilder(text), clear, runAfter);
+        return speak(clear, new FooTextToSpeechBuilder(text), runAfter);
     }
 
     public boolean speak(@NonNull FooTextToSpeechBuilder builder)
     {
-        return speak(builder, false, null);
+        return speak(false, builder, null);
     }
 
-    public boolean speak(@NonNull FooTextToSpeechBuilder builder, boolean clear, Runnable runAfter)
+    public boolean speak(boolean clear, @NonNull FooTextToSpeechBuilder builder, Runnable runAfter)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(builder, "builder");
 
@@ -602,13 +599,13 @@ public class FooTextToSpeech
         //
         // Always suffix w/ 500ms so that there is a clear break before the next speech.
         //
-        builder.appendSilence(500);
+        builder.appendSilenceSentenceBreak();
 
         audioFocusStart();
 
         boolean anySuccess = false;
 
-        LinkedList<FooTextToSpeechPart> parts = builder.build();
+        List<FooTextToSpeechPart> parts = builder.build();
         int i = 0;
         int last = parts.size() - 1;
         for (FooTextToSpeechPart part : parts)
@@ -627,8 +624,6 @@ public class FooTextToSpeech
 
     private boolean speak(@NonNull FooTextToSpeechPart part, Boolean clear, Runnable runAfter)
     {
-        FooRun.throwIllegalArgumentExceptionIfNull(part, "part");
-
         if (part instanceof FooTextToSpeechPartSpeech)
         {
             String text = ((FooTextToSpeechPartSpeech) part).mText;

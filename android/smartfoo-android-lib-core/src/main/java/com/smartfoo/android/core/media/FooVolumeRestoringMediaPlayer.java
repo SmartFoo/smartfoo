@@ -65,7 +65,7 @@ public class FooVolumeRestoringMediaPlayer
             return false;
         }
 
-        if (FooString.isNullOrEmpty(mediaUri))
+        if (FooString.isNullOrEmpty(FooString.toString(mediaUri)))
         {
             return false;
         }

@@ -8,20 +8,25 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.support.v4.app.NotificationCompat.Action;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.app.NotificationCompat.Extender;
 import android.support.v4.app.NotificationCompat.Style;
 import android.widget.RemoteViews;
 
+import com.smartfoo.android.core.FooRun;
+
 public class FooNotificationBuilder
         extends Builder
 {
     private final Context mContext;
 
-    public FooNotificationBuilder(Context context)
+    public FooNotificationBuilder(@NonNull Context context)
     {
-        super(context);
+        super(FooRun.throwIllegalArgumentExceptionIfNull(context, "context"));
         mContext = context;
     }
 
@@ -44,13 +49,13 @@ public class FooNotificationBuilder
     }
 
     @Override
-    public FooNotificationBuilder setSmallIcon(int icon)
+    public FooNotificationBuilder setSmallIcon(@DrawableRes int icon)
     {
         return (FooNotificationBuilder) super.setSmallIcon(icon);
     }
 
     @Override
-    public FooNotificationBuilder setSmallIcon(int icon, int level)
+    public FooNotificationBuilder setSmallIcon(@DrawableRes int icon, int level)
     {
         return (FooNotificationBuilder) super.setSmallIcon(icon, level);
     }
@@ -61,9 +66,9 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setContentTitle(title);
     }
 
-    public FooNotificationBuilder setContentTitle(int title)
+    public FooNotificationBuilder setContentTitle(@StringRes int title)
     {
-        return setContentTitle(mContext.getString(title));
+        return setContentTitle(getString(title));
     }
 
     @Override
@@ -72,9 +77,9 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setContentText(text);
     }
 
-    public FooNotificationBuilder setContentText(int text)
+    public FooNotificationBuilder setContentText(@StringRes int text)
     {
-        return setContentText(mContext.getString(text));
+        return setContentText(getString(text));
     }
 
     @Override
@@ -83,9 +88,9 @@ public class FooNotificationBuilder
         return (FooNotificationBuilder) super.setSubText(text);
     }
 
-    public FooNotificationBuilder setSubText(int text)
+    public FooNotificationBuilder setSubText(@StringRes int text)
     {
-        return setSubText(mContext.getString(text));
+        return setSubText(getString(text));
     }
 
     @Override
@@ -160,6 +165,11 @@ public class FooNotificationBuilder
         return this;
     }
 
+    private String getString(@StringRes int resId, Object... formatArgs)
+    {
+        return mContext.getString(resId, formatArgs);
+    }
+
     @Override
     public FooNotificationBuilder setFullScreenIntent(PendingIntent intent, boolean highPriority)
     {
@@ -203,9 +213,7 @@ public class FooNotificationBuilder
     }
 
     @Override
-    public FooNotificationBuilder setLights(
-            @ColorInt
-            int argb, int onMs, int offMs)
+    public FooNotificationBuilder setLights(@ColorInt int argb, int onMs, int offMs)
     {
         return (FooNotificationBuilder) super.setLights(argb, onMs, offMs);
     }
@@ -294,49 +302,49 @@ public class FooNotificationBuilder
         return super.getExtras();
     }
 
-    public FooNotificationBuilder addActionActivity(int icon, int title, int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder addActionActivity(@DrawableRes int icon, @StringRes int title, int requestCode, @NonNull Intent intent, int flags)
     {
-        return addActionActivity(icon, mContext.getString(title), requestCode, intent, flags);
+        return addActionActivity(icon, getString(title), requestCode, intent, flags);
     }
 
-    public FooNotificationBuilder addActionActivity(int icon, CharSequence title, int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder addActionActivity(@DrawableRes int icon, @NonNull CharSequence title, int requestCode, @NonNull Intent intent, int flags)
     {
         return addAction(icon, title, PendingIntent.getActivity(mContext, requestCode, intent, flags));
     }
 
-    public FooNotificationBuilder addActionBroadcast(int icon, int title, int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder addActionBroadcast(@DrawableRes int icon, @StringRes int title, int requestCode, @NonNull Intent intent, int flags)
     {
-        return addActionBroadcast(icon, mContext.getString(title), requestCode, intent, flags);
+        return addActionBroadcast(icon, getString(title), requestCode, intent, flags);
     }
 
-    public FooNotificationBuilder addActionBroadcast(int icon, CharSequence title, int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder addActionBroadcast(@DrawableRes int icon, @NonNull CharSequence title, int requestCode, @NonNull Intent intent, int flags)
     {
         return addAction(icon, title, PendingIntent.getBroadcast(mContext, requestCode, intent, flags));
     }
 
-    public FooNotificationBuilder addActionService(int icon, int title, int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder addActionService(@DrawableRes int icon, @StringRes int title, int requestCode, @NonNull Intent intent, int flags)
     {
-        return addActionService(icon, mContext.getString(title), requestCode, intent, flags);
+        return addActionService(icon, getString(title), requestCode, intent, flags);
     }
 
-    public FooNotificationBuilder addActionService(int icon, CharSequence title, int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder addActionService(@DrawableRes int icon, @NonNull CharSequence title, int requestCode, @NonNull Intent intent, int flags)
     {
         return addAction(icon, title, PendingIntent.getService(mContext, requestCode, intent, flags));
     }
 
-    public FooNotificationBuilder addAction(int icon, int title, PendingIntent intent)
+    public FooNotificationBuilder addAction(@DrawableRes int icon, @StringRes int title, @NonNull PendingIntent intent)
     {
-        return addAction(icon, mContext.getString(title), intent);
+        return addAction(icon, getString(title), intent);
     }
 
     @Override
-    public FooNotificationBuilder addAction(int icon, CharSequence title, PendingIntent intent)
+    public FooNotificationBuilder addAction(@DrawableRes int icon, @NonNull CharSequence title, @NonNull PendingIntent intent)
     {
         return (FooNotificationBuilder) super.addAction(icon, title, intent);
     }
 
     @Override
-    public FooNotificationBuilder addAction(Action action)
+    public FooNotificationBuilder addAction(@NonNull Action action)
     {
         return (FooNotificationBuilder) super.addAction(action);
     }
@@ -348,9 +356,7 @@ public class FooNotificationBuilder
     }
 
     @Override
-    public FooNotificationBuilder setColor(
-            @ColorInt
-            int argb)
+    public FooNotificationBuilder setColor(@ColorInt int argb)
     {
         return (FooNotificationBuilder) super.setColor(argb);
     }

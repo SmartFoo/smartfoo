@@ -5,7 +5,7 @@ apply plugin: 'com.jfrog.bintray'
 archivesBaseName = 'smartfoo-android-lib-core'
 description = 'SmartFoo Core Library for Android'
 group = 'com.smartfoo'
-version = '0.0.19'
+version = '0.0.20'
 
 def siteUrl = 'https://github.com/SmartFoo/smartfoo'
 def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'

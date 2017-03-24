@@ -142,7 +142,7 @@ public class FooAudioUtils
 
     public static Ringtone getRingtone(Context context, Uri ringtoneUri)
     {
-        if (FooString.isNullOrEmpty(ringtoneUri))
+        if (FooString.isNullOrEmpty(FooString.toString(ringtoneUri)))
         {
             return null;
         }
