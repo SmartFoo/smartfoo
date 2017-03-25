@@ -2,6 +2,11 @@
 
     <string name="app_name">SmartFoo Android Core Library</string>
 
+    <string name="charge_port_unknown_charger">Unknown Charger</string>
+    <string name="charge_port_usb_port">USB Port</string>
+    <string name="charge_port_ac_charger">AC Charger</string>
+    <string name="charge_port_wireless_charger">Wireless Charger</string>
+
     <!--
     <plurals name="years">
         <item quantity="one">Year</item>
