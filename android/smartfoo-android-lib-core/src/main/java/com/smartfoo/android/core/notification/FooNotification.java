@@ -78,6 +78,17 @@ public class FooNotification
         return Uri.parse("android.resource://" + context.getPackageName() + "/" + soundResId);
     }
 
+    @NonNull
+    public static String toString(Notification notification)
+    {
+        if (notification == null)
+        {
+            return "null";
+        }
+
+        return notification.toString();
+    }
+
     public static final Creator<FooNotification> CREATOR = new Creator<FooNotification>()
     {
         public FooNotification createFromParcel(Parcel in)
@@ -146,7 +157,9 @@ public class FooNotification
     @Override
     public String toString()
     {
-        return "{ mRequestCode=" + mRequestCode + ", mNotification=" + mNotification + " }";
+        return "{ mRequestCode=" + mRequestCode +
+               ", mNotification=" + toString(mNotification) +
+               " }";
     }
 
     /**

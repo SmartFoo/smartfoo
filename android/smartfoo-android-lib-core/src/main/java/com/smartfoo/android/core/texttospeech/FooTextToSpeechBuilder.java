@@ -145,9 +145,14 @@ public class FooTextToSpeechBuilder
         return appendSpeech(context.getString(textResId, formatArgs));
     }
 
+    public FooTextToSpeechBuilder appendSpeech(CharSequence text)
+    {
+        return appendSpeech(FooString.isNullOrEmpty(text) ? null : text.toString());
+    }
+
     public FooTextToSpeechBuilder appendSpeech(String text)
     {
-        return append(new FooTextToSpeechPartSpeech(text));
+        return append(FooString.isNullOrEmpty(text) ? null : new FooTextToSpeechPartSpeech(text));
     }
 
     public FooTextToSpeechBuilder appendSilenceWordBreak()

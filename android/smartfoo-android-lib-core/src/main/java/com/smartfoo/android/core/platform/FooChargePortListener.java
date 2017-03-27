@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 
 import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
@@ -25,33 +26,27 @@ public class FooChargePortListener
 
     public enum ChargePort
     {
-        Unknown,
-        AC,
-        USB,
-        Wireless;
+        Unknown(R.string.charge_port_unknown_charger),
+        AC(R.string.charge_port_ac_charger),
+        USB(R.string.charge_port_usb_port),
+        Wireless(R.string.charge_port_wireless_charger);
 
-        @NonNull
-        public String toString(@NonNull Context context)
+        final int mResId;
+
+        ChargePort(@StringRes int resId)
         {
-            FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-            int resId;
-            switch (this)
-            {
-                case AC:
-                    resId = R.string.charge_port_ac_charger;
-                    break;
-                case USB:
-                    resId = R.string.charge_port_usb_port;
-                    break;
-                case Wireless:
-                    resId = R.string.charge_port_wireless_charger;
-                    break;
-                case Unknown:
-                default:
-                    resId = R.string.charge_port_unknown_charger;
-                    break;
-            }
-            return context.getString(resId);
+            mResId = resId;
+        }
+
+        @StringRes
+        public int getStringRes()
+        {
+            return mResId;
+        }
+
+        public static String toString(@NonNull Context context, ChargePort chargePort)
+        {
+            return chargePort != null ? FooRes.getString(context, chargePort.getStringRes()) : null;
         }
     }
 
@@ -105,12 +100,13 @@ public class FooChargePortListener
 
     public static List<String> getChargePortNames(@NonNull Context context, List<ChargePort> chargePorts)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         List<String> chargingPortsNames = new LinkedList<>();
         for (ChargePort chargePort : chargePorts)
         {
             if (chargePort != null)
             {
-                chargingPortsNames.add(chargePort.toString(context));
+                chargingPortsNames.add(context.getString(chargePort.getStringRes()));
             }
         }
         return chargingPortsNames;
