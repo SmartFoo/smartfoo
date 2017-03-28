@@ -3,6 +3,7 @@ package com.smartfoo.android.core.logging;
 import android.Manifest;
 import android.content.Context;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 
@@ -71,6 +72,26 @@ public class FooLogFilePrinter
             }
         }
         return sInstance;
+    }
+
+    public static String getLogFilePath(@NonNull Context applicationContext)
+    {
+        return Environment.getExternalStorageDirectory().getAbsolutePath() +
+               File.separatorChar + FooPlatformUtils.getPackageName(applicationContext) +
+               File.separatorChar + "debug.log";
+    }
+
+    /**
+     * NOTE: REQUIRES {@link #REQUIRED_PERMISSIONS}!
+     *
+     * @param applicationContext applicationContext
+     * @return true if deleted, otherwise false
+     */
+    public static boolean deleteLogFile(@NonNull Context applicationContext)
+    {
+        String logFilePath = getLogFilePath(applicationContext);
+        File logFile = new File(logFilePath);
+        return logFile.delete();
     }
 
     private final FooLogFormatter mFormatter;

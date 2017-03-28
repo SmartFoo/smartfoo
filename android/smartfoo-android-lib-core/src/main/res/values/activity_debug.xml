@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+     Currently designed to match Pv's custom variant of Android Studio Darkula
+    -->
+    <color name="log_background">#ff2b2b2b</color>
+    <color name="log_selected">#90ff00ff</color>
+    <color name="log_level_assert">#ffff6b68</color>
+    <color name="log_level_error">#ffff0000</color>
+    <color name="log_level_warn">#ffffc30b</color>
+    <color name="log_level_info">#ff00ff00</color>
+    <color name="log_level_debug">#ff00d2d2</color>
+    <color name="log_level_verbose">#ffd2d2d2</color>
+    <color name="log_level_other">#ff888888</color>
+
+    <string name="activity_debug_title">Debug</string>
+
+    <string name="activity_debug_action_find">Find</string>
+    <string name="activity_debug_action_refresh">Refresh</string>
+    <string name="activity_debug_action_clear">Clear</string>
+    <string name="activity_debug_action_share">Share</string>
+    <string name="activity_debug_action_set_log_limit">Set Log Limit</string>
+    <string name="activity_debug_action_log_file_enable">Log File Enable</string>
+    <string name="activity_debug_action_log_file_disable">Log File Disable</string>
+
+    <string name="activity_debug_email_subject_formatted">%s Debug Log</string>
+    <string name="activity_debug_send_title_formatted">Send %s &#8230;</string>
+
+    <string name="activity_debug_phone_state_permission_rationale">get your device id</string>
+    <string name="activity_debug_external_storage_permission_rationale">debug log to a file</string>
+
+</resources>

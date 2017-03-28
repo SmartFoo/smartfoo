@@ -219,8 +219,6 @@ public class FooLogCat
 
         int getColorOther();
 
-        int getColorBackground();
-
         /**
          * @return ex: "monospace"
          */
@@ -256,7 +254,6 @@ public class FooLogCat
         int colorDebug = callbacks.getColorDebug();
         int colorVerbose = callbacks.getColorVerbose();
         int colorOther = callbacks.getColorOther();
-        int colorBackground = callbacks.getColorBackground();
         String typefaceFamily = callbacks.getTypefaceFamily();
         float typefaceSize = callbacks.getTypefaceSize();
 
@@ -330,7 +327,7 @@ public class FooLogCat
                     style = (color == colorOther) ? Typeface.NORMAL : Typeface.BOLD;
                     accumulator =
                             accumulate(callbacks, accumulator,
-                                    FooString.newSpannableString(logLine, color, colorBackground,
+                                    FooString.newSpannableString(logLine, color, -1,
                                             style, typefaceFamily, typefaceSize));
                 }
 
@@ -345,7 +342,7 @@ public class FooLogCat
             accumulator =
                     accumulate(callbacks, accumulator,
                             FooString.newSpannableString(
-                                    "EXCEPTION doInBackground " + e, colorError, colorBackground,
+                                    "EXCEPTION doInBackground " + e, colorError, -1,
                                     Typeface.BOLD, typefaceFamily, typefaceSize));
             //noinspection UnusedAssignment
             accumulator = flush(callbacks, accumulator);

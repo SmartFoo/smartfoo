@@ -201,14 +201,12 @@ public class FooNotificationListenerManager
         }
         catch (SecurityException e)
         {
-            FooLog.w(TAG, "initializeActiveNotifications: EXCEPTION", e);
-
-            FooLog.v(TAG, "initializeActiveNotifications: mAttemptInitializeActiveNotificationsAttempts == " +
-                          mAttemptInitializeActiveNotificationsAttempts);
-
             //
             // Hack required to read active notifications immediately after being bound
             //
+            FooLog.v(TAG, "initializeActiveNotifications: SecurityException");
+            FooLog.v(TAG, "initializeActiveNotifications: mAttemptInitializeActiveNotificationsAttempts == " +
+                          mAttemptInitializeActiveNotificationsAttempts);
             if (mAttemptInitializeActiveNotificationsAttempts < ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX)
             {
                 mAttemptInitializeActiveNotificationsAttempts++;

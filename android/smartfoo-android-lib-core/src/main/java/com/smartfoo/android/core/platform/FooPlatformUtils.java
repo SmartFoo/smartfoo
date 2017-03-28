@@ -13,9 +13,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,16 +32,24 @@ import android.widget.Toast;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
+import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.notification.FooPermissionsChecker;
 
 import java.lang.reflect.Field;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class FooPlatformUtils
 {
+    private static final String TAG = FooLog.TAG(FooPlatformUtils.class);
+
     private FooPlatformUtils()
     {
     }
@@ -173,9 +179,9 @@ public class FooPlatformUtils
     }
 
     @NonNull
-    private static Context getContext(@NonNull Context context)
+    public static Context getContext(@NonNull Context context)
     {
-        return FooRun.toNonNull(context, "context");
+        return FooRun.getContext(context);
     }
 
     @NonNull
@@ -304,6 +310,7 @@ public class FooPlatformUtils
      * @param permissionsChecker permissionsChecker
      * @return An ID that is unique for every device
      */
+    @SuppressLint("HardwareIds")
     public static String getDeviceId(FooPermissionsChecker permissionsChecker)
     {
         String deviceId = null;
@@ -677,12 +684,6 @@ public class FooPlatformUtils
         });
     }
 
-    public static int dip2px(Context context, float dpValue)
-    {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
-    }
-
     /**
      * @param show     if true, shows the progress view and hides the main view;
      *                 if false, shows the main view and hides the progress view
@@ -739,10 +740,131 @@ public class FooPlatformUtils
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
     }
 
-    @SuppressLint("NewApi")
-    public static Drawable getDrawable(Resources res, int resId)
+    public static String viewVisibilityToString(int visibility)
     {
-        //noinspection deprecation
-        return (Build.VERSION.SDK_INT > 21) ? res.getDrawable(resId, null) : res.getDrawable(resId);
+        String name;
+        switch (visibility)
+        {
+            case View.VISIBLE:
+                name = "VISIBLE";
+                break;
+            case View.INVISIBLE:
+                name = "INVISIBLE";
+                break;
+            case View.GONE:
+                name = "GONE";
+                break;
+            default:
+                name = "UNKNOWN";
+                break;
+        }
+        return name + '(' + visibility + ')';
+    }
+
+    //
+    //
+    //
+
+    public static String getPlatformInfoString(Context context, LinkedHashMap<String, String> extras)
+    {
+        Map<String, String> platformInfo = getPlatformInfo(context, extras);
+
+        int widest = 0;
+        for (String key : platformInfo.keySet())
+        {
+            int width = key.length();
+            if (width > widest)
+            {
+                widest = width;
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        for (Entry<String, String> entry : platformInfo.entrySet())
+        {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            // right justify
+            StringBuilder label = new StringBuilder();
+            for (int i = 0; i < widest - key.length(); i++)
+            {
+                label.append(' ');
+            }
+            label.append(key);
+
+            sb.append(' ').append(label).append(": ").append(value).append(FooString.LINEFEED);
+        }
+
+        return sb.toString();
+    }
+
+    public static Map<String, String> getPlatformInfo(
+            @NonNull Context context,
+            LinkedHashMap<String, String> extras)
+    {
+        if (extras == null)
+        {
+            extras = new LinkedHashMap<>();
+        }
+
+        // TODO:(pv) More product specific text, Log Limit, Tablet, Dimensions/DPI, etc...
+
+        //Resources res = context.getResources();
+        //Configuration configuration = res.getConfiguration();
+
+        String packageName = FooString.quote(getPackageName(context)); // ex: "com.pebblebee.app.hive"
+        String appName = FooString.quote(context.getString(R.string.app_name)); // ex: "Pebblebee Hive"
+        String appVersion = FooString.quote(getVersionName(context, "0.0.0.1")); // ex: "1.0"
+        String appBuild = FooString.quote(Integer.toString(getVersionCode(context, 1))); // ex: "1"
+        String osVersion = FooString.quote(getOsVersion()); // ex: "Android 5.1 LOLLIPOP_MR1 (API level 22)"
+        String deviceName = FooString.quote(getDeviceName()); // ex: "LGE - Nexus 5"
+        String locale = FooString.quote(FooRes.getLocale(context));
+        //String deviceId = FooString.quote(getDeviceId(context)); // ex: "35823905966360"
+        //String serial = FooString.quote(Build.SERIAL); // ex: "03acaec0003c1cba"
+        //String adId = FooString.quote(PbPlatformUtils.getAdvertisingId(mApplicationContext)); // ex: "96bd03b6-defc-4203-83d3-dc1c730801f7"
+        //String installationId = FooString.quote(Installation.id(context)); // ex: "eda27c6d-384d-4588-b665-69f3a0ec9fb5"
+
+        // TODO:(pv) Pass these in via Intent Bundle?
+        //String personality = Preferences.getSignInPersonalityClass(this).getSimpleName();
+        //String username = FooString.quote(mPreferences.getUsername());
+        //String server = FooString.quote(mPreferences.getServer());
+
+        //
+        // Logging other info to see if it may still be useful if sent inside the log
+        //
+        String id = Build.ID; // ex: "LMY47D"
+        FooLog.d(TAG, "getPlatformInfo:            id=" + FooString.quote(id));
+        String display = Build.DISPLAY; // ex: "LMY47D"
+        FooLog.d(TAG, "getPlatformInfo:       display=" + FooString.quote(display));
+        String product = Build.PRODUCT; // ex: "hammerhead"
+        FooLog.d(TAG, "getPlatformInfo:       product=" + FooString.quote(product));
+        String device = Build.DEVICE; // ex: "hammerhead"
+        FooLog.d(TAG, "getPlatformInfo:        device=" + FooString.quote(device));
+        String board = Build.BOARD; // ex: "hammerhead"
+        FooLog.d(TAG, "getPlatformInfo:         board=" + FooString.quote(board));
+        String brand = Build.BRAND; // ex: "google"
+        FooLog.d(TAG, "getPlatformInfo:         brand=" + FooString.quote(brand));
+        String hardware = Build.HARDWARE; // ex: "hammerhead"
+        FooLog.d(TAG, "getPlatformInfo:      hardware=" + FooString.quote(hardware));
+        String localeDefault = Locale.getDefault().toString();
+        FooLog.d(TAG, "getPlatformInfo: localeDefault=" + FooString.quote(localeDefault));
+        String orientation = FooRes.orientationToString(FooRes.getOrientation(context));
+        FooLog.d(TAG, "getPlatformInfo: orientation=" + orientation);
+
+        Map<String, String> platformInfo = new LinkedHashMap<>();
+        platformInfo.put("Package", packageName);
+        platformInfo.put("Name", appName);
+        platformInfo.put("Version", appVersion + " (Build " + appBuild + ')');
+        platformInfo.put("OS", osVersion);
+        platformInfo.put("Device", deviceName);
+        platformInfo.put("Locale", locale);
+        //platformInfo.put("DeviceId", deviceId + " (Serial " + serial + ')');
+        //platformInfo.put("AdId", adId);
+        //platformInfo.put("InstallId", installationId);
+        platformInfo.putAll(extras);
+
+        return platformInfo;
     }
 }

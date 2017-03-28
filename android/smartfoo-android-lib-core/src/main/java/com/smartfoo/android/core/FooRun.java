@@ -1,5 +1,6 @@
 package com.smartfoo.android.core;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
@@ -67,5 +68,11 @@ public class FooRun
     {
         throwIllegalArgumentExceptionIfNullOrEmpty(paramValue, paramName);
         return paramValue;
+    }
+
+    @NonNull
+    public static Context getContext(@NonNull Context context)
+    {
+        return toNonNull(context, "context");
     }
 }

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context=".app.FooDebugActivity"
+    >
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.ToolbarTheme"
+        >
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar"
+            />
+
+    </android.support.design.widget.AppBarLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            style="@style/AppTheme.RecyclerViewTheme"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            />
+
+        <!--
+        <xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller
+            android:id="@+id/fast_scroller"
+            android:layout_width="10dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="4dp"
+            android:layout_marginStart="4dp"
+            />
+            -->
+
+        <RelativeLayout
+            android:id="@+id/groupProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="visible"
+            >
+
+            <ProgressBar
+                android:id="@+id/progressIndicator"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="true"
+                android:visibility="visible"
+                />
+
+            <!--
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/groupProgressLoading"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
+
+                <ProgressBar
+                    android:id="@+id/progressLoading"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_centerHorizontal="true"
+                    android:visibility="visible"
+                    app:layout_aspectRatio="100%"
+                    app:layout_widthPercent="50%"
+                    />
+
+            </android.support.percent.PercentRelativeLayout>
+            -->
+
+            <TextView
+                android:id="@+id/textProgressTitle"
+                style="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/progressIndicator"
+                android:layout_centerHorizontal="true"
+                android:gravity="center_horizontal"
+                android:padding="16dp"
+                android:text="Loading Log..."
+                android:textColor="@color/fooColorPrimaryText"
+                android:visibility="visible"
+                tools:text="title"
+                />
+
+            <TextView
+                android:id="@+id/textProgressMessage"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/textProgressTitle"
+                android:layout_centerHorizontal="true"
+                android:gravity="center_horizontal"
+                android:padding="16dp"
+                android:textColor="@color/fooColorSecondaryText"
+                android:visibility="gone"
+                tools:text="message"
+                />
+
+            <TextView
+                android:id="@+id/textProgressDebug"
+                style="?android:attr/textAppearanceSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/textProgressMessage"
+                android:layout_centerHorizontal="true"
+                android:gravity="center_horizontal"
+                android:padding="16dp"
+                android:textColor="@color/magenta"
+                android:visibility="gone"
+                tools:text="debug"
+                />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</android.support.design.widget.CoordinatorLayout>

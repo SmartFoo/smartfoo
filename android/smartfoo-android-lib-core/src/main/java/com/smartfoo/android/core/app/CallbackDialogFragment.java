@@ -106,7 +106,7 @@ public abstract class CallbackDialogFragment<T>
                     throw new IllegalStateException("subclass[" + this + ']' +
                                                     ", getParentFragment()[" + parentFragment + ']' +
                                                     ", or getActivity()[" + activity + ']' +
-                                                    " must be an instance of class that " +
+                                                    " must be an instance of " +
                                                     FooReflectionUtils.getInstanceSignature(mDummyCallback));
                 }
             }

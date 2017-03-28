@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Attributes found at:
+    build/intermediates/exploded-aar/com.android.support/appcompat-v7/21.0.3/res/values/values.xml
+ -->
+<android.support.v7.widget.Toolbar
+    android:id="@+id/toolbar"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="?actionBarSize"
+    android:background="?attr/colorPrimary"
+    android:elevation="4dp"
+    android:theme="@style/AppTheme.ToolbarTheme"
+    app:popupTheme="@style/AppTheme.ToolbarPopupTheme"
+    app:titleTextAppearance="@style/AppTheme.ToolbarTitleText"
+    >
+
+    <!--
+    For some reason setting visibility to gone here isn't working on some devices.
+    To work around this, you will need to find and force this to View.GONE programmatically.
+    -->
+    <ProgressBar
+        android:id="@+id/toolbar_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:indeterminateTint="?attr/colorAccent"
+        android:indeterminateTintMode="src_in"
+        android:visibility="gone"
+        />
+
+</android.support.v7.widget.Toolbar>

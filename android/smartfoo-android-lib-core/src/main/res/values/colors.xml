@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="magenta">#FFFF00FF</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="cyan">#FF00FFFF</color>
+
+    <color name="fooColorPrimaryText">@color/white</color>
+    <color name="fooColorPrimaryBackground">#3F51B5</color>
+    <color name="fooColorPrimaryBackgroundDark">#303F9F</color>
+    <color name="fooColorSecondaryText">@color/cyan</color>
+    <color name="fooColorAccent">#FF4081</color>
+</resources>

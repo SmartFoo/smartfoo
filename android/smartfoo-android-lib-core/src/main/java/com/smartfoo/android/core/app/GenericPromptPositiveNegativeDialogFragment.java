@@ -16,7 +16,7 @@ import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.app.GenericPromptPositiveNegativeDialogFragment.GenericPromptPositiveNegativeDialogFragmentCallbacks;
 import com.smartfoo.android.core.logging.FooLog;
-import com.smartfoo.android.core.platform.FooPlatformUtils;
+import com.smartfoo.android.core.platform.FooRes;
 
 public class GenericPromptPositiveNegativeDialogFragment
         extends CallbackDialogFragment<GenericPromptPositiveNegativeDialogFragmentCallbacks>
@@ -230,7 +230,7 @@ public class GenericPromptPositiveNegativeDialogFragment
             });
             root.addView(checkBox);
 
-            int paddingPx = FooPlatformUtils.dip2px(context, 16.0f);
+            int paddingPx = FooRes.dip2px(context, 16.0f);
             root.setPadding(paddingPx, paddingPx, paddingPx, 0);
 
             builder.setView(root);

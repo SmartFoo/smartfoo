@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/fooColorPrimaryBackground</item>
+        <item name="colorPrimaryDark">@color/fooColorPrimaryBackgroundDark</item>
+        <item name="colorAccent">@color/fooColorAccent</item>
+    </style>
+
+    <style name="AppTheme.ToolbarTitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:titleTextColor">@color/fooColorPrimaryText</item>
+    </style>
+
+    <style name="AppTheme.ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <!--
+        <!- - android:textColorPrimary is the color of the title text in the Toolbar  - ->
+        <item name="android:textColorPrimary">@android:color/holo_blue_light</item>
+        <!- - actionMenuTextColor is the color of the text of action (menu) items  - ->
+        <item name="actionMenuTextColor">@android:color/holo_green_light</item>
+        <!- - Tints the input fields like checkboxes and text fields - ->
+        <item name="colorAccent">@color/cursorAccent</item>
+        <!- - Applies to views in their normal state. - ->
+        <item name="colorControlNormal">@color/controlNormal</item>
+        <!- - Applies to views in their activated state (i.e checked or switches) - ->
+        <item name="colorControlActivated">@color/controlActivated</item>
+        <!- - Applied to framework control highlights (i.e ripples or list selectors) - ->
+        <item name="colorControlHighlight">@color/controlActivated</item>
+
+        <!- - Enable these below if you want clicking icons to trigger a ripple effect - ->
+        <!- -
+        <item name="selectableItemBackground">?android:selectableItemBackground</item>
+        <item name="selectableItemBackgroundBorderless">?android:selectableItemBackground</item>
+        - ->
+        -->
+    </style>
+
+    <style name="AppTheme.ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.Light"/>
+
+    <style name="AppTheme.RecyclerViewTheme">
+        <!-- NOTE: clipChildren should be true on API level 10 -->
+        <item name="android:clipChildren">true</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <!--
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingRight">2dp</item>
+        -->
+        <item name="android:scrollbarStyle">outsideOverlay</item>
+        <item name="android:scrollbars">vertical</item>
+    </style>
+
+</resources>

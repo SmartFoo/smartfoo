@@ -1,0 +1,33 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_debug_find"
+        android:title="@string/activity_debug_action_find"
+        app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_debug_refresh"
+        android:icon="@drawable/ic_refresh_24dp"
+        android:title="@string/activity_debug_action_refresh"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_debug_clear"
+        android:icon="@drawable/ic_delete_sweep_24dp"
+        android:title="@string/activity_debug_action_clear"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_debug_share"
+        android:icon="@drawable/ic_share_24dp"
+        android:title="@string/activity_debug_action_share"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_debug_set_log_limit"
+        android:title="@string/activity_debug_action_set_log_limit"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_debug_log_file"
+        android:title="@string/activity_debug_action_log_file_enable"
+        app:showAsAction="never"/>
+
+</menu>
