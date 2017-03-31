@@ -254,7 +254,7 @@ public class FooDebugActivity
         }
 
         //
-        // BUG:(pv) For some reason setting visibility to gone in the layout isn't working on some devices.
+        // NOTE:(pv) For some reason setting visibility to gone in the layout isn't working on some devices.
         //  Forcing it to default to GONE here.
         //
         mGroupProgress = (ViewGroup) findViewById(R.id.groupProgress);

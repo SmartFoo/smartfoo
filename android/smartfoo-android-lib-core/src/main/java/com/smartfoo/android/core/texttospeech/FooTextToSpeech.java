@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
-import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
@@ -34,7 +33,7 @@ import java.util.Set;
  * <li>https://github.com/android/platform_packages_apps_settings/tree/master/src/com/android/settings/tts</li>
  * </ul>
  */
-@TargetApi(VERSION_CODES.LOLLIPOP)
+@TargetApi(21)
 public class FooTextToSpeech
 {
     private static final String TAG = FooLog.TAG(FooTextToSpeech.class);
@@ -484,10 +483,6 @@ public class FooTextToSpeech
      */
     public boolean audioFocusStart()
     {
-        if (VERBOSE_LOG_AUDIO_FOCUS)
-        {
-            FooLog.v(TAG, "audioFocusStart()");
-        }
         int voiceAudioStreamType = getAudioStreamType();
         int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener, voiceAudioStreamType, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
@@ -495,11 +490,13 @@ public class FooTextToSpeech
         {
             if (success)
             {
-                FooLog.v(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+                FooLog.v(TAG, "audioFocusStart: requestAudioFocus result=" +
+                              FooAudioUtils.audioFocusRequestToString(result));
             }
             else
             {
-                FooLog.w(TAG, "audioFocusStart: result=" + FooAudioUtils.audioFocusRequestToString(result));
+                FooLog.w(TAG, "audioFocusStart: requestAudioFocus result=" +
+                              FooAudioUtils.audioFocusRequestToString(result));
             }
         }
         return success;
@@ -515,21 +512,19 @@ public class FooTextToSpeech
 
     public boolean audioFocusStop()
     {
-        if (VERBOSE_LOG_AUDIO_FOCUS)
-        {
-            FooLog.v(TAG, "audioFocusStop()");
-        }
         int result = mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
             if (success)
             {
-                FooLog.v(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+                FooLog.v(TAG, "audioFocusStop: abandonAudioFocus result=" +
+                              FooAudioUtils.audioFocusRequestToString(result));
             }
             else
             {
-                FooLog.w(TAG, "audioFocusStop: result=" + FooAudioUtils.audioFocusRequestToString(result));
+                FooLog.w(TAG, "audioFocusStop: abandonAudioFocus result=" +
+                              FooAudioUtils.audioFocusRequestToString(result));
             }
         }
         return success;

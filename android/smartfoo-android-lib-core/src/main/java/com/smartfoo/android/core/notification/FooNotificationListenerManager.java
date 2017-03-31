@@ -5,8 +5,13 @@ import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.RemoteController;
+import android.media.RemoteController.MetadataEditor;
+import android.os.Binder;
 import android.os.Build.VERSION;
+import android.os.IBinder;
 import android.provider.Settings;
+import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.NonNull;
 
@@ -14,10 +19,15 @@ import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooHandler;
+import com.smartfoo.android.core.platform.FooPlatformUtils;
+import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
+@TargetApi(18)
 public class FooNotificationListenerManager
 {
     private static final String TAG = FooLog.TAG(FooNotificationListenerManager.class);
+
+    public static final int NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS = 100;
 
     /**
      * Usually VERSION.SDK_INT, but may be used to force a specific OS Version # FOR TESTING!
@@ -31,23 +41,25 @@ public class FooNotificationListenerManager
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
 
-    @TargetApi(21)
     public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
-        String packageName = context.getPackageName();
-
-        ContentResolver contentResolver = context.getContentResolver();
-
-        String enabledNotificationListeners = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
-        if (enabledNotificationListeners != null)
+        if (supportsNotificationListenerSettings())
         {
-            for (String enabledNotificationListener : enabledNotificationListeners.split(":"))
+            String packageName = context.getPackageName();
+
+            ContentResolver contentResolver = context.getContentResolver();
+
+            String enabledNotificationListeners = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
+            if (enabledNotificationListeners != null)
             {
-                if (enabledNotificationListener.startsWith(packageName))
+                for (String enabledNotificationListener : enabledNotificationListeners.split(":"))
                 {
-                    return false;
+                    if (enabledNotificationListener.startsWith(packageName + '/'))
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -56,21 +68,23 @@ public class FooNotificationListenerManager
     }
 
     @SuppressLint("InlinedApi")
-    @TargetApi(19)
-    @NonNull
     public static Intent getIntentNotificationListenerSettings()
     {
-        final String ACTION_NOTIFICATION_LISTENER_SETTINGS;
-        if (VERSION_SDK_INT >= 22)
+        Intent intent = null;
+        if (supportsNotificationListenerSettings())
         {
-            ACTION_NOTIFICATION_LISTENER_SETTINGS = Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;
+            final String ACTION_NOTIFICATION_LISTENER_SETTINGS;
+            if (VERSION_SDK_INT >= 22)
+            {
+                ACTION_NOTIFICATION_LISTENER_SETTINGS = Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;
+            }
+            else
+            {
+                ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
+            }
+            intent = new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS);
         }
-        else
-        {
-            ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
-        }
-
-        return new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS);
+        return intent;
     }
 
     public static void startActivityNotificationListenerSettings(@NonNull Context context)
@@ -79,25 +93,26 @@ public class FooNotificationListenerManager
         context.startActivity(getIntentNotificationListenerSettings());
     }
 
-    public enum DisabledCause
+    public enum NotConnectedReason
     {
         ConfirmedNotEnabled,
-        BindTimeout,
-        Unbind,
+        ConnectedTimeout,
+        Disconnected,
     }
 
     public interface FooNotificationListenerManagerCallbacks
     {
         /**
+         * @param activeNotifications Active StatusBar Notifications
          * @return true to prevent {@link #initializeActiveNotifications()} from being automatically called
          */
-        boolean onNotificationAccessSettingConfirmedEnabled();
+        boolean onNotificationListenerConnected(@NonNull StatusBarNotification[] activeNotifications);
 
-        void onNotificationAccessSettingDisabled(DisabledCause disabledCause);
+        void onNotificationListenerNotConnected(@NonNull NotConnectedReason reason);
 
-        void onNotificationPosted(StatusBarNotification sbn);
+        void onNotificationPosted(@NonNull StatusBarNotification sbn);
 
-        void onNotificationRemoved(StatusBarNotification sbn);
+        void onNotificationRemoved(@NonNull StatusBarNotification sbn);
     }
 
     public static FooNotificationListenerManager getInstance()
@@ -107,22 +122,21 @@ public class FooNotificationListenerManager
 
     private static FooNotificationListenerManager sInstance = new FooNotificationListenerManager();
 
+    private final Object                                                      mSyncLock;
     private final FooListenerManager<FooNotificationListenerManagerCallbacks> mListenerManager;
     private final FooHandler                                                  mHandler;
 
     private FooNotificationListener mNotificationListener;
-    private boolean                 mIsWaitingForNotificationListenerBindTimeout;
+    private boolean                 mIsWaitingForNotificationListenerConnectedTimeout;
 
     private FooNotificationListenerManager()
     {
+        mSyncLock = new Object();
         mListenerManager = new FooListenerManager<>();
         mHandler = new FooHandler();
     }
 
-    /**
-     * @return true if Notification Access is confirmed enabled (ie: FooNotificationListener successfully bound)
-     */
-    public boolean isNotificationAccessSettingConfirmedEnabled()
+    public boolean isNotificationListenerConnected()
     {
         return mNotificationListener != null;
     }
@@ -137,15 +151,15 @@ public class FooNotificationListenerManager
 
         if (isNotificationAccessSettingConfirmedNotEnabled(context))
         {
-            callbacks.onNotificationAccessSettingDisabled(DisabledCause.ConfirmedNotEnabled);
+            callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled);
         }
         else
         {
             if (mListenerManager.size() == 1)
             {
-                if (!mIsWaitingForNotificationListenerBindTimeout)
+                if (!mIsWaitingForNotificationListenerConnectedTimeout)
                 {
-                    notificationListenerBindTimeoutStart(100);
+                    notificationListenerConnectedTimeoutStart(NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS);
                 }
             }
         }
@@ -154,102 +168,47 @@ public class FooNotificationListenerManager
     public void detach(@NonNull FooNotificationListenerManagerCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
+
         mListenerManager.detach(callbacks);
+
         if (mListenerManager.size() == 0)
         {
-            notificationListenerBindTimeoutStop();
+            notificationListenerConnectedTimeoutStop();
         }
     }
 
-    public boolean initializeActiveNotifications()
+    public StatusBarNotification[] getActiveNotifications()
     {
-        return attemptInitializeActiveNotifications(true);
+        synchronized (mSyncLock)
+        {
+            return mNotificationListener != null ? mNotificationListener.getActiveNotifications() : null;
+        }
     }
 
-    private boolean attemptInitializeActiveNotifications(boolean reset)
+    public void initializeActiveNotifications()
     {
-        if (mNotificationListener == null)
+        initializeActiveNotifications(getActiveNotifications());
+    }
+
+    private void initializeActiveNotifications(StatusBarNotification[] activeNotifications)
+    {
+        if (activeNotifications == null)
         {
-            return false;
+            return;
         }
 
-        if (reset)
+        synchronized (mSyncLock)
         {
-            resetAttemptInitializeActiveNotifications();
-        }
-
-        try
-        {
-            StatusBarNotification[] activeNotifications = mNotificationListener.getActiveNotifications();
-            //FooLog.e(TAG, "initializeActiveNotifications: activeNotifications=" + FooString.toString(activeNotifications));
-            if (activeNotifications != null)
+            if (mNotificationListener == null)
             {
-                for (StatusBarNotification sbn : activeNotifications)
-                {
-                    onNotificationPosted(mNotificationListener, sbn);
-                }
+                return;
             }
 
-            resetAttemptInitializeActiveNotifications();
-
-            mAttemptInitializeActiveNotificationsSuccess = true;
-
-            FooLog.i(TAG, "initializeActiveNotifications: Success after " +
-                          mAttemptInitializeActiveNotificationsAttempts + " attempts");
-
-            return true;
-        }
-        catch (SecurityException e)
-        {
-            //
-            // Hack required to read active notifications immediately after being bound
-            //
-            FooLog.v(TAG, "initializeActiveNotifications: SecurityException");
-            FooLog.v(TAG, "initializeActiveNotifications: mAttemptInitializeActiveNotificationsAttempts == " +
-                          mAttemptInitializeActiveNotificationsAttempts);
-            if (mAttemptInitializeActiveNotificationsAttempts < ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX)
+            for (StatusBarNotification sbn : activeNotifications)
             {
-                mAttemptInitializeActiveNotificationsAttempts++;
-                mAttemptInitializeActiveNotificationsDelay += 100; // linear backoff
-
-                mHandler.postDelayed(mAttemptInitializeActiveNotificationsRunnable, mAttemptInitializeActiveNotificationsDelay);
-            }
-            else
-            {
-                FooLog.w(TAG, "initializeActiveNotifications: Maximum number of attempts (" +
-                              ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX + ") reached");
+                onNotificationPosted(mNotificationListener, sbn);
             }
         }
-
-        return false;
-    }
-
-    private static final int ATTEMPT_INITIALIZE_ACTIVE_NOTIFICATIONS_MAX = 10;
-
-    private int     mAttemptInitializeActiveNotificationsAttempts;
-    private int     mAttemptInitializeActiveNotificationsDelay;
-    private boolean mAttemptInitializeActiveNotificationsSuccess;
-
-    private final Runnable mAttemptInitializeActiveNotificationsRunnable = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            attemptInitializeActiveNotifications(false);
-        }
-    };
-
-    private void resetAttemptInitializeActiveNotifications()
-    {
-        mHandler.removeCallbacks(mAttemptInitializeActiveNotificationsRunnable);
-        mAttemptInitializeActiveNotificationsAttempts = 0;
-        mAttemptInitializeActiveNotificationsDelay = 0;
-        mAttemptInitializeActiveNotificationsSuccess = false;
-    }
-
-    public boolean isAttemptInitializeActiveNotificationsSuccess()
-    {
-        return mAttemptInitializeActiveNotificationsSuccess;
     }
 
     /**
@@ -273,15 +232,15 @@ public class FooNotificationListenerManager
      *
      * @param timeoutMillis
      */
-    private void notificationListenerBindTimeoutStart(long timeoutMillis)
+    private void notificationListenerConnectedTimeoutStart(long timeoutMillis)
     {
-        mIsWaitingForNotificationListenerBindTimeout = true;
+        mIsWaitingForNotificationListenerConnectedTimeout = true;
         mHandler.postDelayed(mNotificationListenerBindTimeout, timeoutMillis);
     }
 
-    private void notificationListenerBindTimeoutStop()
+    private void notificationListenerConnectedTimeoutStop()
     {
-        mIsWaitingForNotificationListenerBindTimeout = false;
+        mIsWaitingForNotificationListenerConnectedTimeout = false;
         mHandler.removeCallbacks(mNotificationListenerBindTimeout);
     }
 
@@ -290,86 +249,250 @@ public class FooNotificationListenerManager
         @Override
         public void run()
         {
-            try
-            {
-                FooLog.v(TAG, "+mNotificationListenerBindTimeout.run()");
-                if (isNotificationAccessSettingConfirmedEnabled())
-                {
-                    return;
-                }
-
-                onNotificationAccessSettingDisabled(null);
-            }
-            finally
-            {
-                FooLog.v(TAG, "-mNotificationListenerBindTimeout.run()");
-            }
+            FooLog.v(TAG, "+mNotificationListenerBindTimeout.run()");
+            onNotificationListenerNotConnected(NotConnectedReason.ConnectedTimeout);
+            FooLog.v(TAG, "-mNotificationListenerBindTimeout.run()");
         }
     };
 
-    void onNotificationAccessSettingConfirmedEnabled(FooNotificationListener notificationListener)
+    private void onNotificationListenerConnected(
+            @NonNull FooNotificationListener notificationListener,
+            @NonNull StatusBarNotification[] activeNotifications)
     {
-        notificationListenerBindTimeoutStop();
-
-        mNotificationListener = notificationListener;
-
-        resetAttemptInitializeActiveNotifications();
-
-        boolean initialize = true;
-        for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+        synchronized (mSyncLock)
         {
-            initialize &= !callbacks.onNotificationAccessSettingConfirmedEnabled();
-        }
-        mListenerManager.endTraversing();
+            notificationListenerConnectedTimeoutStop();
 
-        if (initialize)
-        {
-            attemptInitializeActiveNotifications(false);
+            mNotificationListener = notificationListener;
+
+            boolean initializeActiveNotifications = true;
+            for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+            {
+                initializeActiveNotifications &= !callbacks.onNotificationListenerConnected(activeNotifications);
+            }
+            mListenerManager.endTraversing();
+
+            if (initializeActiveNotifications)
+            {
+                initializeActiveNotifications(activeNotifications);
+            }
         }
     }
 
-    void onNotificationAccessSettingDisabled(FooNotificationListener notificationListener)
+    private void onNotificationListenerNotConnected(
+            @NonNull NotConnectedReason reason)
     {
-        notificationListenerBindTimeoutStop();
-
-        mNotificationListener = null;
-
-        resetAttemptInitializeActiveNotifications();
-
-        DisabledCause disabledCause = notificationListener == null ? DisabledCause.BindTimeout : DisabledCause.Unbind;
-
-        for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+        synchronized (mSyncLock)
         {
-            callbacks.onNotificationAccessSettingDisabled(disabledCause);
+            notificationListenerConnectedTimeoutStop();
+
+            if (reason == NotConnectedReason.ConnectedTimeout && mNotificationListener != null)
+            {
+                return;
+            }
+
+            mNotificationListener = null;
+
+            for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+            {
+                callbacks.onNotificationListenerNotConnected(reason);
+            }
+            mListenerManager.endTraversing();
         }
-        mListenerManager.endTraversing();
     }
 
-    void onNotificationPosted(FooNotificationListener notificationListener, StatusBarNotification sbn)
+    private void onNotificationPosted(
+            @NonNull FooNotificationListener notificationListener,
+            @NonNull StatusBarNotification sbn)
     {
-        if (mNotificationListener == null || mNotificationListener != notificationListener)
+        synchronized (mSyncLock)
         {
-            return;
-        }
+            if (mNotificationListener != notificationListener)
+            {
+                return;
+            }
 
-        for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
-        {
-            callbacks.onNotificationPosted(sbn);
+            for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+            {
+                callbacks.onNotificationPosted(sbn);
+            }
+            mListenerManager.endTraversing();
         }
-        mListenerManager.endTraversing();
     }
 
-    void onNotificationRemoved(FooNotificationListener notificationListener, StatusBarNotification sbn)
+    private void onNotificationRemoved(
+            @NonNull FooNotificationListener notificationListener,
+            @NonNull StatusBarNotification sbn)
     {
-        if (mNotificationListener == null || mNotificationListener != notificationListener)
+        synchronized (mSyncLock)
         {
-            return;
+            if (mNotificationListener != notificationListener)
+            {
+                return;
+            }
+
+            for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+            {
+                callbacks.onNotificationRemoved(sbn);
+            }
+            mListenerManager.endTraversing();
+        }
+    }
+
+    @TargetApi(18)
+    public static class FooNotificationListener
+            extends NotificationListenerService
+            implements RemoteController.OnClientUpdateListener
+    {
+        private static final String TAG = FooLog.TAG(FooNotificationListener.class);
+
+        public static final String ACTION_BIND_REMOTE_CONTROLLER =
+                FooReflectionUtils.getClassName(FooNotificationListener.class) +
+                ".ACTION_BIND_REMOTE_CONTROLLER";
+
+        public class RemoteControllerBinder
+                extends Binder
+        {
+            public FooNotificationListener getService()
+            {
+                return FooNotificationListener.this;
+            }
         }
 
-        for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
+        private FooNotificationListenerManager mNotificationListenerManager;
+        private RemoteController               mRemoteController;
+
+        private final IBinder mRemoteControllerBinder = new RemoteControllerBinder();
+
+        public RemoteController getRemoteController()
         {
-            callbacks.onNotificationRemoved(sbn);
+            return mRemoteController;
         }
-        mListenerManager.endTraversing();
+
+        @Override
+        public void onCreate()
+        {
+            FooLog.v(TAG, "+onCreate()");
+            super.onCreate();
+
+            mNotificationListenerManager = getInstance();
+
+            Context applicationContext = getApplicationContext();
+
+            mRemoteController = new RemoteController(applicationContext, this);
+
+            FooLog.v(TAG, "-onCreate()");
+        }
+
+        @Override
+        public IBinder onBind(Intent intent)
+        {
+            FooLog.v(TAG, "onBind(intent=" + FooPlatformUtils.toString(intent) + ')');
+
+            if (ACTION_BIND_REMOTE_CONTROLLER.equals(intent.getAction()))
+            {
+                return mRemoteControllerBinder;
+            }
+
+            return super.onBind(intent);
+        }
+
+        @Override
+        public void onListenerConnected()
+        {
+            FooLog.v(TAG, "onListenerConnected()");
+            super.onListenerConnected();
+            StatusBarNotification[] activeNotifications = getActiveNotifications();
+            mNotificationListenerManager.onNotificationListenerConnected(this, activeNotifications);
+        }
+
+        @Override
+        public void onNotificationPosted(StatusBarNotification sbn)
+        {
+            onNotificationPosted(sbn, null);
+        }
+
+        @Override
+        public void onNotificationPosted(StatusBarNotification sbn, RankingMap rankingMap)
+        {
+            FooLog.v(TAG, "onNotificationPosted(...)");
+            mNotificationListenerManager.onNotificationPosted(this, sbn);
+        }
+
+        @Override
+        public void onNotificationRankingUpdate(RankingMap rankingMap)
+        {
+            FooLog.v(TAG, "onNotificationRankingUpdate(...)");
+            super.onNotificationRankingUpdate(rankingMap);
+        }
+
+        @Override
+        public void onListenerHintsChanged(int hints)
+        {
+            FooLog.v(TAG, "onListenerHintsChanged(...)");
+            super.onListenerHintsChanged(hints);
+        }
+
+        @Override
+        public void onInterruptionFilterChanged(int interruptionFilter)
+        {
+            FooLog.v(TAG, "onInterruptionFilterChanged(...)");
+            super.onInterruptionFilterChanged(interruptionFilter);
+        }
+
+        @Override
+        public void onNotificationRemoved(StatusBarNotification sbn)
+        {
+            onNotificationRemoved(sbn, null);
+        }
+
+        @Override
+        public void onNotificationRemoved(StatusBarNotification sbn, RankingMap rankingMap)
+        {
+            FooLog.v(TAG, "onNotificationRemoved(...)");
+            mNotificationListenerManager.onNotificationRemoved(this, sbn);
+        }
+
+        @Override
+        public void onListenerDisconnected()
+        {
+            FooLog.v(TAG, "onListenerDisconnected()");
+            super.onListenerDisconnected();
+            mNotificationListenerManager.onNotificationListenerNotConnected(NotConnectedReason.Disconnected);
+        }
+
+        //
+        // RemoteController.OnClientUpdateListener
+        //
+
+        @Override
+        public void onClientChange(boolean clearing)
+        {
+            FooLog.v(TAG, "onClientChange(...)");
+        }
+
+        @Override
+        public void onClientPlaybackStateUpdate(int state)
+        {
+            FooLog.v(TAG, "onClientPlaybackStateUpdate(...)");
+        }
+
+        @Override
+        public void onClientPlaybackStateUpdate(int state, long stateChangeTimeMs, long currentPosMs, float speed)
+        {
+            FooLog.v(TAG, "onClientPlaybackStateUpdate(...)");
+        }
+
+        @Override
+        public void onClientTransportControlUpdate(int transportControlFlags)
+        {
+            FooLog.v(TAG, "onClientTransportControlUpdate(...)");
+        }
+
+        @Override
+        public void onClientMetadataUpdate(MetadataEditor metadataEditor)
+        {
+            FooLog.v(TAG, "onClientMetadataUpdate(...)");
+        }
     }
 }

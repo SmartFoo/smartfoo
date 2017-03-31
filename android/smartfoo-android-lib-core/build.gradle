@@ -12,10 +12,10 @@ def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:25.3.0'
-    compile 'com.android.support:design:25.3.0'
-    compile 'com.android.support:support-v13:25.3.0'
-    compile 'com.android.support:percent:25.3.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:support-v13:25.3.1'
+    compile 'com.android.support:percent:25.3.1'
     testCompile 'junit:junit:4.12'
 }
 
@@ -24,7 +24,7 @@ android {
     buildToolsVersion '25.0.2'
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName version
