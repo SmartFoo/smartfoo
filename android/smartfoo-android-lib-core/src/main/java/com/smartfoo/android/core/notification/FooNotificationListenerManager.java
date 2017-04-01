@@ -43,20 +43,31 @@ public class FooNotificationListenerManager
 
     public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context)
     {
+        return isNotificationAccessSettingConfirmedNotEnabled(context, FooNotificationListener.class);
+    }
+
+    public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context,
+                                                                         @NonNull Class<? extends NotificationListenerService> notificationListenerServiceClass)
+    {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        FooRun.throwIllegalArgumentExceptionIfNull(notificationListenerServiceClass, "notificationListenerServiceClass");
 
         if (supportsNotificationListenerSettings())
         {
             String packageName = context.getPackageName();
+            String notificationListenerServiceClassName = notificationListenerServiceClass.getName();
+            String packageNameNotificationListenerServiceClassName =
+                    packageName + '/' + notificationListenerServiceClassName;
 
             ContentResolver contentResolver = context.getContentResolver();
 
-            String enabledNotificationListeners = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
-            if (enabledNotificationListeners != null)
+            String enabledNotificationListenersString = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
+            if (enabledNotificationListenersString != null)
             {
-                for (String enabledNotificationListener : enabledNotificationListeners.split(":"))
+                String[] enabledNotificationListeners = enabledNotificationListenersString.split(":");
+                for (String enabledNotificationListener : enabledNotificationListeners)
                 {
-                    if (enabledNotificationListener.startsWith(packageName + '/'))
+                    if (enabledNotificationListener.equals(packageNameNotificationListenerServiceClassName))
                     {
                         return false;
                     }
