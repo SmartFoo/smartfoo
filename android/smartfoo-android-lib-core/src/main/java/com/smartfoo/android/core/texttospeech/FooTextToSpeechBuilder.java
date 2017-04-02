@@ -61,17 +61,17 @@ public class FooTextToSpeechBuilder
             extends FooTextToSpeechPart
     {
         // package
-        final int mDurationInMs;
+        final int mSilenceDurationMillis;
 
-        public FooTextToSpeechPartSilence(int durationInMs)
+        public FooTextToSpeechPartSilence(int silenceDurationMillis)
         {
-            mDurationInMs = durationInMs;
+            mSilenceDurationMillis = silenceDurationMillis;
         }
 
         @Override
         public String toString()
         {
-            return "mDurationInMs=" + mDurationInMs;
+            return "mSilenceDurationMillis=" + mSilenceDurationMillis;
         }
     }
 

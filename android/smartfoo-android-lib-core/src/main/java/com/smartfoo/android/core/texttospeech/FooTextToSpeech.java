@@ -100,6 +100,7 @@ public class FooTextToSpeech
     private String       mVoiceName;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
+    private boolean      mIsAudioFocusGained;
 
     public FooTextToSpeech()
     {
@@ -122,7 +123,7 @@ public class FooTextToSpeech
             @Override
             public void run()
             {
-                FooTextToSpeech.this.audioFocusStop();
+                FooTextToSpeech.this.runAfterSpeak();
             }
         };
 
@@ -439,6 +440,20 @@ public class FooTextToSpeech
         }
     }
 
+    private void runAfterSpeak()
+    {
+        synchronized (mSyncLock)
+        {
+            int size = mUtteranceCallbacks.size();
+            if (size == 0)
+            {
+                audioFocusStop(mAudioManager, mOnAudioFocusChangeListener);
+
+                mIsAudioFocusGained = false;
+            }
+        }
+    }
+
     private void onError(String utteranceId)
     {
         if (VERBOSE_LOG_UTTERANCE_PROGRESS)
@@ -479,12 +494,17 @@ public class FooTextToSpeech
     }
 
     /**
+     * @param audioManager    audioManager
+     * @param audioStreamType audioStreamType
+     * @param listener        listener
      * @return true if successful, otherwise false
      */
-    public boolean audioFocusStart()
+    public static boolean audioFocusStart(@NonNull AudioManager audioManager,
+                                          int audioStreamType,
+                                          @NonNull OnAudioFocusChangeListener listener)
     {
-        int voiceAudioStreamType = getAudioStreamType();
-        int result = mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener, voiceAudioStreamType, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+        int result = audioManager.requestAudioFocus(listener, audioStreamType,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
@@ -502,17 +522,15 @@ public class FooTextToSpeech
         return success;
     }
 
-    private void onAudioFocusChange(int focusChange)
+    /**
+     * @param audioManager audioManager
+     * @param listener     listener
+     * @return true if successful, otherwise false
+     */
+    public static boolean audioFocusStop(@NonNull AudioManager audioManager,
+                                         @NonNull OnAudioFocusChangeListener listener)
     {
-        if (VERBOSE_LOG_AUDIO_FOCUS)
-        {
-            FooLog.v(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
-        }
-    }
-
-    public boolean audioFocusStop()
-    {
-        int result = mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+        int result = audioManager.abandonAudioFocus(listener);
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
@@ -528,6 +546,34 @@ public class FooTextToSpeech
             }
         }
         return success;
+    }
+
+    private void onAudioFocusChange(int focusChange)
+    {
+        if (VERBOSE_LOG_AUDIO_FOCUS)
+        {
+            FooLog.v(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
+        }
+
+        switch (focusChange)
+        {
+            case AudioManager.AUDIOFOCUS_GAIN:
+            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
+            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE:
+            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
+            {
+                mIsAudioFocusGained = false;
+                break;
+            }
+            case AudioManager.AUDIOFOCUS_LOSS:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+            {
+                mIsAudioFocusGained = audioFocusStart(mAudioManager, getAudioStreamType(), mOnAudioFocusChangeListener);
+
+                break;
+            }
+        }
     }
 
     private class Runnables
@@ -596,7 +642,7 @@ public class FooTextToSpeech
         //
         builder.appendSilenceSentenceBreak();
 
-        audioFocusStart();
+        mIsAudioFocusGained = audioFocusStart(mAudioManager, getAudioStreamType(), mOnAudioFocusChangeListener);
 
         boolean anySuccess = false;
 
@@ -635,9 +681,9 @@ public class FooTextToSpeech
 
         if (part instanceof FooTextToSpeechPartSilence)
         {
-            int durationInMs = ((FooTextToSpeechPartSilence) part).mDurationInMs;
+            int durationMillis = ((FooTextToSpeechPartSilence) part).mSilenceDurationMillis;
 
-            return silence(durationInMs, runAfter);
+            return silence(durationMillis, runAfter);
         }
 
         throw new IllegalArgumentException("unhandled part type " + part.getClass());
@@ -649,9 +695,9 @@ public class FooTextToSpeech
         {
             if (VERBOSE_LOG_SPEECH)
             {
-                FooLog.d(TAG,
-                        "+speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
-                        ')');
+                FooLog.d(TAG, "+speakInternal(text=" + FooString.quote(text) +
+                              ", clear=" + clear +
+                              ", runAfter=" + runAfter + ')');
             }
 
             boolean success = false;
@@ -717,19 +763,19 @@ public class FooTextToSpeech
         {
             if (VERBOSE_LOG_SPEECH)
             {
-                FooLog.d(TAG,
-                        "-speakInternal(text=" + FooString.quote(text) + ", clear=" + clear + ", runAfter=" + runAfter +
-                        ')');
+                FooLog.d(TAG, "-speakInternal(text=" + FooString.quote(text) +
+                              ", clear=" + clear +
+                              ", runAfter=" + runAfter + ')');
             }
         }
     }
 
-    public boolean silence(int durationInMs)
+    public boolean silence(int durationMillis)
     {
-        return silence(durationInMs, null);
+        return silence(durationMillis, null);
     }
 
-    public boolean silence(int durationInMs, Runnable runAfter)
+    public boolean silence(int durationMillis, Runnable runAfter)
     {
         boolean success = false;
 
@@ -754,7 +800,7 @@ public class FooTextToSpeech
                     mUtteranceCallbacks.put(utteranceId, runAfter);
                 }
 
-                int result = mTextToSpeech.playSilentUtterance(durationInMs, TextToSpeech.QUEUE_ADD, utteranceId);
+                int result = mTextToSpeech.playSilentUtterance(durationMillis, TextToSpeech.QUEUE_ADD, utteranceId);
                 if (result == TextToSpeech.SUCCESS)
                 {
                     mNextUtteranceId++;

@@ -92,7 +92,7 @@
                 android:layout_centerHorizontal="true"
                 android:gravity="center_horizontal"
                 android:padding="16dp"
-                android:text="Loading Log..."
+                android:text="Loading Log…"
                 android:textColor="@color/fooColorPrimaryText"
                 android:visibility="visible"
                 tools:text="title"
