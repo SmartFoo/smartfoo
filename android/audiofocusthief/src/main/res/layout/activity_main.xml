@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.swooby.audiofocusthief.MainActivity"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+
+        <Switch
+            android:id="@+id/switchBackgroundSevice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Background Service"
+            android:textSize="18sp"
+            />
+
+        <EditText
+            android:id="@+id/editHashtag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="#AUDIOFOCUS"
+            />
+
+        <Switch
+            android:id="@+id/switchAudioFocus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Audio Focus"
+            android:textSize="18sp"
+            />
+
+        <Switch
+            android:id="@+id/switchAudioFocusThief"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Steal Back Audio Focus"
+            android:textSize="18sp"
+            />
+
+    </LinearLayout>
+
+</ScrollView>
