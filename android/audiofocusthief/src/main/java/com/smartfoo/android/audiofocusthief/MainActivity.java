@@ -10,6 +10,7 @@ import android.widget.Switch;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusConfiguration;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
+import com.smartfoo.android.core.media.FooAudioUtils;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 
 public class MainActivity
@@ -112,36 +113,48 @@ public class MainActivity
     @Override
     protected void onResume()
     {
+        FooLog.e(TAG, "+onResume()");
         super.onResume();
         mMainApplication.attach(mAudioFocusListenerCallbacks);
         updateViews();
+        FooLog.e(TAG, "-onResume()");
     }
 
     @Override
     protected void onPause()
     {
+        FooLog.e(TAG, "+onPause()");
         super.onPause();
         mMainApplication.detach(mAudioFocusListenerCallbacks);
+        FooLog.e(TAG, "-onPause()");
     }
 
     private void updateViews()
     {
+        FooLog.e(TAG, "+updateViews()");
         mSwitchNotification.setChecked(mMainApplication.isNotificationOn());
-        mSwitchAudioFocus.setChecked(mMainApplication.isAudioFocusOn());
+        mSwitchAudioFocus.setChecked(mMainApplication.isAudioFocusGained());
         mSwitchAudioFocusThief.setChecked(mMainApplication.getIsAudioFocusThief());
+        FooLog.e(TAG, "-updateViews()");
     }
 
     private void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +
-                      " onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
+                      " onAudioFocusGained(audioFocusStreamType=" +
+                      FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
+                      ", audioFocusDurationHint=" +
+                      FooAudioUtils.audioFocusToString(audioFocusDurationHint) + ')');
         mSwitchAudioFocus.setChecked(true);
     }
 
     private FooAudioFocusConfiguration onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +
-                      " onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
+                      " onAudioFocusLost(audioFocusStreamType=" +
+                      FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
+                      ", audioFocusDurationHint=" +
+                      FooAudioUtils.audioFocusToString(audioFocusDurationHint) + ')');
         mSwitchAudioFocus.setChecked(false);
         return null;
     }
