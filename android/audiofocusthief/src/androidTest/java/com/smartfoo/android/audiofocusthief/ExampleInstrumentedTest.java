@@ -1,4 +1,4 @@
-package com.swooby.audiofocusthief;
+package com.smartfoo.android.audiofocusthief;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -24,6 +24,6 @@ public class ExampleInstrumentedTest
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.swooby.audiofocusthief", appContext.getPackageName());
+        assertEquals("com.smartfoo.android.audiofocusthief", appContext.getPackageName());
     }
 }

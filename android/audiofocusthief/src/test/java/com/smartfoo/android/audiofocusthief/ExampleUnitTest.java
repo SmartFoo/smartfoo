@@ -1,4 +1,4 @@
-package com.swooby.audiofocusthief;
+package com.smartfoo.android.audiofocusthief;
 
 import org.junit.Test;
 

@@ -59,7 +59,11 @@ public class MainApplication
         }
 
         FooNotificationBuilder notificationBuilder = new FooNotificationBuilder(this)
-                .setOngoing(true);
+                .setOngoing(true)
+                .setSmallIcon(R.drawable.ic_android_white_24dp)
+                .setContentTitle("Running In The Background")
+                .setContentText("Tap to foreground the app.")
+                .setContentIntentActivity(100, MainActivity.class);
 
         mNotification = new FooNotification(100, notificationBuilder);
         mNotification.show(this);

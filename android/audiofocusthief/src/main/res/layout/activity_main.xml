@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.swooby.audiofocusthief.MainActivity"
+    tools:context=".MainActivity"
     >
 
     <LinearLayout
@@ -26,6 +26,7 @@
             android:id="@+id/editHashtag"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             android:text="#AUDIOFOCUS"
             />
 

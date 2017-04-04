@@ -1,5 +1,6 @@
 package com.smartfoo.android.audiofocusthief;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.CompoundButton;
@@ -7,13 +8,16 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.Switch;
 
+import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusConfiguration;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
-import com.swooby.audiofocusthief.R;
+import com.smartfoo.android.core.platform.FooPlatformUtils;
 
 public class MainActivity
         extends AppCompatActivity
 {
+    private static final String TAG = FooLog.TAG(MainActivity.class);
+
     private final FooAudioFocusListenerCallbacks mAudioFocusListenerCallbacks = new FooAudioFocusListenerCallbacks()
     {
 
@@ -39,7 +43,11 @@ public class MainActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        FooLog.e(TAG, "onCreate(savedInstanceState=" + FooPlatformUtils.toString(savedInstanceState) + ')');
         super.onCreate(savedInstanceState);
+
+        Intent intent = getIntent();
+        FooLog.e(TAG, "onCreate: intent=" + FooPlatformUtils.toString(intent));
 
         mMainApplication = (MainApplication) getApplication();
 
@@ -91,6 +99,13 @@ public class MainActivity
                 updateViews();
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent)
+    {
+        FooLog.e(TAG, "onNewIntent(intent=" + FooPlatformUtils.toString(intent) + ')');
+        super.onNewIntent(intent);
     }
 
     @Override
