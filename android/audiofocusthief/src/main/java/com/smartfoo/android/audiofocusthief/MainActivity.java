@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.EditText;
 import android.widget.Switch;
 
 import com.smartfoo.android.core.logging.FooLog;
@@ -36,9 +35,13 @@ public class MainActivity
 
     private MainApplication mMainApplication;
     private Switch          mSwitchNotification;
-    private EditText        mEditHashtag;
     private Switch          mSwitchAudioFocus;
     private Switch          mSwitchAudioFocusThief;
+
+    private String getAudioFocusHashtag()
+    {
+        return "#AUDIOFOCUS_" + (mSwitchAudioFocusThief.isChecked() ? "THIEF" : "NICE");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -70,7 +73,6 @@ public class MainActivity
                 updateViews();
             }
         });
-        mEditHashtag = (EditText) findViewById(R.id.editHashtag);
         mSwitchAudioFocus = (Switch) findViewById(R.id.switchAudioFocus);
         mSwitchAudioFocus.setOnCheckedChangeListener(new OnCheckedChangeListener()
         {
@@ -79,8 +81,7 @@ public class MainActivity
             {
                 if (isChecked)
                 {
-                    String hashtag = mEditHashtag.getText().toString();
-                    mMainApplication.audioFocusOn(hashtag);
+                    mMainApplication.audioFocusOn(getAudioFocusHashtag());
                 }
                 else
                 {
@@ -95,7 +96,7 @@ public class MainActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
             {
-                mMainApplication.setIsAudioFocusThief(isChecked);
+                mMainApplication.setIsAudioFocusThief(isChecked, getAudioFocusHashtag());
                 updateViews();
             }
         });
@@ -132,13 +133,15 @@ public class MainActivity
 
     private void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
     {
-        FooLog.e(TAG, "onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
+        FooLog.e(TAG, getAudioFocusHashtag() +
+                      " onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
         mSwitchAudioFocus.setChecked(true);
     }
 
     private FooAudioFocusConfiguration onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint)
     {
-        FooLog.e(TAG, "onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
+        FooLog.e(TAG, getAudioFocusHashtag() +
+                      " onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
         mSwitchAudioFocus.setChecked(false);
         return null;
     }

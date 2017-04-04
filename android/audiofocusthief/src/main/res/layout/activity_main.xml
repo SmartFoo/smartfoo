@@ -22,14 +22,6 @@
             android:textSize="18sp"
             />
 
-        <EditText
-            android:id="@+id/editHashtag"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:text="#AUDIOFOCUS_THIEF"
-            />
-
         <Switch
             android:id="@+id/switchAudioFocus"
             android:layout_width="match_parent"

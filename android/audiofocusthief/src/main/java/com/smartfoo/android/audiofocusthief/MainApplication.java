@@ -108,7 +108,7 @@ public class MainApplication
         return mAudioFocusConfiguration != null;
     }
 
-    public void setIsAudioFocusThief(boolean thief)
+    public void setIsAudioFocusThief(boolean thief, String audioFocusHashtag)
     {
         if (thief)
         {
@@ -131,6 +131,9 @@ public class MainApplication
         {
             mAudioFocusConfiguration = null;
         }
+
+        mAudioFocusHashtag = audioFocusHashtag;
+        mAudioFocusListener.setHashtag(mAudioFocusHashtag);
     }
 
     public boolean audioFocusOn(final String audioFocusHashtag)
@@ -140,9 +143,11 @@ public class MainApplication
             return false;
         }
 
-        mAudioFocusHashtag = audioFocusHashtag;
+        mAudioFocusListener = new FooAudioFocusListener(this);
 
-        mAudioFocusListener = new FooAudioFocusListener(this, mAudioFocusHashtag);
+        mAudioFocusHashtag = audioFocusHashtag;
+        mAudioFocusListener.setHashtag(mAudioFocusHashtag);
+
         mAudioFocusListener.audioFocusStart(mAudioFocusStreamType, mAudioFocusDurationHint, mAudioFocusListenerCallbacks);
 
         return true;
