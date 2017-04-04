@@ -1,7 +1,10 @@
 package com.smartfoo.android.core.network;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
+import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.network.FooCellularStateListener.FooCellularHookStateCallbacks;
 import com.smartfoo.android.core.network.FooDataConnectionListener.FooDataConnectionCallbacks;
@@ -28,28 +31,26 @@ public class FooDataConnectionManager
 
     private final Context mContext;
 
-    //private final FooPowerLock              mPowerLock;
-    //private final FooWifiLock               mWifiLock;
-    private final FooCellularStateListener  mCellularStateListener;
-    private final FooDataConnectionListener mDataConnectionStateListener;
+    private final FooListenerManager<FooDataConnectionCallbacks> mListenerManager;
+    //private final FooPowerLock                                   mPowerLock;
+    //private final FooWifiLock                                    mWifiLock;
+    private final FooCellularStateListener                       mCellularStateListener;
+    private final FooDataConnectionListener                      mDataConnectionStateListener;
 
-    private FooDataConnectionCallbacks mCallbacks;
-
+    private boolean mIsStarted;
     private boolean mIsCellularOnHook;
 
-    public FooDataConnectionManager(Context context)
+    public FooDataConnectionManager(@NonNull Context context)
     {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context cannot be null");
-        }
+        mContext = FooRun.toNonNull(context, "context");
 
-        mContext = context;
+        mListenerManager = new FooListenerManager<>();
 
         //mPowerLock = new FooPowerLock(mContext);
         //mWifiLock = new FooWifiLock(mContext);
 
         mCellularStateListener = new FooCellularStateListener(mContext);
+
         mIsCellularOnHook = mCellularStateListener.isOnHook();
         FooLog.v(TAG, "FooDeviceConnectionListener: mIsCellularOnHook=" + mIsCellularOnHook);
 
@@ -59,55 +60,61 @@ public class FooDataConnectionManager
     @Override
     public String toString()
     {
-        return "{mIsCellularOnHook=" + mIsCellularOnHook //
-               + ", mDataConnectionStateListener=" + mDataConnectionStateListener//
-               + "}";
+        return "{ mIsCellularOnHook=" + mIsCellularOnHook
+               + ", mDataConnectionStateListener=" + mDataConnectionStateListener
+               + " }";
     }
 
-    public FooDataConnectionInfo start(FooDataConnectionCallbacks callbacks)
+    public boolean isStarted()
     {
-        FooLog.v(TAG, "+start(...)");
+        return mIsStarted;
+    }
 
-        mCallbacks = callbacks;
+    @NonNull
+    public FooDataConnectionInfo attach(FooDataConnectionCallbacks callbacks)
+    {
+        FooLog.v(TAG, "+attach(...)");
 
-        //mPowerLock.lock();
-        //mWifiLock.lock();
-
-        if (!mDataConnectionStateListener.isStarted())
+        mListenerManager.attach(callbacks);
+        if (mListenerManager.size() == 1 && !mIsStarted)
         {
-            mDataConnectionStateListener.start(this);
-        }
-        if (!mCellularStateListener.isStarted())
-        {
-            mCellularStateListener.start(this, mDataConnectionStateListener);
+            mIsStarted = true;
+
+            //mPowerLock.lock();
+            //mWifiLock.lock();
+
+            if (!mDataConnectionStateListener.isStarted())
+            {
+                mDataConnectionStateListener.start(this);
+            }
+            if (!mCellularStateListener.isStarted())
+            {
+                mCellularStateListener.start(this, mDataConnectionStateListener);
+            }
         }
 
-        FooLog.v(TAG, "-start(...)");
+        FooLog.v(TAG, "-attach(...)");
 
         return getDataConnectionInfo();
     }
 
-    /**
-     * Stop wifi/power locks and optionally connection listeners
-     *
-     * @param hard if true, then the connection listeners will be stopped
-     */
-    public void stop(boolean hard)
+    public void detach(FooDataConnectionCallbacks callbacks)
     {
-        FooLog.v(TAG, "+stop(hard=" + hard + ")");
+        FooLog.v(TAG, "+detach(...)");
 
-        if (hard)
+        mListenerManager.detach(callbacks);
+        if (mListenerManager.size() == 0 && mIsStarted)
         {
-            mCallbacks = null;
+            mIsStarted = false;
+
+            //mWifiLock.unlock();
+            //mPowerLock.unlock();
 
             mCellularStateListener.stop();
             mDataConnectionStateListener.stop();
         }
 
-        //mWifiLock.unlock();
-        //mPowerLock.unlock();
-
-        FooLog.v(TAG, "-stop(hard=" + hard + ")");
+        FooLog.v(TAG, "-detach(...)");
     }
 
     /**
@@ -132,9 +139,7 @@ public class FooDataConnectionManager
         }
     }
 
-    /**
-     * @return never null
-     */
+    @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()
     {
         return mDataConnectionStateListener.getDataConnectionInfo();
@@ -148,7 +153,7 @@ public class FooDataConnectionManager
         {
             mIsCellularOnHook = true;
 
-            // TODO: (Tony) DE760, CDMA networks don't get a data disconnected/connected event when a cell call is established so we must force it
+            // TODO: (pv) CDMA networks don't get a data disconnected/connected event when a cell call is established so we must force it
             // Force connected state
             FooDataConnectionInfo connectionInfo = getDataConnectionInfo();
             connectionInfo.setConnected(true);
@@ -178,9 +183,7 @@ public class FooDataConnectionManager
     public void onDataConnected(FooDataConnectionInfo dataConnectionInfo)
     {
         FooLog.d(TAG, "onDataConnected(" + dataConnectionInfo + ")");
-
-        FooDataConnectionCallbacks callbacks = mCallbacks;
-        if (callbacks != null)
+        for (FooDataConnectionCallbacks callbacks : mListenerManager.beginTraversing())
         {
             if (mIsCellularOnHook)
             {
@@ -192,17 +195,17 @@ public class FooDataConnectionManager
                 callbacks.onDataDisconnected(dataConnectionInfo);
             }
         }
+        mListenerManager.endTraversing();
     }
 
     @Override
     public void onDataDisconnected(FooDataConnectionInfo dataConnectionInfo)
     {
         FooLog.d(TAG, "onDataDisconnected(" + dataConnectionInfo + ")");
-
-        FooDataConnectionCallbacks callbacks = mCallbacks;
-        if (callbacks != null)
+        for (FooDataConnectionCallbacks callbacks : mListenerManager.beginTraversing())
         {
             callbacks.onDataDisconnected(dataConnectionInfo);
         }
+        mListenerManager.endTraversing();
     }
 }

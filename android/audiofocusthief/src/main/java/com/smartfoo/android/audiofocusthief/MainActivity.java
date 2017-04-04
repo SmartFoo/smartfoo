@@ -22,15 +22,15 @@ public class MainActivity
     {
 
         @Override
-        public void onAudioFocusGain(int audioFocusStreamType, int audioFocusDurationHint)
+        public void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
         {
-            MainActivity.this.onAudioFocusGain(audioFocusStreamType, audioFocusDurationHint);
+            MainActivity.this.onAudioFocusGained(audioFocusStreamType, audioFocusDurationHint);
         }
 
         @Override
-        public FooAudioFocusConfiguration onAudioFocusLoss(int audioFocusStreamType, int audioFocusDurationHint)
+        public FooAudioFocusConfiguration onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint)
         {
-            return MainActivity.this.onAudioFocusLoss(audioFocusStreamType, audioFocusDurationHint);
+            return MainActivity.this.onAudioFocusLost(audioFocusStreamType, audioFocusDurationHint);
         }
     };
 
@@ -130,13 +130,15 @@ public class MainActivity
         mSwitchAudioFocusThief.setChecked(mMainApplication.getIsAudioFocusThief());
     }
 
-    private void onAudioFocusGain(int audioFocusStreamType, int audioFocusDurationHint)
+    private void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
     {
+        FooLog.e(TAG, "onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
         mSwitchAudioFocus.setChecked(true);
     }
 
-    private FooAudioFocusConfiguration onAudioFocusLoss(int audioFocusStreamType, int audioFocusDurationHint)
+    private FooAudioFocusConfiguration onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint)
     {
+        FooLog.e(TAG, "onAudioFocusGained(" + audioFocusStreamType + ", " + audioFocusDurationHint + ')');
         mSwitchAudioFocus.setChecked(false);
         return null;
     }

@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.notification;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -11,8 +12,8 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Action;
-import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.app.NotificationCompat.Extender;
 import android.support.v4.app.NotificationCompat.Style;
 import android.widget.RemoteViews;
@@ -20,50 +21,50 @@ import android.widget.RemoteViews;
 import com.smartfoo.android.core.FooRun;
 
 public class FooNotificationBuilder
-        extends Builder
 {
-    private final Context mContext;
+    private final Context                    mContext;
+    private final NotificationCompat.Builder mBuilder;
 
     public FooNotificationBuilder(@NonNull Context context)
     {
-        super(FooRun.throwIllegalArgumentExceptionIfNull(context, "context"));
-        mContext = context;
+        mContext = FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        mBuilder = new NotificationCompat.Builder(context);
     }
 
-    @Override
     public FooNotificationBuilder setWhen(long when)
     {
-        return (FooNotificationBuilder) super.setWhen(when);
+        mBuilder.setWhen(when);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setShowWhen(boolean show)
     {
-        return (FooNotificationBuilder) super.setShowWhen(show);
+        mBuilder.setShowWhen(show);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setUsesChronometer(boolean b)
     {
-        return (FooNotificationBuilder) super.setUsesChronometer(b);
+        mBuilder.setUsesChronometer(b);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setSmallIcon(@DrawableRes int icon)
     {
-        return (FooNotificationBuilder) super.setSmallIcon(icon);
+        mBuilder.setSmallIcon(icon);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setSmallIcon(@DrawableRes int icon, int level)
     {
-        return (FooNotificationBuilder) super.setSmallIcon(icon, level);
+        mBuilder.setSmallIcon(icon, level);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setContentTitle(CharSequence title)
     {
-        return (FooNotificationBuilder) super.setContentTitle(title);
+        mBuilder.setContentTitle(title);
+        return this;
     }
 
     public FooNotificationBuilder setContentTitle(@StringRes int title)
@@ -71,10 +72,10 @@ public class FooNotificationBuilder
         return setContentTitle(getString(title));
     }
 
-    @Override
     public FooNotificationBuilder setContentText(CharSequence text)
     {
-        return (FooNotificationBuilder) super.setContentText(text);
+        mBuilder.setContentText(text);
+        return this;
     }
 
     public FooNotificationBuilder setContentText(@StringRes int text)
@@ -82,10 +83,10 @@ public class FooNotificationBuilder
         return setContentText(getString(text));
     }
 
-    @Override
     public FooNotificationBuilder setSubText(CharSequence text)
     {
-        return (FooNotificationBuilder) super.setSubText(text);
+        mBuilder.setSubText(text);
+        return this;
     }
 
     public FooNotificationBuilder setSubText(@StringRes int text)
@@ -93,76 +94,70 @@ public class FooNotificationBuilder
         return setSubText(getString(text));
     }
 
-    @Override
     public FooNotificationBuilder setNumber(int number)
     {
-        return (FooNotificationBuilder) super.setNumber(number);
+        mBuilder.setNumber(number);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setContentInfo(CharSequence info)
     {
-        return (FooNotificationBuilder) super.setContentInfo(info);
+        mBuilder.setContentInfo(info);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setProgress(int max, int progress, boolean indeterminate)
     {
-        return (FooNotificationBuilder) super.setProgress(max, progress, indeterminate);
+        mBuilder.setProgress(max, progress, indeterminate);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setContent(RemoteViews views)
     {
-        return (FooNotificationBuilder) super.setContent(views);
-    }
-
-    @Override
-    public FooNotificationBuilder setContentIntent(PendingIntent intent)
-    {
-        return (FooNotificationBuilder) super.setContentIntent(intent);
-    }
-
-    public FooNotificationBuilder setContentIntentActivity(int requestCode, Intent intent, int flags)
-    {
-        setContentIntent(PendingIntent.getActivity(mContext, requestCode, intent, flags));
+        mBuilder.setContent(views);
         return this;
     }
 
-    public FooNotificationBuilder setContentIntentBroadcast(int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder setContentIntent(PendingIntent pendingIntent)
     {
-        setContentIntent(PendingIntent.getBroadcast(mContext, requestCode, intent, flags));
+        mBuilder.setContentIntent(pendingIntent);
         return this;
     }
 
-    public FooNotificationBuilder setContentIntentService(int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder setContentIntentActivity(int requestCode, Class<? extends Activity> activity)
     {
-        setContentIntent(PendingIntent.getService(mContext, requestCode, intent, flags));
+        return setContentIntent(FooNotification.createPendingIntentForActivity(mContext, requestCode, activity));
+    }
+
+    public FooNotificationBuilder setContentIntentBroadcast(int requestCode, Intent intent, int pendingIntentFlags)
+    {
+        return setContentIntent(PendingIntent.getBroadcast(mContext, requestCode, intent, pendingIntentFlags));
+    }
+
+    public FooNotificationBuilder setContentIntentService(int requestCode, Intent intent, int pendingIntentFlags)
+    {
+        return setContentIntent(PendingIntent.getService(mContext, requestCode, intent, pendingIntentFlags));
+    }
+
+    public FooNotificationBuilder setDeleteIntent(PendingIntent pendingIntent)
+    {
+        mBuilder.setDeleteIntent(pendingIntent);
         return this;
     }
 
-    @Override
-    public FooNotificationBuilder setDeleteIntent(PendingIntent intent)
+    public FooNotificationBuilder setDeleteIntentActivity(int requestCode, Class<? extends Activity> activity)
     {
-        return (FooNotificationBuilder) super.setDeleteIntent(intent);
+        return setDeleteIntent(FooNotification.createPendingIntentForActivity(mContext, requestCode, activity));
     }
 
-    public FooNotificationBuilder setDeleteIntentActivity(int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder setDeleteIntentBroadcast(int requestCode, Intent intent, int pendingIntentFlags)
     {
-        setDeleteIntent(PendingIntent.getActivity(mContext, requestCode, intent, flags));
-        return this;
+        return setDeleteIntent(PendingIntent.getBroadcast(mContext, requestCode, intent, pendingIntentFlags));
     }
 
-    public FooNotificationBuilder setDeleteIntentBroadcast(int requestCode, Intent intent, int flags)
+    public FooNotificationBuilder setDeleteIntentService(int requestCode, Intent intent, int pendingIntentFlags)
     {
-        setDeleteIntent(PendingIntent.getBroadcast(mContext, requestCode, intent, flags));
-        return this;
-    }
-
-    public FooNotificationBuilder setDeleteIntentService(int requestCode, Intent intent, int flags)
-    {
-        setDeleteIntent(PendingIntent.getService(mContext, requestCode, intent, flags));
-        return this;
+        return setDeleteIntent(PendingIntent.getService(mContext, requestCode, intent, pendingIntentFlags));
     }
 
     private String getString(@StringRes int resId, Object... formatArgs)
@@ -170,136 +165,135 @@ public class FooNotificationBuilder
         return mContext.getString(resId, formatArgs);
     }
 
-    @Override
     public FooNotificationBuilder setFullScreenIntent(PendingIntent intent, boolean highPriority)
     {
-        return (FooNotificationBuilder) super.setFullScreenIntent(intent, highPriority);
+        mBuilder.setFullScreenIntent(intent, highPriority);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setTicker(CharSequence tickerText)
     {
-        return (FooNotificationBuilder) super.setTicker(tickerText);
+        mBuilder.setTicker(tickerText);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setTicker(CharSequence tickerText, RemoteViews views)
     {
-        return (FooNotificationBuilder) super.setTicker(tickerText, views);
+        mBuilder.setTicker(tickerText, views);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setLargeIcon(Bitmap icon)
     {
-        return (FooNotificationBuilder) super.setLargeIcon(icon);
+        mBuilder.setLargeIcon(icon);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setSound(Uri sound)
     {
-        return (FooNotificationBuilder) super.setSound(sound);
+        mBuilder.setSound(sound);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setSound(Uri sound, int streamType)
     {
-        return (FooNotificationBuilder) super.setSound(sound, streamType);
+        mBuilder.setSound(sound, streamType);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setVibrate(long[] pattern)
     {
-        return (FooNotificationBuilder) super.setVibrate(pattern);
+        mBuilder.setVibrate(pattern);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setLights(@ColorInt int argb, int onMs, int offMs)
     {
-        return (FooNotificationBuilder) super.setLights(argb, onMs, offMs);
+        mBuilder.setLights(argb, onMs, offMs);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setOngoing(boolean ongoing)
     {
-        return (FooNotificationBuilder) super.setOngoing(ongoing);
+        mBuilder.setOngoing(ongoing);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setOnlyAlertOnce(boolean onlyAlertOnce)
     {
-        return (FooNotificationBuilder) super.setOnlyAlertOnce(onlyAlertOnce);
+        mBuilder.setOnlyAlertOnce(onlyAlertOnce);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setAutoCancel(boolean autoCancel)
     {
-        return (FooNotificationBuilder) super.setAutoCancel(autoCancel);
+        mBuilder.setAutoCancel(autoCancel);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setLocalOnly(boolean b)
     {
-        return (FooNotificationBuilder) super.setLocalOnly(b);
+        mBuilder.setLocalOnly(b);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setCategory(String category)
     {
-        return (FooNotificationBuilder) super.setCategory(category);
+        mBuilder.setCategory(category);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setDefaults(int defaults)
     {
-        return (FooNotificationBuilder) super.setDefaults(defaults);
+        mBuilder.setDefaults(defaults);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setPriority(int pri)
     {
-        return (FooNotificationBuilder) super.setPriority(pri);
+        mBuilder.setPriority(pri);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder addPerson(String uri)
     {
-        return (FooNotificationBuilder) super.addPerson(uri);
+        mBuilder.addPerson(uri);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setGroup(String groupKey)
     {
-        return (FooNotificationBuilder) super.setGroup(groupKey);
+        mBuilder.setGroup(groupKey);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setGroupSummary(boolean isGroupSummary)
     {
-        return (FooNotificationBuilder) super.setGroupSummary(isGroupSummary);
+        mBuilder.setGroupSummary(isGroupSummary);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setSortKey(String sortKey)
     {
-        return (FooNotificationBuilder) super.setSortKey(sortKey);
+        mBuilder.setSortKey(sortKey);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder addExtras(Bundle extras)
     {
-        return (FooNotificationBuilder) super.addExtras(extras);
+        mBuilder.addExtras(extras);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setExtras(Bundle extras)
     {
-        return (FooNotificationBuilder) super.setExtras(extras);
+        mBuilder.setExtras(extras);
+        return this;
     }
 
-    @Override
     public Bundle getExtras()
     {
-        return super.getExtras();
+        return mBuilder.getExtras();
     }
 
     public FooNotificationBuilder addActionActivity(@DrawableRes int icon, @StringRes int title, int requestCode, @NonNull Intent intent, int flags)
@@ -337,59 +331,57 @@ public class FooNotificationBuilder
         return addAction(icon, getString(title), intent);
     }
 
-    @Override
     public FooNotificationBuilder addAction(@DrawableRes int icon, @NonNull CharSequence title, @NonNull PendingIntent intent)
     {
-        return (FooNotificationBuilder) super.addAction(icon, title, intent);
+        mBuilder.addAction(icon, title, intent);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder addAction(@NonNull Action action)
     {
-        return (FooNotificationBuilder) super.addAction(action);
+        mBuilder.addAction(action);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setStyle(Style style)
     {
-        return (FooNotificationBuilder) super.setStyle(style);
+        mBuilder.setStyle(style);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setColor(@ColorInt int argb)
     {
-        return (FooNotificationBuilder) super.setColor(argb);
+        mBuilder.setColor(argb);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setVisibility(int visibility)
     {
-        return (FooNotificationBuilder) super.setVisibility(visibility);
+        mBuilder.setVisibility(visibility);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder setPublicVersion(Notification n)
     {
-        return (FooNotificationBuilder) super.setPublicVersion(n);
+        mBuilder.setPublicVersion(n);
+        return this;
     }
 
-    @Override
     public FooNotificationBuilder extend(Extender extender)
     {
-        return (FooNotificationBuilder) super.extend(extender);
+        mBuilder.extend(extender);
+        return this;
     }
 
-    @Override
     public Notification build()
     {
-        return super.build();
+        return mBuilder.build();
     }
 
     /*
-    @Override
     protected BuilderExtender getExtender()
     {
-        return (FooNotificationBuilder) super.getExtender();
+        mBuilder.getExtender();
     }
     */
 }

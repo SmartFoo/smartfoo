@@ -80,7 +80,7 @@ public class FooDataConnectionListener
         /**
          * See {@link NetworkInfo#getType()}
          */
-        private int getType()
+        public int getType()
         {
             return mType;
         }
@@ -99,7 +99,7 @@ public class FooDataConnectionListener
          * <li>ConnectivityManager.TYPE_WIMAX: see ?</li>
          * </ul>
          */
-        private int getSubtype()
+        public int getSubtype()
         {
             return mSubtype;
         }

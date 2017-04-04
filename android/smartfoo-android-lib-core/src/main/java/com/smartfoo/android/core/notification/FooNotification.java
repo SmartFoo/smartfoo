@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.notification;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -31,44 +32,61 @@ public class FooNotification
         return NotificationManagerCompat.from(context);
     }
 
+    /**
+     * The activity should also be android:launchMode="singleTask" in AndroidManifest.xml. I'd love to set this
+     * programmatically, but I cannot find a way to do it without causing a flicker side-effect.
+     *
+     * @param context       context
+     * @param requestCode   requestCode
+     * @param activityClass activityClass
+     * @return
+     */
     @NonNull
-    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Class<?> intentClass)
+    public static PendingIntent createPendingIntentForActivity(@NonNull Context context, int requestCode,
+                                                               @NonNull Class<? extends Activity> activityClass)
     {
-        return createPendingIntent(context, requestCode, intentClass, 0, 0, null);
+        return createPendingIntentForActivity(context, requestCode, activityClass, null);
     }
 
+    /**
+     * @param context       context
+     * @param requestCode   requestCode
+     * @param activityClass activityClass
+     * @param extras        extras
+     * @return
+     */
     @NonNull
-    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Class<?> intentClass,
-                                                    int intentFlags, int pendingIntentFlags, Bundle extras)
+    public static PendingIntent createPendingIntentForActivity(@NonNull Context context, int requestCode,
+                                                               @NonNull Class<? extends Activity> activityClass,
+                                                               Bundle extras)
     {
-        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        Intent intent = new Intent(context, intentClass);
-        if (intentFlags != 0)
-        {
-            intent.setFlags(intentFlags);
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(activityClass, "activityClass");
+        Intent activityIntent = new Intent(context, activityClass);
         if (extras != null)
         {
-            intent.putExtras(extras);
+            activityIntent.putExtras(extras);
         }
-        return createPendingIntent(context, requestCode, intent, pendingIntentFlags);
+        return createPendingIntentForActivity(context, requestCode, activityIntent);
     }
 
+    /**
+     * The activity should also be android:launchMode="singleTask" in AndroidManifest.xml. I'd love to set this
+     * programmatically, but I cannot find a way to do it without causing a flicker side-effect.
+     *
+     * @param context        context
+     * @param requestCode    requestCode
+     * @param activityIntent activityIntent
+     * @return
+     */
     @NonNull
-    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Intent intent)
-    {
-        return createPendingIntent(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    @NonNull
-    public static PendingIntent createPendingIntent(@NonNull Context context, int requestCode, Intent intent, int pendingIntentFlags)
+    public static PendingIntent createPendingIntentForActivity(@NonNull Context context, int requestCode,
+                                                               @NonNull Intent activityIntent)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        FooRun.throwIllegalArgumentExceptionIfNull(intent, "intent");
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        pendingIntentFlags &= ~PendingIntent.FLAG_NO_CREATE;
-        pendingIntentFlags |= PendingIntent.FLAG_UPDATE_CURRENT;
-        return PendingIntent.getActivity(context, requestCode, intent, pendingIntentFlags);
+        FooRun.throwIllegalArgumentExceptionIfNull(activityIntent, "activityIntent");
+        activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        int pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+        return PendingIntent.getActivity(context, requestCode, activityIntent, pendingIntentFlags);
     }
 
     @NonNull
