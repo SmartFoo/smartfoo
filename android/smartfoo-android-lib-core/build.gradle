@@ -5,7 +5,7 @@ apply plugin: 'com.jfrog.bintray'
 archivesBaseName = 'smartfoo-android-lib-core'
 description = 'SmartFoo Core Library for Android'
 group = 'com.smartfoo'
-version = '0.1.4'
+version = '0.1.5'
 
 def siteUrl = 'https://github.com/SmartFoo/smartfoo'
 def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
@@ -24,7 +24,7 @@ android {
     buildToolsVersion '25.0.2'
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 25
         versionCode 1
         versionName version

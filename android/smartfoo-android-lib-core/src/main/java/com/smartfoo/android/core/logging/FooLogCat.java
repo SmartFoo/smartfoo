@@ -186,7 +186,7 @@ public class FooLogCat
 
             debugInfo = "load took " + elapsedMs + "ms; log.length=" + ((log == null) ? null : log.length());
 
-            String fakedLastLine = FAKE_LAST_LINE_FORMATTER.format(FooLogLevel.Debug, TAG,
+            String fakedLastLine = FAKE_LAST_LINE_FORMATTER.format(FooLogLevel.Info, TAG,
                     "T" + FooString.padNumber(android.os.Process.myTid(), ' ', 5) + " -load(): " + debugInfo,
                     null);
 

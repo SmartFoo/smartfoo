@@ -277,12 +277,12 @@ public class FooDataConnectionListener
 
     private FooDataConnectionCallbacks mCallbacks;
 
-    public FooDataConnectionListener(Context context)
+    public FooDataConnectionListener(@NonNull Context context)
     {
-        mContext = context;
+        mContext = FooRun.toNonNull(context, "context");
 
         mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        mWifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         NetworkInfo activeNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
         String ssid = null;
@@ -305,9 +305,7 @@ public class FooDataConnectionListener
         }
     }
 
-    /**
-     * @return never null
-     */
+    @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()
     {
         synchronized (mSyncLock)

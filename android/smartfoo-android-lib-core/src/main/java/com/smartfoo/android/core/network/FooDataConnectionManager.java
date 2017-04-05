@@ -23,13 +23,9 @@ public class FooDataConnectionManager
     public enum ConnectionState
     {
         OK,
-        //
         PhoneOffHook,
-        //
-        NetworkDisconnected, //
+        NetworkDisconnected,
     }
-
-    private final Context mContext;
 
     private final FooListenerManager<FooDataConnectionCallbacks> mListenerManager;
     //private final FooPowerLock                                   mPowerLock;
@@ -42,19 +38,19 @@ public class FooDataConnectionManager
 
     public FooDataConnectionManager(@NonNull Context context)
     {
-        mContext = FooRun.toNonNull(context, "context");
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
         mListenerManager = new FooListenerManager<>();
 
         //mPowerLock = new FooPowerLock(mContext);
         //mWifiLock = new FooWifiLock(mContext);
 
-        mCellularStateListener = new FooCellularStateListener(mContext);
+        mCellularStateListener = new FooCellularStateListener(context);
 
         mIsCellularOnHook = mCellularStateListener.isOnHook();
         FooLog.v(TAG, "FooDeviceConnectionListener: mIsCellularOnHook=" + mIsCellularOnHook);
 
-        mDataConnectionStateListener = new FooDataConnectionListener(mContext);
+        mDataConnectionStateListener = new FooDataConnectionListener(context);
     }
 
     @Override

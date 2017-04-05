@@ -2,9 +2,11 @@ package com.smartfoo.android.core.network;
 
 import android.content.Context;
 import android.net.NetworkInfo;
+import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 
 public class FooCellularStateListener
@@ -45,8 +47,9 @@ public class FooCellularStateListener
     private FooCellularHookStateCallbacks mCallbacksHookState;
     private FooCellularDataStateCallbacks mCallbacksDataState;
 
-    public FooCellularStateListener(Context context)
+    public FooCellularStateListener(@NonNull Context context)
     {
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
     }
 
