@@ -45,4 +45,17 @@ android:
 
 script:
   - cd android
-  - ./gradlew bintrayUpload --info
+  - ./gradlew :smartfoo-android-lib-core:bintrayUpload -PdisablePreDex --info --stacktrace
+
+after_failure: "cat $TRAVIS_BUILD_DIR/android/smartfoo-android-lib-core/build/outputs/lint-results-debug.xml"
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches
+    - $HOME/.gradle/daemon
+    - $HOME/.gradle/native
+    - $HOME/.gradle/wrapper
+    - $HOME/.android/build-cache
