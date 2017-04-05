@@ -11,8 +11,8 @@
     android:layout_height="?actionBarSize"
     android:background="?attr/colorPrimary"
     android:elevation="4dp"
-    android:theme="@style/AppTheme.ToolbarTheme"
-    app:popupTheme="@style/AppTheme.ToolbarPopupTheme"
+    android:theme="@style/AppTheme.AppBarOverlay"
+    app:popupTheme="@style/AppTheme.AppBarOverlayPopup"
     app:titleTextAppearance="@style/AppTheme.ToolbarTitleText"
     >
 

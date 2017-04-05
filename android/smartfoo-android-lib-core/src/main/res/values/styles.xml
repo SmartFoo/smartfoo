@@ -13,7 +13,7 @@
         <item name="android:titleTextColor">@color/fooColorPrimaryText</item>
     </style>
 
-    <style name="AppTheme.ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <!--
         <!- - android:textColorPrimary is the color of the title text in the Toolbar  - ->
         <item name="android:textColorPrimary">@android:color/holo_blue_light</item>
@@ -36,7 +36,7 @@
         -->
     </style>
 
-    <style name="AppTheme.ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.Light"/>
+    <style name="AppTheme.AppBarOverlayPopup" parent="ThemeOverlay.AppCompat.Light"/>
 
     <style name="AppTheme.RecyclerViewTheme">
         <!-- NOTE: clipChildren should be true on API level 10 -->
