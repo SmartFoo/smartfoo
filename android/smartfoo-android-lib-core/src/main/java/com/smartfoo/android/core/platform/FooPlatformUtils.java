@@ -809,7 +809,7 @@ public class FooPlatformUtils
             extras = new LinkedHashMap<>();
         }
 
-        // TODO:(pv) More product specific text, Log Limit, Tablet, Dimensions/DPI, etc...
+        // TODO:(pv) More product specific text, Log Limit, Tablet, Dimensions/DPI, etc…
 
         //Resources res = context.getResources();
         //Configuration configuration = res.getConfiguration();

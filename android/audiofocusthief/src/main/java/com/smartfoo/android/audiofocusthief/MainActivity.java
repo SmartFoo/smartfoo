@@ -2,13 +2,14 @@ package com.smartfoo.android.audiofocusthief;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 
 import com.smartfoo.android.core.logging.FooLog;
-import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusConfiguration;
+import com.smartfoo.android.core.media.FooAudioFocusListener;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
 import com.smartfoo.android.core.media.FooAudioUtils;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
@@ -20,7 +21,6 @@ public class MainActivity
 
     private final FooAudioFocusListenerCallbacks mAudioFocusListenerCallbacks = new FooAudioFocusListenerCallbacks()
     {
-
         @Override
         public void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
         {
@@ -28,9 +28,18 @@ public class MainActivity
         }
 
         @Override
-        public FooAudioFocusConfiguration onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint)
+        public boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
         {
-            return MainActivity.this.onAudioFocusLost(audioFocusStreamType, audioFocusDurationHint);
+            return MainActivity.this.onAudioFocusLost(audioFocusListener, audioFocusStreamType, audioFocusDurationHint, focusChange);
+        }
+    };
+
+    private final OnCheckedChangeListener mOnCheckedChangeListener = new OnCheckedChangeListener()
+    {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+        {
+            MainActivity.this.onCheckedChanged(buttonView, isChecked);
         }
     };
 
@@ -41,7 +50,7 @@ public class MainActivity
 
     private String getAudioFocusHashtag()
     {
-        return "#AUDIOFOCUS_" + (mSwitchAudioFocusThief.isChecked() ? "THIEF" : "NICE");
+        return mMainApplication.getAudioFocusHashtag();
     }
 
     @Override
@@ -58,49 +67,11 @@ public class MainActivity
         setContentView(R.layout.activity_main);
 
         mSwitchNotification = (Switch) findViewById(R.id.switchBackgroundSevice);
-        mSwitchNotification.setOnCheckedChangeListener(new OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-            {
-                if (isChecked)
-                {
-                    mMainApplication.notificationOn();
-                }
-                else
-                {
-                    mMainApplication.notificationOff();
-                }
-                updateViews();
-            }
-        });
+        mSwitchNotification.setOnCheckedChangeListener(mOnCheckedChangeListener);
         mSwitchAudioFocus = (Switch) findViewById(R.id.switchAudioFocus);
-        mSwitchAudioFocus.setOnCheckedChangeListener(new OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-            {
-                if (isChecked)
-                {
-                    mMainApplication.audioFocusOn(getAudioFocusHashtag());
-                }
-                else
-                {
-                    mMainApplication.audioFocusOff();
-                }
-                updateViews();
-            }
-        });
+        mSwitchAudioFocus.setOnCheckedChangeListener(mOnCheckedChangeListener);
         mSwitchAudioFocusThief = (Switch) findViewById(R.id.switchAudioFocusThief);
-        mSwitchAudioFocusThief.setOnCheckedChangeListener(new OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-            {
-                mMainApplication.setIsAudioFocusThief(isChecked, getAudioFocusHashtag());
-                updateViews();
-            }
-        });
+        mSwitchAudioFocusThief.setOnCheckedChangeListener(mOnCheckedChangeListener);
     }
 
     @Override
@@ -129,12 +100,50 @@ public class MainActivity
         FooLog.e(TAG, "-onPause()");
     }
 
+    private void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+    {
+        switch (buttonView.getId())
+        {
+            case R.id.switchBackgroundSevice:
+                if (isChecked)
+                {
+                    mMainApplication.notificationOn();
+                }
+                else
+                {
+                    mMainApplication.notificationOff();
+                }
+                break;
+            case R.id.switchAudioFocus:
+                if (isChecked)
+                {
+                    mMainApplication.audioFocusOn();
+                }
+                else
+                {
+                    mMainApplication.audioFocusOff();
+                }
+                break;
+            case R.id.switchAudioFocusThief:
+                mMainApplication.setIsAudioFocusThief(isChecked);
+                break;
+        }
+        updateViews();
+    }
+
+    private void setChecked(@NonNull Switch viewSwitch, boolean checked)
+    {
+        viewSwitch.setOnCheckedChangeListener(null);
+        viewSwitch.setChecked(checked);
+        viewSwitch.setOnCheckedChangeListener(mOnCheckedChangeListener);
+    }
+
     private void updateViews()
     {
         FooLog.e(TAG, "+updateViews()");
-        mSwitchNotification.setChecked(mMainApplication.isNotificationOn());
-        mSwitchAudioFocus.setChecked(mMainApplication.isAudioFocusGained());
-        mSwitchAudioFocusThief.setChecked(mMainApplication.getIsAudioFocusThief());
+        setChecked(mSwitchNotification, mMainApplication.isNotificationOn());
+        setChecked(mSwitchAudioFocus, mMainApplication.isAudioFocusGained());
+        setChecked(mSwitchAudioFocusThief, mMainApplication.getIsAudioFocusThief());
         FooLog.e(TAG, "-updateViews()");
     }
 
@@ -145,17 +154,20 @@ public class MainActivity
                       FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
                       ", audioFocusDurationHint=" +
                       FooAudioUtils.audioFocusToString(audioFocusDurationHint) + ')');
-        mSwitchAudioFocus.setChecked(true);
+        setChecked(mSwitchAudioFocus, true);
     }
 
-    private FooAudioFocusConfiguration onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint)
+    private boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +
                       " onAudioFocusLost(audioFocusStreamType=" +
                       FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
                       ", audioFocusDurationHint=" +
-                      FooAudioUtils.audioFocusToString(audioFocusDurationHint) + ')');
-        mSwitchAudioFocus.setChecked(false);
-        return null;
+                      FooAudioUtils.audioFocusToString(audioFocusDurationHint) +
+                      ", focusChange=" +
+                      FooAudioUtils.audioFocusToString(focusChange) + ')');
+        setChecked(mSwitchAudioFocus, false);
+        mMainApplication.audioFocusOff();
+        return false;
     }
 }

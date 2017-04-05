@@ -128,7 +128,7 @@ public class FooBluetoothHeadsetConnectionListener
                 if (proxy instanceof BluetoothHeadset)
                 {
                     BluetoothHeadset bluetoothHeadset = (BluetoothHeadset) proxy;
-                    //...
+                    //…
                 }
                 */
 

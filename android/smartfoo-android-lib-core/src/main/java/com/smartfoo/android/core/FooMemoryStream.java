@@ -223,7 +223,7 @@ public class FooMemoryStream
 
     public synchronized void writeString(String value)
     {
-        // TODO:(pv) Replace with or utilize FooString.getBytes()...
+        // TODO:(pv) Replace with or utilize FooString.getBytes()…
         if (value != null && value.length() > 0)
         {
             byte[] b;

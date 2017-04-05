@@ -569,7 +569,7 @@ public class FooDataConnectionListener
         }
 
         //
-        // Especially when switching network types, we may not always get a Disconnect event before a Connect event...
+        // Especially when switching network types, we may not always get a Disconnect event before a Connect event…
         // ...because that network may still technically be connected (ex: LTE->WiFi; LTE stays connected).
         // Ignore connect events that match the connection we are already connected to.
         // Notify connect events that are different than the connection we are already connected to.

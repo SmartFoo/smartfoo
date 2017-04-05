@@ -2,22 +2,22 @@ package com.smartfoo.android.core;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class FooListenerManager<T>
 {
-    private final List<T> mListeners;
-    private final List<T> mListenersToAdd;
-    private final List<T> mListenersToRemove;
+    private final Set<T> mListeners;
+    private final Set<T> mListenersToAdd;
+    private final Set<T> mListenersToRemove;
 
     private boolean mIsTraversingListeners;
 
     public FooListenerManager()
     {
-        mListeners = new LinkedList<>();
-        mListenersToAdd = new LinkedList<>();
-        mListenersToRemove = new LinkedList<>();
+        mListeners = new LinkedHashSet<>();
+        mListenersToAdd = new LinkedHashSet<>();
+        mListenersToRemove = new LinkedHashSet<>();
     }
 
     public int size()
@@ -95,12 +95,12 @@ public class FooListenerManager<T>
         }
     }
 
-    public List<T> beginTraversing()
+    public Set<T> beginTraversing()
     {
         synchronized (mListeners)
         {
             mIsTraversingListeners = true;
-            return Collections.unmodifiableList(mListeners);
+            return Collections.unmodifiableSet(mListeners);
         }
     }
 

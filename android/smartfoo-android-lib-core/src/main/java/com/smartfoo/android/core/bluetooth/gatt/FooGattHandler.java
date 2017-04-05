@@ -680,7 +680,7 @@ public class FooGattHandler
     }
 
     /**
-     * NOTE: Some status codes can be found at...
+     * NOTE: Some status codes can be found at…
      * https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/master/stack/include/gatt_api.h
      * ...not that they are very descriptive or helpful or anything like that! :/
      *
@@ -726,7 +726,7 @@ public class FooGattHandler
     }
 
     /**
-     * NOTE: Some status codes can be found at...
+     * NOTE: Some status codes can be found at…
      * https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/master/stack/include/gatt_api.h
      * ...not that they are very descriptive or helpful or anything like that! :/
      * <p/>
@@ -767,7 +767,7 @@ public class FooGattHandler
 
             if (!gatt.discoverServices())
             {
-                FooLog.e(TAG, logPrefix("onConnectionStateChange: gatt.discoverServices() failed; disconnecting..."));
+                FooLog.e(TAG, logPrefix("onConnectionStateChange: gatt.discoverServices() failed; disconnecting…"));
                 disconnect = true;
             }
             else
@@ -784,7 +784,7 @@ public class FooGattHandler
             {
                 FooLog.e(TAG, logPrefix("onConnectionStateChange: UNEXPECTED newState=" + newStateString +
                                         ", status=" + status +
-                                        "; disconnecting..."));
+                                        "; disconnecting…"));
             }
         }
 

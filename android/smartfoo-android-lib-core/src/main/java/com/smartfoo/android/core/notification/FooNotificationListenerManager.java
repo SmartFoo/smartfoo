@@ -17,6 +17,7 @@ import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
+import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooHandler;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
@@ -61,13 +62,15 @@ public class FooNotificationListenerManager
 
             ContentResolver contentResolver = context.getContentResolver();
 
-            String enabledNotificationListenersString = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
-            if (enabledNotificationListenersString != null)
+            String notificationListenersString = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
+            if (notificationListenersString != null)
             {
-                String[] enabledNotificationListeners = enabledNotificationListenersString.split(":");
-                for (String enabledNotificationListener : enabledNotificationListeners)
+                String[] notificationListeners = notificationListenersString.split(":");
+                for (String notificationListener : notificationListeners)
                 {
-                    if (enabledNotificationListener.equals(packageNameNotificationListenerServiceClassName))
+                    FooLog.v(TAG, "isNotificationAccessSettingConfirmedNotEnabled: notificationListener == " +
+                                  FooString.quote(notificationListener));
+                    if (notificationListener.equals(packageNameNotificationListenerServiceClassName))
                     {
                         return false;
                     }

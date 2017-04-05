@@ -125,7 +125,7 @@ public class FooReflectionUtils
         Class<?> actualInstanceClass = getClass(instanceActual);
 
         //
-        // Verify that actualInstanceClass is an instance of all subclasses and interfaces of expectedClass...
+        // Verify that actualInstanceClass is an instance of all subclasses and interfaces of expectedClass…
         //
 
         if (!expectedInstanceClass.isInterface())

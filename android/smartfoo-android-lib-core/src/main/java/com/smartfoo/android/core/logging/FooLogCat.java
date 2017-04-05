@@ -95,7 +95,7 @@ public class FooLogCat
 
             if (Build.VERSION.SDK_INT >= 16)
             {
-                FooLog.d(TAG, "Working around JellyBean's 'feature'...");
+                FooLog.d(TAG, "Working around JellyBean's 'feature'…");
                 try
                 {
                     CMDLINE_GRANTPERMS[2] = String.format("pm grant %s android.permission.READ_LOGS", pname);

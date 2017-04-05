@@ -276,7 +276,7 @@ public class FooDebugActivity
         mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
 
         /*
-        // TODO:(pv) Figure out why this fast scroller jumps BACKWARDS so much; fix and then uncomment...
+        // TODO:(pv) Figure out why this fast scroller jumps BACKWARDS so much; fix and then uncomment…
         VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) findViewById(R.id.fast_scroller);
         if (fastScroller != null)
         {
@@ -552,7 +552,7 @@ public class FooDebugActivity
         final long start = System.currentTimeMillis();
         final int logLimitBytes = mLogLimitKb * 1024;
 
-        showProgressIndicator("Loading Log...");
+        showProgressIndicator("Loading Log…");
         LogReaderTask logReaderTask = new LogReaderTask(this,
                 logLimitBytes,
                 mColorAssert,
@@ -625,13 +625,13 @@ public class FooDebugActivity
             @Override
             protected void onPreExecute()
             {
-                showProgressIndicator("Sharing Log...");
+                showProgressIndicator("Sharing Log…");
             }
 
             @Override
             protected void onProgressUpdate(Integer... progress)
             {
-                // TODO:(pv) Show more visible "Processing..." progress dialog (may be indeterminate)?
+                // TODO:(pv) Show more visible "Processing…" progress dialog (may be indeterminate)?
             }
 
             @Override

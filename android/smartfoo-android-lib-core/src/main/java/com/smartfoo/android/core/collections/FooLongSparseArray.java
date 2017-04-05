@@ -793,7 +793,7 @@ public class FooLongSparseArray<E>
     }
 
     //
-    // New iterators...
+    // New iterators…
     //
 
     public Iterator<Long> iterateKeys()

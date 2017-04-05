@@ -3,7 +3,6 @@ package com.smartfoo.android.core.texttospeech;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.AudioManager;
-import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
@@ -14,6 +13,8 @@ import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.media.FooAudioFocusListener;
+import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
 import com.smartfoo.android.core.media.FooAudioUtils;
 import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPart;
 import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPartSilence;
@@ -43,6 +44,12 @@ public class FooTextToSpeech
         void onTextToSpeechInitialized(int status);
     }
 
+    @NonNull
+    public static FooTextToSpeech getInstance()
+    {
+        return sInstance;
+    }
+
     public static String statusToString(int status)
     {
         switch (status)
@@ -61,11 +68,9 @@ public class FooTextToSpeech
     public static boolean VERBOSE_LOG_UTTERANCE_PROGRESS = false;
     public static boolean VERBOSE_LOG_AUDIO_FOCUS        = false;
 
-    @NonNull
-    public static FooTextToSpeech getInstance()
-    {
-        return sInstance;
-    }
+    //
+    //
+    //
 
     private static final FooTextToSpeech sInstance;
 
@@ -87,37 +92,44 @@ public class FooTextToSpeech
     }
 
     private final Object                                       mSyncLock;
+    private final FooAudioFocusListener                        mAudioFocusListener;
+    private final FooAudioFocusListenerCallbacks               mAudioFocusListenerCallbacks;
     private final FooListenerManager<FooTextToSpeechCallbacks> mListeners;
     private final List<UtteranceInfo>                          mTextToSpeechQueue;
     private final Map<String, Runnable>                        mUtteranceCallbacks;
-    private final OnAudioFocusChangeListener                   mOnAudioFocusChangeListener;
     private final Runnable                                     mRunAfterSpeak;
 
-    private AudioManager mAudioManager;
+    private Context      mApplicationContext;
     private TextToSpeech mTextToSpeech;
     private boolean      mIsInitialized;
     private int          mNextUtteranceId;
     private String       mVoiceName;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
-    private boolean      mIsAudioFocusGained;
 
     public FooTextToSpeech()
     {
         FooLog.v(TAG, "+FooTextToSpeech()");
 
         mSyncLock = new Object();
+        mAudioFocusListener = FooAudioFocusListener.getInstance();
+        mAudioFocusListenerCallbacks = new FooAudioFocusListenerCallbacks()
+        {
+            @Override
+            public void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
+            {
+                FooTextToSpeech.this.onAudioFocusGained(audioFocusStreamType, audioFocusDurationHint);
+            }
+
+            @Override
+            public boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
+            {
+                return FooTextToSpeech.this.onAudioFocusLost(audioFocusListener, audioFocusStreamType, audioFocusDurationHint, focusChange);
+            }
+        };
         mListeners = new FooListenerManager<>();
         mTextToSpeechQueue = new LinkedList<>();
         mUtteranceCallbacks = new HashMap<>();
-        mOnAudioFocusChangeListener = new OnAudioFocusChangeListener()
-        {
-            @Override
-            public void onAudioFocusChange(int focusChange)
-            {
-                FooTextToSpeech.this.onAudioFocusChange(focusChange);
-            }
-        };
         mRunAfterSpeak = new Runnable()
         {
             @Override
@@ -288,17 +300,22 @@ public class FooTextToSpeech
         }
     }
 
-    public FooTextToSpeech start(@NonNull Context context)
+    public FooTextToSpeech start(@NonNull Context applicationContext)
     {
-        return start(context, null);
+        return start(applicationContext, null);
     }
 
-    public FooTextToSpeech start(@NonNull Context context, FooTextToSpeechCallbacks callbacks)
+    public FooTextToSpeech start(@NonNull Context applicationContext, FooTextToSpeechCallbacks callbacks)
     {
-        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        FooRun.throwIllegalArgumentExceptionIfNull(applicationContext, "applicationContext");
 
         synchronized (mSyncLock)
         {
+            if (mApplicationContext == null)
+            {
+                mApplicationContext = applicationContext;
+            }
+
             attach(callbacks);
 
             if (isStarted())
@@ -310,9 +327,7 @@ public class FooTextToSpeech
             }
             else
             {
-                mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
-                mTextToSpeech = new TextToSpeech(context, new TextToSpeech.OnInitListener()
+                mTextToSpeech = new TextToSpeech(mApplicationContext, new TextToSpeech.OnInitListener()
                 {
                     @Override
                     public void onInit(int status)
@@ -383,7 +398,6 @@ public class FooTextToSpeech
                     return;
                 }
 
-
                 Iterator<UtteranceInfo> texts = mTextToSpeechQueue.iterator();
                 UtteranceInfo utteranceInfo;
                 while (texts.hasNext())
@@ -408,7 +422,10 @@ public class FooTextToSpeech
             FooLog.v(TAG, "+onStart(utteranceId=" + FooString.quote(utteranceId) + ')');
         }
 
-        // ...
+        mAudioFocusListener.audioFocusStart(mApplicationContext,
+                getAudioStreamType(),
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK,
+                mAudioFocusListenerCallbacks);
 
         if (VERBOSE_LOG_UTTERANCE_PROGRESS)
         {
@@ -427,6 +444,10 @@ public class FooTextToSpeech
         synchronized (mSyncLock)
         {
             runAfter = mUtteranceCallbacks.remove(utteranceId);
+            if (VERBOSE_LOG_UTTERANCE_PROGRESS)
+            {
+                FooLog.e(TAG, "onDone: mUtteranceCallbacks.size() == " + mUtteranceCallbacks.size());
+            }
         }
         //FooLog.v(TAG, "onDone: runAfter=" + runAfter);
         if (runAfter != null)
@@ -442,16 +463,21 @@ public class FooTextToSpeech
 
     private void runAfterSpeak()
     {
+        FooLog.v(TAG, "+runAfterSpeak()");
         synchronized (mSyncLock)
         {
             int size = mUtteranceCallbacks.size();
             if (size == 0)
             {
-                audioFocusStop(mAudioManager, mOnAudioFocusChangeListener);
-
-                mIsAudioFocusGained = false;
+                FooLog.v(TAG, "runAfterSpeak: mUtteranceCallbacks.size()(" + size + ") == 0; audioFocusStop()");
+                mAudioFocusListener.audioFocusStop(mAudioFocusListenerCallbacks);
+            }
+            else
+            {
+                FooLog.v(TAG, "runAfterSpeak: mUtteranceCallbacks.size()(" + size + ") > 0; ignoring");
             }
         }
+        FooLog.v(TAG, "+runAfterSpeak()");
     }
 
     private void onError(String utteranceId)
@@ -493,86 +519,45 @@ public class FooTextToSpeech
         FooLog.d(TAG, "-clear()");
     }
 
-    /**
-     * @param audioManager    audioManager
-     * @param audioStreamType audioStreamType
-     * @param listener        listener
-     * @return true if successful, otherwise false
-     */
-    public static boolean audioFocusStart(@NonNull AudioManager audioManager,
-                                          int audioStreamType,
-                                          @NonNull OnAudioFocusChangeListener listener)
+    private void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
     {
-        int result = audioManager.requestAudioFocus(listener, audioStreamType,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
-        boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
-            if (success)
-            {
-                FooLog.v(TAG, "audioFocusStart: requestAudioFocus result=" +
-                              FooAudioUtils.audioFocusRequestToString(result));
-            }
-            else
-            {
-                FooLog.w(TAG, "audioFocusStart: requestAudioFocus result=" +
-                              FooAudioUtils.audioFocusRequestToString(result));
-            }
+            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusGained(audioFocusStreamType=" +
+                          FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
+                          ", audioFocusDurationHint=" +
+                          FooAudioUtils.audioFocusToString(audioFocusDurationHint) + ')');
         }
-        return success;
     }
 
-    /**
-     * @param audioManager audioManager
-     * @param listener     listener
-     * @return true if successful, otherwise false
-     */
-    public static boolean audioFocusStop(@NonNull AudioManager audioManager,
-                                         @NonNull OnAudioFocusChangeListener listener)
-    {
-        int result = audioManager.abandonAudioFocus(listener);
-        boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        if (VERBOSE_LOG_AUDIO_FOCUS)
-        {
-            if (success)
-            {
-                FooLog.v(TAG, "audioFocusStop: abandonAudioFocus result=" +
-                              FooAudioUtils.audioFocusRequestToString(result));
-            }
-            else
-            {
-                FooLog.w(TAG, "audioFocusStop: abandonAudioFocus result=" +
-                              FooAudioUtils.audioFocusRequestToString(result));
-            }
-        }
-        return success;
-    }
-
-    private void onAudioFocusChange(int focusChange)
+    private boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
     {
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
-            FooLog.v(TAG, "onAudioFocusChange(focusChange=" + FooAudioUtils.audioFocusToString(focusChange) + ')');
+            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusLost(…, audioFocusStreamType=" +
+                          FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
+                          ", audioFocusDurationHint=" +
+                          FooAudioUtils.audioFocusToString(audioFocusDurationHint) +
+                          ", focusChange=" +
+                          FooAudioUtils.audioFocusToString(focusChange) + ')');
         }
 
         switch (focusChange)
         {
-            case AudioManager.AUDIOFOCUS_GAIN:
-            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
-            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE:
-            case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK:
-            {
-                mIsAudioFocusGained = false;
-                break;
-            }
             case AudioManager.AUDIOFOCUS_LOSS:
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-            {
-                mIsAudioFocusGained = audioFocusStart(mAudioManager, getAudioStreamType(), mOnAudioFocusChangeListener);
-
                 break;
-            }
+        }
+
+        return false;
+    }
+
+    private void onAudioFocusStop()
+    {
+        if (VERBOSE_LOG_AUDIO_FOCUS)
+        {
+            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusStop()");
         }
     }
 
@@ -641,8 +626,6 @@ public class FooTextToSpeech
         // Always suffix w/ 500ms so that there is a clear break before the next speech.
         //
         builder.appendSilenceSentenceBreak();
-
-        mIsAudioFocusGained = audioFocusStart(mAudioManager, getAudioStreamType(), mOnAudioFocusChangeListener);
 
         boolean anySuccess = false;
 
@@ -819,7 +802,7 @@ public class FooTextToSpeech
             }
             else
             {
-                // TODO:(pv) Queue silence...
+                // TODO:(pv) Queue silence…
             }
         }
 

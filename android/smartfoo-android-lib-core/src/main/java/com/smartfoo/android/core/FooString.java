@@ -600,7 +600,7 @@ public class FooString
     /**
      * @param context         context
      * @param elapsedMillis   elapsedMillis
-     * @param expanded        if true then formatted as "X days, X hours, X minutes, X seconds, ...", otherwise,
+     * @param expanded        if true then formatted as "X days, X hours, X minutes, X seconds, …", otherwise,
      *                        formatted as "XX minutes", or "XX hours", or "X days"
      * @param minimumTimeUnit must be &gt;= TimeUnit.MILLISECONDS, or null to default to TimeUnit.SECONDS
      * @return null if elapsedMillis &lt; 0

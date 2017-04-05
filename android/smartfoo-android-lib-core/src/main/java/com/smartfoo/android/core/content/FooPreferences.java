@@ -43,7 +43,7 @@ public class FooPreferences
     }
 
     //
-    // Supporting methods...
+    // Supporting methods…
     //
 
     public SharedPreferences getPrivatePreferences(String name)
