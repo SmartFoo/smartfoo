@@ -49,14 +49,15 @@ public class FooAudioFocusListener
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
+            hashtag = hashtag != null ? (hashtag.trim() + ' ') : "";
             if (success)
             {
-                FooLog.v(TAG, hashtag + " audioFocusStart: requestAudioFocus result=" +
+                FooLog.v(TAG, hashtag + "audioFocusStart: requestAudioFocus result=" +
                               FooAudioUtils.audioFocusRequestToString(result));
             }
             else
             {
-                FooLog.w(TAG, hashtag + " audioFocusStart: requestAudioFocus result=" +
+                FooLog.w(TAG, hashtag + "audioFocusStart: requestAudioFocus result=" +
                               FooAudioUtils.audioFocusRequestToString(result));
             }
         }
@@ -79,14 +80,15 @@ public class FooAudioFocusListener
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
+            hashtag = hashtag != null ? (hashtag.trim() + ' ') : "";
             if (success)
             {
-                FooLog.v(TAG, hashtag + " audioFocusStop: abandonAudioFocus result=" +
+                FooLog.v(TAG, hashtag + "audioFocusStop: abandonAudioFocus result=" +
                               FooAudioUtils.audioFocusRequestToString(result));
             }
             else
             {
-                FooLog.w(TAG, hashtag + " audioFocusStop: abandonAudioFocus result=" +
+                FooLog.w(TAG, hashtag + "audioFocusStop: abandonAudioFocus result=" +
                               FooAudioUtils.audioFocusRequestToString(result));
             }
         }
@@ -117,7 +119,7 @@ public class FooAudioFocusListener
 
     private FooAudioFocusListener()
     {
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>("#AUDIOFOCUS");
 
         reset();
     }
@@ -130,7 +132,16 @@ public class FooAudioFocusListener
 
     public void setHashtag(String hashtag)
     {
+        if (hashtag != null)
+        {
+            hashtag = hashtag.trim();
+        }
         mHashtag = hashtag;
+    }
+
+    private String getLogPrefix()
+    {
+        return mHashtag != null ? (mHashtag + ' ') : "";
     }
 
     public boolean isAudioFocusGained()
@@ -146,7 +157,7 @@ public class FooAudioFocusListener
     public boolean audioFocusStart(@NonNull Context context, int audioFocusStreamType, int audioFocusDurationHint,
                                    @NonNull FooAudioFocusListenerCallbacks callbacks)
     {
-        FooLog.v(TAG, "audioFocusStart(context, audioFocusStreamType=" +
+        FooLog.v(TAG, getLogPrefix() + "audioFocusStart(context, audioFocusStreamType=" +
                       FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
                       ", audioFocusDurationHint" +
                       FooAudioUtils.audioFocusToString(audioFocusDurationHint) +
@@ -187,7 +198,7 @@ public class FooAudioFocusListener
 
     public void audioFocusStop(@NonNull FooAudioFocusListenerCallbacks callbacks)
     {
-        FooLog.v(TAG, "audioFocusStop(callbacks=" + callbacks + ')');
+        FooLog.v(TAG, getLogPrefix() + "audioFocusStop(callbacks=" + callbacks + ')');
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
 
         if (mAudioManager == null)
@@ -196,20 +207,20 @@ public class FooAudioFocusListener
         }
 
         int sizeBefore = mListenerManager.size();
-        FooLog.v(TAG, "audioFocusStop: BEFORE mListenerManager.size() == " + sizeBefore);
+        FooLog.v(TAG, getLogPrefix() + "audioFocusStop: BEFORE mListenerManager.size() == " + sizeBefore);
         if (sizeBefore == 0)
         {
-            FooLog.v(TAG, "audioFocusStop: BEFORE mListenerManager.size() == 0; ignoring");
+            FooLog.v(TAG, getLogPrefix() + "audioFocusStop: BEFORE mListenerManager.size() == 0; ignoring");
             return;
         }
 
         mListenerManager.detach(callbacks);
 
         int sizeAfter = mListenerManager.size();
-        FooLog.v(TAG, "audioFocusStop: AFTER mListenerManager.size() == " + sizeAfter);
+        FooLog.v(TAG, getLogPrefix() + "audioFocusStop: AFTER mListenerManager.size() == " + sizeAfter);
         if (sizeAfter > 0)
         {
-            FooLog.v(TAG, "audioFocusStop: AFTER mListenerManager.size() > 0; ignoring");
+            FooLog.v(TAG, getLogPrefix() + "audioFocusStop: AFTER mListenerManager.size() > 0; ignoring");
             return;
         }
 
@@ -231,7 +242,7 @@ public class FooAudioFocusListener
     {
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
-            FooLog.v(TAG, mHashtag + " onAudioFocusChange(focusChange=" +
+            FooLog.v(TAG, getLogPrefix() + "onAudioFocusChange(focusChange=" +
                           FooAudioUtils.audioFocusToString(focusChange) +
                           ')');
         }
@@ -263,9 +274,9 @@ public class FooAudioFocusListener
             }
         }
 
-        FooLog.v(TAG, mHashtag + " onAudioFocusChange: mLastAudioFocusStreamType == " +
+        FooLog.v(TAG, getLogPrefix() + "onAudioFocusChange: mLastAudioFocusStreamType == " +
                       FooAudioUtils.audioStreamTypeToString(mLastAudioFocusStreamType));
-        FooLog.v(TAG, mHashtag + " onAudioFocusChange: mLastAudioFocusDurationHint == " +
+        FooLog.v(TAG, getLogPrefix() + "onAudioFocusChange: mLastAudioFocusDurationHint == " +
                       FooAudioUtils.audioFocusToString(mLastAudioFocusDurationHint));
 
         // TODO:(pv) Better cooperation of not speaking when other apps taking focus

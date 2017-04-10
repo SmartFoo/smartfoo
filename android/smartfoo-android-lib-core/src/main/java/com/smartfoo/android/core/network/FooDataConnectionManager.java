@@ -7,16 +7,15 @@ import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.network.FooCellularStateListener.FooCellularHookStateCallbacks;
-import com.smartfoo.android.core.network.FooDataConnectionListener.FooDataConnectionCallbacks;
+import com.smartfoo.android.core.network.FooCellularStateListener.HookState;
 import com.smartfoo.android.core.network.FooDataConnectionListener.FooDataConnectionInfo;
+import com.smartfoo.android.core.network.FooDataConnectionListener.FooDataConnectionListenerCallbacks;
 
 /**
- * Consolidates FooDataConnectionListener and FooPhoneStateListener in to a single instance that is
+ * Consolidates FooDataConnectionListener and FooCellularStateListener in to a single instance that is
  * used to ensure that a connection is not allowed if a phone call is active or there is no data connection.
  */
 public class FooDataConnectionManager
-        implements //
-        FooDataConnectionCallbacks, FooCellularHookStateCallbacks
 {
     private static final String TAG = FooLog.TAG(FooDataConnectionManager.class);
 
@@ -27,14 +26,27 @@ public class FooDataConnectionManager
         NetworkDisconnected,
     }
 
-    private final FooListenerManager<FooDataConnectionCallbacks> mListenerManager;
-    //private final FooPowerLock                                   mPowerLock;
-    //private final FooWifiLock                                    mWifiLock;
-    private final FooCellularStateListener                       mCellularStateListener;
-    private final FooDataConnectionListener                      mDataConnectionStateListener;
+    public interface FooDataConnectionManagerCallbacks
+    {
+        void onCellularOffHook();
 
-    private boolean mIsStarted;
-    private boolean mIsCellularOnHook;
+        void onCellularOnHook();
+
+        void onDataConnected(FooDataConnectionInfo dataConnectionInfo);
+
+        void onDataDisconnected(FooDataConnectionInfo dataConnectionInfo);
+    }
+
+    private final FooListenerManager<FooDataConnectionManagerCallbacks> mListenerManager;
+    //private final FooPowerLock                                          mPowerLock;
+    //private final FooWifiLock                                           mWifiLock;
+    private final FooCellularStateListener                              mCellularStateListener;
+    private final FooCellularHookStateCallbacks                         mCellularHookStateCallbacks;
+    private final FooDataConnectionListener                             mDataConnectionListener;
+    private final FooDataConnectionListenerCallbacks                    mDataConnectionListenerCallbacks;
+
+    private boolean   mIsStarted;
+    private HookState mLastCellularHookState;
 
     public FooDataConnectionManager(@NonNull Context context)
     {
@@ -46,18 +58,43 @@ public class FooDataConnectionManager
         //mWifiLock = new FooWifiLock(mContext);
 
         mCellularStateListener = new FooCellularStateListener(context);
+        mCellularHookStateCallbacks = new FooCellularHookStateCallbacks()
+        {
+            @Override
+            public void onCellularOffHook()
+            {
+                FooDataConnectionManager.this.onCellularOffHook();
+            }
 
-        mIsCellularOnHook = mCellularStateListener.isOnHook();
-        FooLog.v(TAG, "FooDeviceConnectionListener: mIsCellularOnHook=" + mIsCellularOnHook);
+            @Override
+            public void onCellularOnHook()
+            {
+                FooDataConnectionManager.this.onCellularOnHook();
+            }
+        };
 
-        mDataConnectionStateListener = new FooDataConnectionListener(context);
+        mDataConnectionListener = new FooDataConnectionListener(context);
+        mDataConnectionListenerCallbacks = new FooDataConnectionListenerCallbacks()
+        {
+            @Override
+            public void onDataConnected(FooDataConnectionInfo dataConnectionInfo)
+            {
+                FooDataConnectionManager.this.onDataConnected(dataConnectionInfo);
+            }
+
+            @Override
+            public void onDataDisconnected(FooDataConnectionInfo dataConnectionInfo)
+            {
+                FooDataConnectionManager.this.onDataDisconnected(dataConnectionInfo);
+            }
+        };
     }
 
     @Override
     public String toString()
     {
-        return "{ mIsCellularOnHook=" + mIsCellularOnHook
-               + ", mDataConnectionStateListener=" + mDataConnectionStateListener
+        return "{ getConnectionState()=" + getConnectionState()
+               + ", getDataConnectionInfo()=" + getDataConnectionInfo()
                + " }";
     }
 
@@ -66,8 +103,7 @@ public class FooDataConnectionManager
         return mIsStarted;
     }
 
-    @NonNull
-    public FooDataConnectionInfo attach(FooDataConnectionCallbacks callbacks)
+    public void attach(FooDataConnectionManagerCallbacks callbacks)
     {
         FooLog.v(TAG, "+attach(...)");
 
@@ -79,22 +115,21 @@ public class FooDataConnectionManager
             //mPowerLock.lock();
             //mWifiLock.lock();
 
-            if (!mDataConnectionStateListener.isStarted())
-            {
-                mDataConnectionStateListener.start(this);
-            }
             if (!mCellularStateListener.isStarted())
             {
-                mCellularStateListener.start(this, mDataConnectionStateListener);
+                mLastCellularHookState = mCellularStateListener.getHookState();
+                mCellularStateListener.start(mCellularHookStateCallbacks, null);
+            }
+            if (!mDataConnectionListener.isStarted())
+            {
+                mDataConnectionListener.start(mDataConnectionListenerCallbacks);
             }
         }
 
         FooLog.v(TAG, "-attach(...)");
-
-        return getDataConnectionInfo();
     }
 
-    public void detach(FooDataConnectionCallbacks callbacks)
+    public void detach(FooDataConnectionManagerCallbacks callbacks)
     {
         FooLog.v(TAG, "+detach(...)");
 
@@ -107,18 +142,20 @@ public class FooDataConnectionManager
             //mPowerLock.unlock();
 
             mCellularStateListener.stop();
-            mDataConnectionStateListener.stop();
+            mDataConnectionListener.stop();
         }
 
         FooLog.v(TAG, "-detach(...)");
     }
 
     /**
-     * @return the live state of the Cellular or Network data connection
+     * @return the live state of the data connection; either {@link ConnectionState#OK},
+     * {@link ConnectionState#PhoneOffHook}, or {@link ConnectionState#NetworkDisconnected}
      */
+    @NonNull
     public ConnectionState getConnectionState()
     {
-        if (!mIsCellularOnHook)
+        if (mCellularStateListener.isOffHook())
         {
             return ConnectionState.PhoneOffHook;
         }
@@ -138,18 +175,17 @@ public class FooDataConnectionManager
     @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()
     {
-        return mDataConnectionStateListener.getDataConnectionInfo();
+        return mDataConnectionListener.getDataConnectionInfo();
     }
 
-    @Override
-    public void onCellularOnHook()
+    private void onCellularOnHook()
     {
         FooLog.d(TAG, "onCellularOnHook()");
-        if (!mIsCellularOnHook)
+        if (mLastCellularHookState != HookState.OnHook)
         {
-            mIsCellularOnHook = true;
+            mLastCellularHookState = HookState.OnHook;
 
-            // TODO: (pv) CDMA networks don't get a data disconnected/connected event when a cell call is established so we must force it
+            // CDMA networks don't get a data disconnected/connected event when a cell call is established.
             // Force connected state
             FooDataConnectionInfo connectionInfo = getDataConnectionInfo();
             connectionInfo.setConnected(true);
@@ -158,15 +194,14 @@ public class FooDataConnectionManager
         }
     }
 
-    @Override
-    public void onCellularOffHook()
+    private void onCellularOffHook()
     {
         FooLog.d(TAG, "onCellularOffHook()");
-        if (mIsCellularOnHook)
+        if (mLastCellularHookState != HookState.OffHook)
         {
-            mIsCellularOnHook = false;
+            mLastCellularHookState = HookState.OffHook;
 
-            // TODO:(pv) CDMA networks don't get a data disconnected/connected event when a cell call is established so we must force it
+            // CDMA networks don't get a data disconnected/connected event when a cell call is established.
             // Force disconnected state
             FooDataConnectionInfo connectionInfo = getDataConnectionInfo();
             connectionInfo.setConnected(false);
@@ -175,30 +210,28 @@ public class FooDataConnectionManager
         }
     }
 
-    @Override
-    public void onDataConnected(FooDataConnectionInfo dataConnectionInfo)
+    private void onDataConnected(FooDataConnectionInfo dataConnectionInfo)
     {
         FooLog.d(TAG, "onDataConnected(" + dataConnectionInfo + ")");
-        for (FooDataConnectionCallbacks callbacks : mListenerManager.beginTraversing())
+        if (mCellularStateListener.isOnHook())
         {
-            if (mIsCellularOnHook)
+            for (FooDataConnectionManagerCallbacks callbacks : mListenerManager.beginTraversing())
             {
                 callbacks.onDataConnected(dataConnectionInfo);
             }
-            else
-            {
-                // If cell is off hook then mock disconnect
-                callbacks.onDataDisconnected(dataConnectionInfo);
-            }
+            mListenerManager.endTraversing();
         }
-        mListenerManager.endTraversing();
+        else
+        {
+            // If cell is off hook then mock disconnect
+            onDataDisconnected(dataConnectionInfo);
+        }
     }
 
-    @Override
-    public void onDataDisconnected(FooDataConnectionInfo dataConnectionInfo)
+    private void onDataDisconnected(FooDataConnectionInfo dataConnectionInfo)
     {
         FooLog.d(TAG, "onDataDisconnected(" + dataConnectionInfo + ")");
-        for (FooDataConnectionCallbacks callbacks : mListenerManager.beginTraversing())
+        for (FooDataConnectionManagerCallbacks callbacks : mListenerManager.beginTraversing())
         {
             callbacks.onDataDisconnected(dataConnectionInfo);
         }

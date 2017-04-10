@@ -15,16 +15,14 @@ import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.logging.FooLog;
-import com.smartfoo.android.core.network.FooCellularStateListener.FooCellularDataStateCallbacks;
 
 public class FooDataConnectionListener
-        implements FooCellularDataStateCallbacks
 {
     private static final String TAG = FooLog.TAG(FooDataConnectionListener.class);
 
-    public static final boolean VERBOSE_LOG = false;
+    public static boolean VERBOSE_LOG = false;
 
-    public interface FooDataConnectionCallbacks
+    public interface FooDataConnectionListenerCallbacks
     {
         void onDataConnected(FooDataConnectionInfo dataConnectionInfo);
 
@@ -41,7 +39,9 @@ public class FooDataConnectionListener
         public static final String TYPE_NONE_NAME = "NONE";
 
         /**
-         * Per http://developer.android.com/reference/android/net/wifi/WifiInfo.html#getSSID()
+         * Per:
+         * http://developer.android.com/reference/android/net/wifi/WifiInfo.html#getSSID()
+         * https://github.com/android/platform_frameworks_base/blob/master/wifi/java/android/net/wifi/WifiSsid.java#L47
          */
         public static final String SSID_NOT_CONNECTED = "<unknown ssid>";
 
@@ -72,7 +72,7 @@ public class FooDataConnectionListener
 
         private boolean mIsConnected;
 
-        public FooDataConnectionInfo(NetworkInfo networkInfo, String ssid)
+        FooDataConnectionInfo(NetworkInfo networkInfo, String ssid)
         {
             update(networkInfo, ssid);
         }
@@ -123,8 +123,8 @@ public class FooDataConnectionListener
                 if (mType == ConnectivityManager.TYPE_WIFI)
                 {
                     // mType == TYPE_WIFI has only SSID and no mSubtype/mSubtypeName
-                    mSubtype = FooDataConnectionInfo.TYPE_NONE;
-                    mSubtypeName = FooDataConnectionInfo.TYPE_NONE_NAME;
+                    mSubtype = TYPE_NONE;
+                    mSubtypeName = TYPE_NONE_NAME;
                     mSSID = ssid;
                 }
                 else
@@ -138,16 +138,16 @@ public class FooDataConnectionListener
             else
             {
                 setConnected(false);
-                mType = FooDataConnectionInfo.TYPE_NONE;
-                mTypeName = FooDataConnectionInfo.TYPE_NONE_NAME;
-                mSubtype = FooDataConnectionInfo.TYPE_NONE;
-                mSubtypeName = FooDataConnectionInfo.TYPE_NONE_NAME;
+                mType = TYPE_NONE;
+                mTypeName = TYPE_NONE_NAME;
+                mSubtype = TYPE_NONE;
+                mSubtypeName = TYPE_NONE_NAME;
                 mSSID = "";
             }
-            FooLog.d(TAG, "update: " + this);
+            FooLog.v(TAG, "update: " + this);
         }
 
-        public void setConnected(boolean value)
+        void setConnected(boolean value)
         {
             mIsConnected = value;
         }
@@ -275,7 +275,7 @@ public class FooDataConnectionListener
 
     private boolean mIsStarted;
 
-    private FooDataConnectionCallbacks mCallbacks;
+    private FooDataConnectionListenerCallbacks mCallbacks;
 
     public FooDataConnectionListener(@NonNull Context context)
     {
@@ -292,9 +292,15 @@ public class FooDataConnectionListener
             ssid = wifiInfo.getSSID();
         }
         mDataConnectionInfo = new FooDataConnectionInfo(activeNetworkInfo, ssid);
-        FooLog.v(TAG, "FooDeviceConnectionListener: mDataConnectionInfo=" + mDataConnectionInfo);
+        FooLog.v(TAG, "FooDataConnectionListener: mDataConnectionInfo=" + mDataConnectionInfo);
 
         mNetworkReceiver = new NetworkConnectivityReceiver();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "{ mDataConnectionInfo=" + mDataConnectionInfo + " }";
     }
 
     public boolean isStarted()
@@ -325,31 +331,34 @@ public class FooDataConnectionListener
         }
     }
 
-    public void start(FooDataConnectionCallbacks callbacks)
+    public void start(@NonNull FooDataConnectionListenerCallbacks callbacks)
     {
         FooLog.v(TAG, "+start(...)");
+        FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         synchronized (mSyncLock)
         {
+            if (mIsStarted)
+            {
+                return;
+            }
+
+            mIsStarted = true;
+
             mCallbacks = callbacks;
 
-            if (!mIsStarted)
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            mContext.registerReceiver(mNetworkReceiver, filter);
+
+            NetworkInfo activeNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
+            String ssid = null;
+            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+            if (wifiInfo != null)
             {
-                IntentFilter filter = new IntentFilter();
-                filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-                filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                mContext.registerReceiver(mNetworkReceiver, filter);
-
-                NetworkInfo activeNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
-                String ssid = null;
-                WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
-                if (wifiInfo != null)
-                {
-                    ssid = wifiInfo.getSSID();
-                }
-                mDataConnectionInfo.update(activeNetworkInfo, ssid);
-
-                mIsStarted = true;
+                ssid = wifiInfo.getSSID();
             }
+            mDataConnectionInfo.update(activeNetworkInfo, ssid);
         }
         FooLog.v(TAG, "-start(...)");
     }
@@ -359,13 +368,14 @@ public class FooDataConnectionListener
         FooLog.v(TAG, "+stop()");
         synchronized (mSyncLock)
         {
-            mCallbacks = null;
-
-            if (mIsStarted)
+            if (!mIsStarted)
             {
-                mContext.unregisterReceiver(mNetworkReceiver);
-                mIsStarted = false;
+                return;
             }
+
+            mIsStarted = false;
+
+            mContext.unregisterReceiver(mNetworkReceiver);
         }
         FooLog.v(TAG, "-stop()");
     }
@@ -376,8 +386,7 @@ public class FooDataConnectionListener
         private final String TAG = FooLog.TAG(NetworkConnectivityReceiver.class);
 
         /**
-         * Necessarily complex due to issues discussed in:<br>
-         * <a href="http://stackoverflow.com/questions/5276032/connectivity-action-intent-recieved-twice-when-wifi-connected">http://stackoverflow.com/questions/5276032/connectivity-action-intent-recieved-twice-when-wifi-connected</a>
+         * Necessarily complex due to issues discussed in: http://stackoverflow.com/q/5276032/252308
          */
         public void onReceive(Context context, Intent intent)
         {
@@ -491,60 +500,44 @@ public class FooDataConnectionListener
                 FooLog.v(TAG, "onReceive: networkInfo=" + networkInfo);
                 FooLog.v(TAG, "onReceive: networkType=" + networkTypeName + '(' + networkType + ')');
                 FooLog.v(TAG, "onReceive: ssid=" + ssid);
-                FooLog.d(TAG, "onReceive: isConnected=" + isConnected);
-                FooLog.d(TAG, "onReceive: isDisconnected=" + isDisconnected);
+                FooLog.v(TAG, "onReceive: isConnected=" + isConnected);
+                FooLog.v(TAG, "onReceive: isDisconnected=" + isDisconnected);
                 FooLog.v(TAG, "onReceive: isConnectedOrConnecting=" + isConnectedOrConnecting);
                 FooLog.v(TAG, "onReceive: isRoaming=" + isRoaming);
             }
 
-            FooDataConnectionCallbacks callbacks = mCallbacks;
-            if (callbacks != null)
-            {
-                //
-                // NOTE: There should only be 3 possibilities: Disconnected, Connecting, or Connected
-                //
+            //
+            // NOTE: There should only be 3 possibilities: Disconnected, Connecting, or Connected
+            //
 
-                if (isConnected)
+            if (isConnected)
+            {
+                onDataConnected(networkInfo, ssid);
+            }
+            else if (isDisconnected && !isConnectedOrConnecting)
+            {
+                // NOTE: We don't have any use for notifying Disconnected while Connect*ING*
+                onDataDisconnected(networkInfo, ssid);
+            }
+            else
+            {
+                if (VERBOSE_LOG)
                 {
-                    onDataConnected(networkInfo, ssid);
-                }
-                else if (isDisconnected && !isConnectedOrConnecting)
-                {
-                    // NOTE: We don't have any use for notifying Disconnected while Connect*ING*
-                    onDataDisconnected(networkInfo, ssid);
-                }
-                else
-                {
-                    if (VERBOSE_LOG)
-                    {
-                        FooLog.v(TAG, "isConnectedOrConnecting: ignoring");
-                    }
+                    FooLog.v(TAG, "isConnectedOrConnecting: ignoring");
                 }
             }
         }
-    }
-
-    @Override
-    public void onCellularDataConnected(int networkType)
-    {
-        FooLog.d(TAG, "onCellularDataConnected(" + FooCellularStateListener.networkTypeToString(networkType) + ')');
-    }
-
-    @Override
-    public void onCellularDataDisconnected(int networkType)
-    {
-        FooLog.d(TAG, "onCellularDataDisconnected(" + FooCellularStateListener.networkTypeToString(networkType) + ')');
     }
 
     /**
      * @param networkInfo networkInfo
      * @param ssid        ssid
      */
-    public void onDataConnected(NetworkInfo networkInfo, String ssid)
+    private void onDataConnected(NetworkInfo networkInfo, String ssid)
     {
         if (VERBOSE_LOG)
         {
-            FooLog.d(TAG, "onDataConnected(" + networkInfo + ", " + FooString.quote(ssid) + ')');
+            FooLog.v(TAG, "onDataConnected(" + networkInfo + ", " + FooString.quote(ssid) + ')');
         }
 
         int networkType = FooDataConnectionInfo.TYPE_NONE;
@@ -588,13 +581,14 @@ public class FooDataConnectionListener
                     {
                         if (VERBOSE_LOG)
                         {
-                            FooLog.d(TAG, "onDataConnected: Same network Type, SSID == null, already connected; ignoring");
+                            FooLog.v(TAG,
+                                    "onDataConnected: Same network Type, SSID == null, already connected; ignoring");
                         }
                         notify = false;
                     }
                     else
                     {
-                        FooLog.i(TAG,
+                        FooLog.d(TAG,
                                 "onDataConnected: Same network Type, SSID == null, not already connected; notifying callbacks");
                         notify = true;
                     }
@@ -605,13 +599,15 @@ public class FooDataConnectionListener
                     {
                         if (VERBOSE_LOG)
                         {
-                            FooLog.d(TAG, "onDataConnected: Same network Type/SSID, already connected; ignoring");
+                            FooLog.v(TAG,
+                                    "onDataConnected: Same network Type/SSID, already connected; ignoring");
                         }
                         notify = false;
                     }
                     else
                     {
-                        FooLog.i(TAG, "onDataConnected: Same network Type/SSID, not already connected; notifying callbacks");
+                        FooLog.d(TAG,
+                                "onDataConnected: Same network Type/SSID, not already connected; notifying callbacks");
                         notify = true;
                     }
                 }
@@ -619,14 +615,16 @@ public class FooDataConnectionListener
                 {
                     if (VERBOSE_LOG)
                     {
-                        FooLog.i(TAG, "onDataConnected: Same network Type, unconnected SSID=" +
-                                      FooString.quote(FooDataConnectionInfo.SSID_NOT_CONNECTED) + "; ignoring");
+                        FooLog.v(TAG,
+                                "onDataConnected: Same network Type, unconnected SSID=" +
+                                FooString.quote(FooDataConnectionInfo.SSID_NOT_CONNECTED) + "; ignoring");
                     }
                     notify = false;
                 }
                 else
                 {
-                    FooLog.i(TAG, "onDataConnected: Same network Type, different SSID; notifying callbacks");
+                    FooLog.d(TAG,
+                            "onDataConnected: Same network Type, different SSID; notifying callbacks");
                     notify = true;
                 }
             }
@@ -642,27 +640,30 @@ public class FooDataConnectionListener
                     {
                         if (VERBOSE_LOG)
                         {
-                            FooLog.d(TAG, "onDataConnected: Same network Type/Subtype, already connected; ignoring");
+                            FooLog.v(TAG,
+                                    "onDataConnected: Same network Type/Subtype, already connected; ignoring");
                         }
                         notify = false;
                     }
                     else
                     {
-                        FooLog.i(TAG,
+                        FooLog.d(TAG,
                                 "onDataConnected: Same network Type/Subtype, not already connected; notifying callbacks");
                         notify = true;
                     }
                 }
                 else
                 {
-                    FooLog.i(TAG, "onDataConnected: Same network Type, different Subtype; notifying callbacks");
+                    FooLog.d(TAG,
+                            "onDataConnected: Same network Type, different Subtype; notifying callbacks");
                     notify = true;
                 }
             }
         }
         else
         {
-            FooLog.i(TAG, "onDataConnected: Different network Type; notifying callbacks");
+            FooLog.d(TAG,
+                    "onDataConnected: Different network Type; notifying callbacks");
             notify = true;
         }
 
@@ -670,11 +671,7 @@ public class FooDataConnectionListener
         {
             mDataConnectionInfo.update(networkInfo, ssid);
 
-            FooDataConnectionCallbacks callbacks = mCallbacks;
-            if (callbacks != null)
-            {
-                callbacks.onDataConnected(mDataConnectionInfo);
-            }
+            mCallbacks.onDataConnected(mDataConnectionInfo);
         }
     }
 
@@ -685,18 +682,17 @@ public class FooDataConnectionListener
      * <li>If connected over cellular and cellular disconnects, notify.</li>
      * <li>If connected over wifi and cellular disconnects, ignore.</li>
      * <li>If connected over cellular and wifi disconnects, ignore (not actually possible, but event ordering could
-     * make
-     * it look this way).</li>
+     * make it look this way).</li>
      * </ul>
      *
      * @param networkInfo networkInfo
      * @param ssid        ssid
      */
-    public void onDataDisconnected(NetworkInfo networkInfo, String ssid)
+    private void onDataDisconnected(NetworkInfo networkInfo, String ssid)
     {
         if (VERBOSE_LOG)
         {
-            FooLog.d(TAG, "onDataDisconnected(" + networkInfo + ", " + FooString.quote(ssid) + ')');
+            FooLog.v(TAG, "onDataDisconnected(" + networkInfo + ", " + FooString.quote(ssid) + ')');
         }
 
         //
@@ -710,7 +706,7 @@ public class FooDataConnectionListener
         {
             if (mDataConnectionInfo.isConnected())
             {
-                FooLog.i(TAG,
+                FooLog.d(TAG,
                         "onDataDisconnected: networkInfo == null (AIRPLANE MODE?), not already disconnected; notifying callbacks");
                 notify = true;
             }
@@ -718,7 +714,8 @@ public class FooDataConnectionListener
             {
                 if (VERBOSE_LOG)
                 {
-                    FooLog.d(TAG, "onDataDisconnected: networkInfo == null (AIRPLANE MODE?), already disconnected; ignoring");
+                    FooLog.v(TAG,
+                            "onDataDisconnected: networkInfo == null (AIRPLANE MODE?), already disconnected; ignoring");
                 }
                 notify = false;
             }
@@ -749,7 +746,7 @@ public class FooDataConnectionListener
                     {
                         if (mDataConnectionInfo.isConnected())
                         {
-                            FooLog.i(TAG,
+                            FooLog.d(TAG,
                                     "onDataDisconnected: networkType == WIFI, SSID == null, not already disconnected; notifying callbacks");
                             notify = true;
                         }
@@ -757,7 +754,7 @@ public class FooDataConnectionListener
                         {
                             if (VERBOSE_LOG)
                             {
-                                FooLog.d(TAG,
+                                FooLog.v(TAG,
                                         "onDataDisconnected: networkType == WIFI, SSID == null, already disconnected; ignoring");
                             }
                             notify = false;
@@ -775,7 +772,7 @@ public class FooDataConnectionListener
                         {
                             if (VERBOSE_LOG)
                             {
-                                FooLog.d(TAG,
+                                FooLog.v(TAG,
                                         "onDataDisconnected: networkType == WIFI, same SSID, already disconnected; ignoring");
                             }
                             notify = false;
@@ -785,7 +782,8 @@ public class FooDataConnectionListener
                     {
                         if (VERBOSE_LOG)
                         {
-                            FooLog.i(TAG, "onDataDisconnected: networkType == WIFI, different SSID; ignoring");
+                            FooLog.v(TAG,
+                                    "onDataDisconnected: networkType == WIFI, different SSID; ignoring");
                         }
                         notify = false;
                     }
@@ -800,7 +798,7 @@ public class FooDataConnectionListener
                     {
                         if (mDataConnectionInfo.isConnected())
                         {
-                            FooLog.i(TAG,
+                            FooLog.d(TAG,
                                     "onDataDisconnected: Same network Type/Subtype, not already disconnected; notifying callbacks");
                             notify = true;
                         }
@@ -808,7 +806,8 @@ public class FooDataConnectionListener
                         {
                             if (VERBOSE_LOG)
                             {
-                                FooLog.d(TAG, "onDataDisconnected: Same network Type/Subtype, already disconnected; ignoring");
+                                FooLog.v(TAG,
+                                        "onDataDisconnected: Same network Type/Subtype, already disconnected; ignoring");
                             }
                             notify = false;
                         }
@@ -817,7 +816,8 @@ public class FooDataConnectionListener
                     {
                         if (VERBOSE_LOG)
                         {
-                            FooLog.d(TAG, "onDataDisconnected: Same network Type, different Subtype; ignoring");
+                            FooLog.v(TAG,
+                                    "onDataDisconnected: Same network Type, different Subtype; ignoring");
                         }
                         notify = false;
                     }
@@ -827,7 +827,8 @@ public class FooDataConnectionListener
             {
                 if (VERBOSE_LOG)
                 {
-                    FooLog.d(TAG, "onDataDisconnected: Different network Type; ignoring");
+                    FooLog.v(TAG,
+                            "onDataDisconnected: Different network Type; ignoring");
                 }
                 notify = false;
             }
@@ -837,11 +838,7 @@ public class FooDataConnectionListener
         {
             mDataConnectionInfo.setConnected(false);
 
-            FooDataConnectionCallbacks callbacks = mCallbacks;
-            if (callbacks != null)
-            {
-                callbacks.onDataDisconnected(mDataConnectionInfo);
-            }
+            mCallbacks.onDataDisconnected(mDataConnectionInfo);
         }
     }
 }

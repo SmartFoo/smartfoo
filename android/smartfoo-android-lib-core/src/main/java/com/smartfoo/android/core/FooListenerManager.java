@@ -1,5 +1,7 @@
 package com.smartfoo.android.core;
 
+import com.smartfoo.android.core.logging.FooLog;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -7,6 +9,9 @@ import java.util.Set;
 
 public class FooListenerManager<T>
 {
+    private static final String TAG = FooLog.TAG(FooListenerManager.class);
+
+    private final String mName;
     private final Set<T> mListeners;
     private final Set<T> mListenersToAdd;
     private final Set<T> mListenersToRemove;
@@ -15,9 +20,20 @@ public class FooListenerManager<T>
 
     public FooListenerManager()
     {
+        this(null);
+    }
+
+    public FooListenerManager(String name)
+    {
+        mName = name != null ? name.trim() : null;
         mListeners = new LinkedHashSet<>();
         mListenersToAdd = new LinkedHashSet<>();
         mListenersToRemove = new LinkedHashSet<>();
+    }
+
+    private String getLogPrefix()
+    {
+        return mName != null ? (mName + ' ') : "";
     }
 
     public int size()

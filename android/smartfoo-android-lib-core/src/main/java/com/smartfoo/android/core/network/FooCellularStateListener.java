@@ -7,6 +7,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 import com.smartfoo.android.core.FooRun;
+import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 
 public class FooCellularStateListener
@@ -21,21 +22,19 @@ public class FooCellularStateListener
         void onCellularOnHook();
     }
 
-    public interface FooCellularDataStateCallbacks
+    public interface FooCellularDataConnectionCallbacks
     {
         /**
-         * @param networkType See {@link TelephonyManager#getNetworkType()}<br>NOTE that these are different from
-         *                    {@link
-         *                    NetworkInfo#getType()}
+         * @param dataNetworkType See {@link TelephonyManager#getDataNetworkType()}<br>
+         *                        NOTE that these are different from {@link NetworkInfo#getType()}
          */
-        void onCellularDataConnected(int networkType);
+        void onCellularDataConnected(int dataNetworkType);
 
         /**
-         * @param networkType See {@link TelephonyManager#getNetworkType()}<br>NOTE that these are different from
-         *                    {@link
-         *                    NetworkInfo#getType()}
+         * @param dataNetworkType See {@link TelephonyManager#getDataNetworkType()}<br>
+         *                        NOTE that these are different from {@link NetworkInfo#getType()}
          */
-        void onCellularDataDisconnected(int networkType);
+        void onCellularDataDisconnected(int dataNetworkType);
     }
 
     private final Object mSyncLock = new Object();
@@ -44,8 +43,10 @@ public class FooCellularStateListener
 
     private boolean mIsStarted;
 
-    private FooCellularHookStateCallbacks mCallbacksHookState;
-    private FooCellularDataStateCallbacks mCallbacksDataState;
+    private HookState mHookState = HookState.Unknown;
+
+    private FooCellularHookStateCallbacks      mCallbacksHookState;
+    private FooCellularDataConnectionCallbacks mCallbacksDataConnection;
 
     public FooCellularStateListener(@NonNull Context context)
     {
@@ -61,21 +62,44 @@ public class FooCellularStateListener
         }
     }
 
-    public void start(FooCellularHookStateCallbacks callbacksHookState, FooCellularDataStateCallbacks callbacksDataState)
+    public void start(FooCellularHookStateCallbacks callbacksHookState,
+                      FooCellularDataConnectionCallbacks callbacksDataConnection)
     {
         FooLog.i(TAG, "+start(...)");
         synchronized (mSyncLock)
         {
-            mCallbacksHookState = callbacksHookState;
-            mCallbacksDataState = callbacksDataState;
+            int events = PhoneStateListener.LISTEN_NONE;
 
-            if (!mIsStarted)
+            if (callbacksHookState != null)
             {
-                mTelephonyManager.listen(this, PhoneStateListener.LISTEN_CALL_STATE //
-                                               | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
-
-                mIsStarted = true;
+                events |= PhoneStateListener.LISTEN_CALL_STATE;
             }
+
+            if (callbacksDataConnection != null)
+            {
+                events |= PhoneStateListener.LISTEN_DATA_CONNECTION_STATE;
+            }
+
+            if (events == PhoneStateListener.LISTEN_NONE)
+            {
+                return;
+            }
+
+            if (mIsStarted)
+            {
+                return;
+            }
+
+            mIsStarted = true;
+
+            mCallbacksHookState = callbacksHookState;
+            mCallbacksDataConnection = callbacksDataConnection;
+
+            mHookState = HookState.Unknown;
+            int callState = getCallState();
+            updateHookState(callState);
+
+            mTelephonyManager.listen(this, events);
         }
         FooLog.i(TAG, "-start(...)");
     }
@@ -85,82 +109,160 @@ public class FooCellularStateListener
         FooLog.i(TAG, "+stop()");
         synchronized (mSyncLock)
         {
-            mCallbacksHookState = null;
-            mCallbacksDataState = null;
-
-            if (mIsStarted)
+            if (!mIsStarted)
             {
-                mTelephonyManager.listen(this, PhoneStateListener.LISTEN_NONE);
-                mIsStarted = false;
+                return;
             }
+
+            mIsStarted = false;
+
+            mTelephonyManager.listen(this, PhoneStateListener.LISTEN_NONE);
+
+            mHookState = HookState.Unknown;
         }
         FooLog.i(TAG, "-stop()");
     }
 
+    public enum HookState
+    {
+        /**
+         * This should only occur in the rare moment that {@link TelephonyManager#getCallState()} returns {@link
+         * TelephonyManager#CALL_STATE_RINGING} when {@link #start(FooCellularHookStateCallbacks,
+         * FooCellularDataConnectionCallbacks)} is called. The HookState will become known when {@link
+         * TelephonyManager#CALL_STATE_RINGING} inevitably stops ringing.
+         * <p>
+         * TL;DR: The javadoc for {@link TelephonyManager#CALL_STATE_OFFHOOK} says "Device call state: Off-hook. At
+         * least one call exists that is dialing, active, or on hold, AND NO CALLS ARE RINGING OR WAITING." (emphasis
+         * mine). This means that the Android API makes it impossible to determine if the phone is OffHook/In-A-Call
+         * when {@link TelephonyManager#getCallState()} returns {@link TelephonyManager#CALL_STATE_RINGING}.
+         */
+        Unknown,
+        OnHook,
+        OffHook
+    }
+
     public boolean isOnHook()
     {
-        return mTelephonyManager.getCallState() != TelephonyManager.CALL_STATE_OFFHOOK;
+        return getHookState() == HookState.OnHook;
+    }
+
+    public boolean isOffHook()
+    {
+        return getHookState() == HookState.OffHook;
+    }
+
+    /**
+     * If started, then {@link HookState#OnHook}, {@link HookState#OffHook}, or {@link HookState#Unknown} in the rare
+     * case that an incoming phone call is ringing when {@link #start(FooCellularHookStateCallbacks,
+     * FooCellularDataConnectionCallbacks)} is called.
+     * <p>
+     * If not started, then will return a false {@link HookState#OnHook} if the phone is offhook and an incoming phone
+     * call is ringing.
+     *
+     * @return {@link HookState}
+     */
+    public HookState getHookState()
+    {
+        if (mIsStarted)
+        {
+            return mHookState;
+        }
+
+        switch (getCallState())
+        {
+            case TelephonyManager.CALL_STATE_OFFHOOK:
+                return HookState.OffHook;
+            default:
+                return HookState.OnHook;
+        }
+    }
+
+    /**
+     * @param callState See {@link TelephonyManager#getCallState()}
+     * @return true if mHookState changed, otherwise false
+     */
+    private boolean updateHookState(int callState)
+    {
+        HookState hookState;
+
+        switch (callState)
+        {
+            case TelephonyManager.CALL_STATE_IDLE:
+                hookState = HookState.OnHook;
+                break;
+            case TelephonyManager.CALL_STATE_RINGING:
+                return false;
+            case TelephonyManager.CALL_STATE_OFFHOOK:
+                hookState = HookState.OffHook;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown callState == " + getCallStateName(callState));
+        }
+
+        if (mHookState == hookState)
+        {
+            return false;
+        }
+
+        mHookState = hookState;
+
+        return true;
     }
 
     @Override
-    public void onCallStateChanged(int state, String incomingNumber)
+    public void onCallStateChanged(int callState, String incomingNumber)
     {
-        super.onCallStateChanged(state, incomingNumber);
+        FooLog.i(TAG, "onCallStateChanged(callState=" + getCallStateName(callState)
+                      + ", incomingNumber=" + FooString.quote(incomingNumber) + ')');
 
-        FooCellularHookStateCallbacks callbacks = mCallbacksHookState;
-        if (callbacks != null)
+        if (!updateHookState(callState))
         {
-            switch (state)
-            {
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                    callbacks.onCellularOffHook();
-                    break;
-                case TelephonyManager.CALL_STATE_RINGING:
-                    // ignore
-                    break;
-                case TelephonyManager.CALL_STATE_IDLE:
-                    callbacks.onCellularOnHook();
-                    break;
-                default:
-                    FooLog.w(TAG, "onCallStateChanged: Unhandled call state=" + callStateToString(state));
-                    break;
-            }
+            return;
+        }
+
+        switch (mHookState)
+        {
+            case OffHook:
+                mCallbacksHookState.onCellularOffHook();
+                break;
+            case OnHook:
+                mCallbacksHookState.onCellularOnHook();
+                break;
         }
     }
 
     @Override
-    public void onDataConnectionStateChanged(int dataConnectionState, int networkType)
+    public void onDataConnectionStateChanged(int dataConnectionState, int dataNetworkType)
     {
-        super.onDataConnectionStateChanged(dataConnectionState, networkType);
-
         FooLog.w(TAG, "onDataConnectionStateChanged: dataConnectionState="
-                      + dataConnectionStateToString(dataConnectionState));
-        FooLog.w(TAG, "onDataConnectionStateChanged: networkType=" + networkTypeToString(networkType));
+                      + getDataConnectionStateName(dataConnectionState));
+        FooLog.w(TAG, "onDataConnectionStateChanged: dataNetworkType="
+                      + getDataNetworkTypeName(dataNetworkType));
 
-        FooCellularDataStateCallbacks callbacks = mCallbacksDataState;
-        if (callbacks != null)
+        switch (dataConnectionState)
         {
-            switch (dataConnectionState)
-            {
-                case TelephonyManager.DATA_DISCONNECTED:
-                case TelephonyManager.DATA_SUSPENDED:
-                    callbacks.onCellularDataDisconnected(networkType);
-                    break;
-                case TelephonyManager.DATA_CONNECTED:
-                    callbacks.onCellularDataConnected(networkType);
-                    break;
-                case TelephonyManager.DATA_CONNECTING:
-                    // ignore
-                    break;
-                default:
-                    FooLog.w(TAG, "onDataConnectionStateChanged: Unhandled dataConnectionState="
-                                  + dataConnectionStateToString(dataConnectionState));
-                    break;
-            }
+            case TelephonyManager.DATA_DISCONNECTED:
+            case TelephonyManager.DATA_SUSPENDED:
+                mCallbacksDataConnection.onCellularDataDisconnected(dataNetworkType);
+                break;
+            case TelephonyManager.DATA_CONNECTED:
+                mCallbacksDataConnection.onCellularDataConnected(dataNetworkType);
+                break;
+            case TelephonyManager.DATA_CONNECTING:
+                // ignore
+                break;
+            default:
+                FooLog.w(TAG, "onDataConnectionStateChanged: Unhandled dataConnectionState="
+                              + getDataConnectionStateName(dataConnectionState));
+                break;
         }
     }
 
-    public static String callStateToString(int callState)
+    /**
+     * @param callState See {@link TelephonyManager#getCallState()}
+     * @return
+     */
+    public static String getCallStateName(int callState)
     {
         switch (callState)
         {
@@ -175,7 +277,11 @@ public class FooCellularStateListener
         }
     }
 
-    public static String dataConnectionStateToString(int dataConnectionState)
+    /**
+     * @param dataConnectionState See {@link TelephonyManager#getDataState()}
+     * @return
+     */
+    public static String getDataConnectionStateName(int dataConnectionState)
     {
         switch (dataConnectionState)
         {
@@ -193,46 +299,130 @@ public class FooCellularStateListener
     }
 
     /**
-     * @param networkType See {@link TelephonyManager#getNetworkType()}
+     * Unknown network class.
+     */
+    public static final int NETWORK_CLASS_UNKNOWN = 0;
+    /**
+     * Class of broadly defined "2G" networks.
+     */
+    public static final int NETWORK_CLASS_2_G     = 1;
+    /**
+     * Class of broadly defined "3G" networks.
+     */
+    public static final int NETWORK_CLASS_3_G     = 2;
+    /**
+     * Class of broadly defined "4G" networks.
+     */
+    public static final int NETWORK_CLASS_4_G     = 3;
+
+    public static final int NETWORK_TYPE_LTE_CA = 19;
+
+    /**
+     * @param dataNetworkType See {@link TelephonyManager#getDataNetworkType()}
+     * @return NETWORK_CLASS_*
+     */
+    public static int getDataNetworkTypeClass(int dataNetworkType)
+    {
+        switch (dataNetworkType)
+        {
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+            case TelephonyManager.NETWORK_TYPE_GSM:
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+            case TelephonyManager.NETWORK_TYPE_IDEN:
+                return NETWORK_CLASS_2_G;
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+            case TelephonyManager.NETWORK_TYPE_EVDO_0:
+            case TelephonyManager.NETWORK_TYPE_EVDO_A:
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+            case TelephonyManager.NETWORK_TYPE_EVDO_B:
+            case TelephonyManager.NETWORK_TYPE_EHRPD:
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                return NETWORK_CLASS_3_G;
+            case TelephonyManager.NETWORK_TYPE_LTE:
+            case TelephonyManager.NETWORK_TYPE_IWLAN:
+            case NETWORK_TYPE_LTE_CA:
+                return NETWORK_CLASS_4_G;
+            default:
+                return NETWORK_CLASS_UNKNOWN;
+        }
+    }
+
+    /**
+     * @param dataNetworkType See {@link TelephonyManager#getDataNetworkType()}
      * @return never null
      */
-    public static String networkTypeToString(int networkType)
+    public static String getDataNetworkTypeName(int dataNetworkType)
     {
-        switch (networkType)
+        String name;
+        switch (dataNetworkType)
         {
-            case TelephonyManager.NETWORK_TYPE_1xRTT:
-                return "NETWORK_TYPE_1xRTT(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-                return "NETWORK_TYPE_CDMA(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-                return "NETWORK_TYPE_EDGE(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_EHRPD:
-                return "NETWORK_TYPE_EHRPD(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                return "NETWORK_TYPE_EVDO_0(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                return "NETWORK_TYPE_EVDO_A(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                return "NETWORK_TYPE_EVDO_B(" + networkType + ")";
             case TelephonyManager.NETWORK_TYPE_GPRS:
-                return "NETWORK_TYPE_GPRS(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-                return "NETWORK_TYPE_HSDPA(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_HSPA:
-                return "NETWORK_TYPE_HSPA(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_HSPAP:
-                return "NETWORK_TYPE_HSPAP(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_HSUPA:
-                return "NETWORK_TYPE_HSUPA(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_IDEN:
-                return "NETWORK_TYPE_IDEN(" + networkType + ")";
-            case TelephonyManager.NETWORK_TYPE_LTE:
-                return "NETWORK_TYPE_LTE(" + networkType + ")";
+                name = "NETWORK_TYPE_GPRS";
+                break;
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+                name = "NETWORK_TYPE_EDGE";
+                break;
             case TelephonyManager.NETWORK_TYPE_UMTS:
-                return "NETWORK_TYPE_UMTS(" + networkType + ")";
+                name = "NETWORK_TYPE_UMTS";
+                break;
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+                name = "NETWORK_TYPE_CDMA";
+                break;
+            case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                name = "NETWORK_TYPE_EVDO_0";
+                break;
+            case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                name = "NETWORK_TYPE_EVDO_A";
+                break;
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+                name = "NETWORK_TYPE_1xRTT";
+                break;
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+                name = "NETWORK_TYPE_HSDPA";
+                break;
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+                name = "NETWORK_TYPE_HSUPA";
+                break;
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+                name = "NETWORK_TYPE_HSPA";
+                break;
+            case TelephonyManager.NETWORK_TYPE_IDEN:
+                name = "NETWORK_TYPE_IDEN";
+                break;
+            case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                name = "NETWORK_TYPE_EVDO_B";
+                break;
+            case TelephonyManager.NETWORK_TYPE_LTE:
+                name = "NETWORK_TYPE_LTE";
+                break;
+            case TelephonyManager.NETWORK_TYPE_EHRPD:
+                name = "NETWORK_TYPE_EHRPD";
+                break;
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+                name = "NETWORK_TYPE_HSPAP";
+                break;
+            case TelephonyManager.NETWORK_TYPE_GSM:
+                name = "NETWORK_TYPE_GSM";
+                break;
+            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                name = "NETWORK_TYPE_TD_SCDMA";
+                break;
+            case TelephonyManager.NETWORK_TYPE_IWLAN:
+                name = "NETWORK_TYPE_IWLAN";
+                break;
+            case NETWORK_TYPE_LTE_CA:
+                name = "NETWORK_TYPE_LTE_CA";
+                break;
             case TelephonyManager.NETWORK_TYPE_UNKNOWN:
             default:
-                return "NETWORK_TYPE_UNKNOWN(" + networkType + ")";
+                name = "NETWORK_TYPE_UNKNOWN";
+                break;
         }
+        return name + '(' + dataNetworkType + ')';
     }
 }

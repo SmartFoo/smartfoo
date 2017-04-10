@@ -13,7 +13,12 @@ public class FooBoolean
 
     public static boolean toBoolean(Boolean value, boolean defaultValue)
     {
-        return value != null ? value : defaultValue;
+        if (value == null)
+        {
+            return defaultValue;
+        }
+
+        return value;
     }
 
     public static byte toByte(Boolean value)
@@ -26,21 +31,31 @@ public class FooBoolean
         return (byte) (value ? 1 : 0);
     }
 
-    public static boolean toBoolean(int value)
+    public static boolean toBoolean(Number value)
     {
-        return value != 0;
+        return toBoolean(value, false);
     }
 
-    public static boolean toBoolean(String value)
+    public static boolean toBoolean(Number value, boolean defaultValue)
     {
         if (value == null)
         {
-            return false;
+            return defaultValue;
+        }
+
+        return value.byteValue() != 0;
+    }
+
+    public static boolean toBoolean(String value, boolean defaultValue)
+    {
+        if (value == null)
+        {
+            return defaultValue;
         }
 
         try
         {
-            return toBoolean(Integer.parseInt(value));
+            return toBoolean(Long.parseLong(value));
         }
         catch (NumberFormatException e)
         {
@@ -77,7 +92,7 @@ public class FooBoolean
             return false;
         }
 
-        throw new IllegalArgumentException("value must be an integer string, \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\"");
+        throw new IllegalArgumentException("value must be an integer, \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\"");
     }
 
     public static String toString(boolean value)
