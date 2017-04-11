@@ -54,6 +54,11 @@ public class FooCellularStateListener
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
     }
 
+    private int getCallState()
+    {
+        return mTelephonyManager.getCallState();
+    }
+
     public boolean isStarted()
     {
         synchronized (mSyncLock)
