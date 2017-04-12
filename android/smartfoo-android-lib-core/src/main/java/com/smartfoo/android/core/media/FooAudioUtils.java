@@ -149,13 +149,13 @@ public class FooAudioUtils
     public static int getVolumePercentFromAbsolute(@NonNull AudioManager audioManager, int audioStreamType, int volume)
     {
         int volumeMax = audioManager.getStreamMaxVolume(audioStreamType);
-        return Math.round(volume / (volumeMax * 100f));
+        return Math.round(volume / (float) volumeMax * 100f);
     }
 
     public static int getVolumeAbsoluteFromPercent(@NonNull AudioManager audioManager, int audioStreamType, int volumePercent)
     {
         int volumeMax = audioManager.getStreamMaxVolume(audioStreamType);
-        return Math.round(volumeMax * (volumePercent / 100f));
+        return Math.round(volumeMax * volumePercent / 100f);
     }
 
     public static int getVolumeAbsolute(@NonNull AudioManager audioManager, int audioStreamType)
