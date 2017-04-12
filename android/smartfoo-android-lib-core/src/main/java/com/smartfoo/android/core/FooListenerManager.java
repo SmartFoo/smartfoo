@@ -40,12 +40,10 @@ public class FooListenerManager<T>
     {
         synchronized (mListeners)
         {
-            if (mIsTraversingListeners)
-            {
-                throw new IllegalStateException("must not call size() between beginTraversing() and endTraversing()");
-            }
-            updateListeners();
-            return mListeners.size();
+            Set<T> consolidated = new LinkedHashSet<>(mListeners);
+            consolidated.addAll(mListenersToAdd);
+            consolidated.removeAll(mListenersToRemove);
+            return consolidated.size();
         }
     }
 
@@ -70,6 +68,7 @@ public class FooListenerManager<T>
             else
             {
                 mListeners.add(listener);
+                updateListeners();
             }
         }
     }
@@ -90,6 +89,7 @@ public class FooListenerManager<T>
             else
             {
                 mListeners.remove(listener);
+                updateListeners();
             }
         }
     }
@@ -133,18 +133,24 @@ public class FooListenerManager<T>
     {
         synchronized (mListeners)
         {
-            for (Iterator<T> iterator = mListenersToAdd.iterator(); iterator.hasNext(); )
+            Iterator<T> it = mListenersToAdd.iterator();
+            while (it.hasNext())
             {
-                T listener = iterator.next();
-                iterator.remove();
-                mListeners.add(listener);
+                mListeners.add(it.next());
+                it.remove();
             }
-            for (Iterator<T> iterator = mListenersToRemove.iterator(); iterator.hasNext(); )
+            it = mListenersToRemove.iterator();
+            while (it.hasNext())
             {
-                T listener = iterator.next();
-                iterator.remove();
-                mListeners.remove(listener);
+                mListeners.remove(it.next());
+                it.remove();
             }
+
+            onListenersUpdated(mListeners.size());
         }
+    }
+
+    protected void onListenersUpdated(int listenersSize)
+    {
     }
 }

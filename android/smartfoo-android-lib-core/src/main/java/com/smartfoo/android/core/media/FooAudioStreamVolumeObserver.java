@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.media;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.media.AudioManager;
@@ -7,11 +8,17 @@ import android.os.Handler;
 import android.provider.Settings.System;
 import android.support.annotation.NonNull;
 
+import com.smartfoo.android.core.FooListenerAutoStartManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
+import com.smartfoo.android.core.FooRun;
+import com.smartfoo.android.core.collections.FooLongSparseArray;
+import com.smartfoo.android.core.platform.FooHandler;
+
 public class FooAudioStreamVolumeObserver
 {
     public interface OnAudioStreamVolumeChangedListener
     {
-        void onAudioStreamVolumeChanged(int audioStreamType, int volume);
+        void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent);
     }
 
     private static class AudioStreamVolumeContentObserver
@@ -41,48 +48,112 @@ public class FooAudioStreamVolumeObserver
         @Override
         public void onChange(boolean selfChange)
         {
-            int currentVolume = mAudioManager.getStreamVolume(mAudioStreamType);
+            int volume = mAudioManager.getStreamVolume(mAudioStreamType);
 
-            if (currentVolume != mLastVolume)
+            if (volume != mLastVolume)
             {
-                mLastVolume = currentVolume;
+                mLastVolume = volume;
 
-                mListener.onAudioStreamVolumeChanged(mAudioStreamType, currentVolume);
+                int volumeMax = mAudioManager.getStreamMaxVolume(mAudioStreamType);
+                int volumePercent = Math.round(volume / (float) volumeMax * 100f);
+
+                mListener.onAudioStreamVolumeChanged(mAudioStreamType, volume, volumeMax, volumePercent);
             }
         }
     }
 
-    private final Context mContext;
-
-    private AudioStreamVolumeContentObserver mAudioStreamVolumeContentObserver;
+    private final AudioManager                                                                        mAudioManager;
+    private final ContentResolver                                                                     mContentResolver;
+    private final FooHandler                                                                          mHandler;
+    private final OnAudioStreamVolumeChangedListener                                                  mAudioStreamVolumeChangedListener;
+    private final FooLongSparseArray<AudioStreamVolumeContentObserver>                                mAudioStreamTypeToAudioStreamVolumeContentObservers;
+    private final FooLongSparseArray<FooListenerAutoStartManager<OnAudioStreamVolumeChangedListener>> mAudioStreamTypeToListenerManagers;
 
     public FooAudioStreamVolumeObserver(@NonNull Context context)
     {
-        mContext = context;
+        FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mContentResolver = context.getContentResolver();
+        mHandler = new FooHandler();
+        mAudioStreamVolumeChangedListener = new OnAudioStreamVolumeChangedListener()
+        {
+            @Override
+            public void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent)
+            {
+                FooAudioStreamVolumeObserver.this.onAudioStreamVolumeChanged(audioStreamType, volume, volumeMax, volumePercent);
+            }
+        };
+        mAudioStreamTypeToAudioStreamVolumeContentObservers = new FooLongSparseArray<>();
+        mAudioStreamTypeToListenerManagers = new FooLongSparseArray<>();
     }
 
-    public void start(int audioStreamType, @NonNull OnAudioStreamVolumeChangedListener listener)
+    public void attach(final int audioStreamType, @NonNull final OnAudioStreamVolumeChangedListener listener)
     {
-        stop();
+        FooRun.throwIllegalArgumentExceptionIfNull(listener, "listener");
+        FooListenerAutoStartManager<OnAudioStreamVolumeChangedListener> listenerManager = mAudioStreamTypeToListenerManagers
+                .get(audioStreamType);
+        if (listenerManager == null)
+        {
+            listenerManager = new FooListenerAutoStartManager<>();
+            listenerManager.attach(new FooListenerAutoStartManagerCallbacks()
+            {
+                @Override
+                public void onFirstAttach()
+                {
+                    AudioStreamVolumeContentObserver audioStreamVolumeContentObserver = mAudioStreamTypeToAudioStreamVolumeContentObservers
+                            .get(audioStreamType);
+                    if (audioStreamVolumeContentObserver == null)
+                    {
+                        audioStreamVolumeContentObserver = new AudioStreamVolumeContentObserver(mHandler, mAudioManager, audioStreamType, mAudioStreamVolumeChangedListener);
+                        mContentResolver.registerContentObserver(System.CONTENT_URI, true, audioStreamVolumeContentObserver);
+                        mAudioStreamTypeToAudioStreamVolumeContentObservers.put(audioStreamType, audioStreamVolumeContentObserver);
+                    }
+                }
 
-        Handler handler = new Handler();
-        AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+                @Override
+                public boolean onLastDetach()
+                {
+                    AudioStreamVolumeContentObserver audioStreamVolumeContentObserver = mAudioStreamTypeToAudioStreamVolumeContentObservers
+                            .remove(audioStreamType);
+                    if (audioStreamVolumeContentObserver != null)
+                    {
+                        mContentResolver.unregisterContentObserver(audioStreamVolumeContentObserver);
+                    }
 
-        mAudioStreamVolumeContentObserver = new AudioStreamVolumeContentObserver(handler, audioManager, audioStreamType, listener);
+                    mAudioStreamTypeToListenerManagers.remove(audioStreamType);
 
-        mContext.getContentResolver()
-                .registerContentObserver(System.CONTENT_URI, true, mAudioStreamVolumeContentObserver);
+                    return true;
+                }
+            });
+            mAudioStreamTypeToListenerManagers.put(audioStreamType, listenerManager);
+        }
+        listenerManager.attach(listener);
     }
 
-    public void stop()
+    public void detach(int audioStreamType, @NonNull OnAudioStreamVolumeChangedListener listener)
     {
-        if (mAudioStreamVolumeContentObserver == null)
+        FooRun.throwIllegalArgumentExceptionIfNull(listener, "listener");
+        FooListenerAutoStartManager<OnAudioStreamVolumeChangedListener> listenerManager = mAudioStreamTypeToListenerManagers
+                .get(audioStreamType);
+        if (listenerManager == null)
         {
             return;
         }
 
-        mContext.getContentResolver()
-                .unregisterContentObserver(mAudioStreamVolumeContentObserver);
-        mAudioStreamVolumeContentObserver = null;
+        listenerManager.detach(listener);
+    }
+
+    private void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent)
+    {
+        FooListenerAutoStartManager<OnAudioStreamVolumeChangedListener> listenerManager = mAudioStreamTypeToListenerManagers
+                .get(audioStreamType);
+        if (listenerManager != null)
+        {
+            for (OnAudioStreamVolumeChangedListener callbacks : listenerManager.beginTraversing())
+            {
+                callbacks.onAudioStreamVolumeChanged(audioStreamType, volume, volumeMax, volumePercent);
+            }
+            listenerManager.endTraversing();
+        }
     }
 }

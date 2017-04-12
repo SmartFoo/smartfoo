@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.logging.FooLog;
 
 public class FooAudioUtils
@@ -18,46 +19,74 @@ public class FooAudioUtils
     {
     }
 
+    public static int[] getAudioStreamTypes()
+    {
+        return new int[] {
+                AudioManager.STREAM_VOICE_CALL,
+                AudioManager.STREAM_SYSTEM,
+                AudioManager.STREAM_RING,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.STREAM_ALARM,
+                AudioManager.STREAM_NOTIFICATION
+        };
+    }
+
     public static String audioStreamTypeToString(int audioStreamType)
+    {
+        return audioStreamTypeToString(null, audioStreamType);
+    }
+
+    public static String audioStreamTypeToString(Context context, int audioStreamType)
     {
         String s;
         switch (audioStreamType)
         {
             case AudioManager.STREAM_VOICE_CALL:
-                s = "STREAM_VOICE_CALL";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_voice_call) : "STREAM_VOICE_CALL";
                 break;
             case AudioManager.STREAM_SYSTEM:
-                s = "STREAM_SYSTEM";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_system) : "STREAM_SYSTEM";
                 break;
             case AudioManager.STREAM_RING:
-                s = "STREAM_RING";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_ring) : "STREAM_RING";
                 break;
             case AudioManager.STREAM_MUSIC:
-                s = "STREAM_MUSIC";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_media) : "STREAM_MUSIC";
                 break;
             case AudioManager.STREAM_ALARM:
-                s = "STREAM_ALARM";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_alarm) : "STREAM_ALARM";
                 break;
             case AudioManager.STREAM_NOTIFICATION:
-                s = "STREAM_NOTIFICATION";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_notification) : "STREAM_NOTIFICATION";
                 break;
             case 6:
-                s = "STREAM_BLUETOOTH_SCO";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_bluetooth_sco) : "STREAM_BLUETOOTH_SCO";
                 break;
             case 7:
-                s = "STREAM_SYSTEM_ENFORCED";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_system_enforced) : "STREAM_SYSTEM_ENFORCED";
                 break;
             case AudioManager.STREAM_DTMF:
-                s = "STREAM_DTMF";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_dtmf) : "STREAM_DTMF";
                 break;
             case 9:
-                s = "STREAM_TTS";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_text_to_speech) : "STREAM_TTS";
                 break;
             default:
-                s = "UNKNOWN";
+                s = context != null ?
+                        context.getString(R.string.audio_stream_unknown) : "STREAM_UNKNOWN";
                 break;
         }
-        return s + '(' + audioStreamType + ')';
+        return context != null ? s : s + '(' + audioStreamType + ')';
     }
 
     public static String audioFocusToString(int audioFocus)
@@ -119,14 +148,14 @@ public class FooAudioUtils
 
     public static int getVolumePercentFromAbsolute(@NonNull AudioManager audioManager, int audioStreamType, int volume)
     {
-        float maxVolume = audioManager.getStreamMaxVolume(audioStreamType);
-        return Math.round(volume / maxVolume * 100f);
+        int volumeMax = audioManager.getStreamMaxVolume(audioStreamType);
+        return Math.round(volume / (volumeMax * 100f));
     }
 
-    public static int getVolumeAbsoluteFromPercent(@NonNull AudioManager audioManager, int audioStreamType, int percent)
+    public static int getVolumeAbsoluteFromPercent(@NonNull AudioManager audioManager, int audioStreamType, int volumePercent)
     {
-        int maxVolume = audioManager.getStreamMaxVolume(audioStreamType);
-        return Math.round(maxVolume * (percent / 100f));
+        int volumeMax = audioManager.getStreamMaxVolume(audioStreamType);
+        return Math.round(volumeMax * (volumePercent / 100f));
     }
 
     public static int getVolumeAbsolute(@NonNull AudioManager audioManager, int audioStreamType)
@@ -136,7 +165,7 @@ public class FooAudioUtils
 
     public static int getVolumePercent(@NonNull AudioManager audioManager, int audioStreamType)
     {
-        int volume = audioManager.getStreamVolume(audioStreamType);
+        int volume = getVolumeAbsolute(audioManager, audioStreamType);
         return getVolumePercentFromAbsolute(audioManager, audioStreamType, volume);
     }
 
