@@ -39,7 +39,7 @@ public class FooNotification
      * @param context       context
      * @param requestCode   requestCode
      * @param activityClass activityClass
-     * @return
+     * @return PendingIntent
      */
     @NonNull
     public static PendingIntent createPendingIntentForActivity(@NonNull Context context, int requestCode,
@@ -53,7 +53,7 @@ public class FooNotification
      * @param requestCode   requestCode
      * @param activityClass activityClass
      * @param extras        extras
-     * @return
+     * @return PendingIntent
      */
     @NonNull
     public static PendingIntent createPendingIntentForActivity(@NonNull Context context, int requestCode,
@@ -76,7 +76,7 @@ public class FooNotification
      * @param context        context
      * @param requestCode    requestCode
      * @param activityIntent activityIntent
-     * @return
+     * @return PendingIntent
      */
     @NonNull
     public static PendingIntent createPendingIntentForActivity(@NonNull Context context, int requestCode,

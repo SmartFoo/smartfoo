@@ -78,7 +78,7 @@ public class FooDataConnectionListener
         }
 
         /**
-         * See {@link NetworkInfo#getType()}
+         * @return See {@link NetworkInfo#getType()}
          */
         public int getType()
         {
@@ -86,7 +86,6 @@ public class FooDataConnectionListener
         }
 
         /**
-         * Depends on {@link #getType()}:
          * <ul>
          * <li>ConnectivityManager.TYPE_BLUETOOTH: see ?</li>
          * <li>ConnectivityManager.TYPE_ETHERNET: see ?</li>
@@ -98,6 +97,8 @@ public class FooDataConnectionListener
          * <li>ConnectivityManager.TYPE_WIFI: see ?</li>
          * <li>ConnectivityManager.TYPE_WIMAX: see ?</li>
          * </ul>
+         *
+         * @return Depends on {@link #getType()}
          */
         public int getSubtype()
         {

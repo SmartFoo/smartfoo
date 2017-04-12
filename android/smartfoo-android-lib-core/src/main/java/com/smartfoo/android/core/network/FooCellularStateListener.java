@@ -265,7 +265,7 @@ public class FooCellularStateListener
 
     /**
      * @param callState See {@link TelephonyManager#getCallState()}
-     * @return
+     * @return name of the callState
      */
     public static String getCallStateName(int callState)
     {
@@ -284,7 +284,7 @@ public class FooCellularStateListener
 
     /**
      * @param dataConnectionState See {@link TelephonyManager#getDataState()}
-     * @return
+     * @return name of the dataConnectionState
      */
     public static String getDataConnectionStateName(int dataConnectionState)
     {
