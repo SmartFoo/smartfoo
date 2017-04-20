@@ -33,7 +33,7 @@ public class FooWiredHeadsetConnectionListener
     public FooWiredHeadsetConnectionListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
         mWiredHeadsetBroadcastReceiver = new WiredHeadsetBroadcastReceiver(context);
     }
 

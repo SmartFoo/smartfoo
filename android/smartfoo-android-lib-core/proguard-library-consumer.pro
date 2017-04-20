@@ -19,6 +19,7 @@
 -dontwarn junit.**
 -dontwarn org.junit.**
 
-# Make crash call-stacks debuggable.
+# Make crash call-stacks debuggable
 #-keepnames class * { *; }
-#-keepattributes SourceFile,LineNumberTable
+-keepnames class com.smartfoo.** { <methods>; }
+-keepattributes SourceFile,LineNumberTable

@@ -1,6 +1,10 @@
 package com.smartfoo.android.core;
 
+import android.support.annotation.NonNull;
+
+import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -11,6 +15,9 @@ public class FooListenerManager<T>
 {
     private static final String TAG = FooLog.TAG(FooListenerManager.class);
 
+    @SuppressWarnings("PointlessBooleanExpression")
+    private static final boolean VERBOSE_LOG = false && BuildConfig.DEBUG;
+
     private final String mName;
     private final Set<T> mListeners;
     private final Set<T> mListenersToAdd;
@@ -18,33 +25,42 @@ public class FooListenerManager<T>
 
     private boolean mIsTraversingListeners;
 
-    public FooListenerManager()
+    public FooListenerManager(@NonNull Object name)
     {
-        this(null);
+        this(FooReflectionUtils.getShortClassName(name));
     }
 
-    public FooListenerManager(String name)
+    public FooListenerManager(@NonNullNonEmpty String name)
     {
-        mName = name != null ? name.trim() : null;
+        mName = FooString.quote(FooRun.toNonNullNonEmpty(name, "name").trim());
         mListeners = new LinkedHashSet<>();
         mListenersToAdd = new LinkedHashSet<>();
         mListenersToRemove = new LinkedHashSet<>();
     }
 
-    private String getLogPrefix()
+    @Override
+    public String toString()
     {
-        return mName != null ? (mName + ' ') : "";
+        return "{ mName=" + FooString.quote(mName) + ", size()=" + size() + " }";
     }
 
     public int size()
     {
+        int size;
         synchronized (mListeners)
         {
             Set<T> consolidated = new LinkedHashSet<>(mListeners);
             consolidated.addAll(mListenersToAdd);
             consolidated.removeAll(mListenersToRemove);
-            return consolidated.size();
+            size = consolidated.size();
         }
+        /*
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " size() == " + size);
+        }
+        */
+        return size;
     }
 
     public boolean isEmpty()
@@ -54,6 +70,11 @@ public class FooListenerManager<T>
 
     public void attach(T listener)
     {
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " attach(...)");
+        }
+
         if (listener == null)
         {
             return;
@@ -75,6 +96,11 @@ public class FooListenerManager<T>
 
     public void detach(T listener)
     {
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " detach(...)");
+        }
+
         if (listener == null)
         {
             return;
@@ -96,6 +122,10 @@ public class FooListenerManager<T>
 
     public void clear()
     {
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " clear()");
+        }
         synchronized (mListeners)
         {
             mListenersToAdd.clear();
@@ -113,6 +143,10 @@ public class FooListenerManager<T>
 
     public Set<T> beginTraversing()
     {
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " beginTraversing()");
+        }
         synchronized (mListeners)
         {
             mIsTraversingListeners = true;
@@ -122,6 +156,10 @@ public class FooListenerManager<T>
 
     public void endTraversing()
     {
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " endTraversing()");
+        }
         synchronized (mListeners)
         {
             updateListeners();
@@ -131,6 +169,10 @@ public class FooListenerManager<T>
 
     private void updateListeners()
     {
+        if (VERBOSE_LOG)
+        {
+            FooLog.v(TAG, mName + " updateListeners()");
+        }
         synchronized (mListeners)
         {
             Iterator<T> it = mListenersToAdd.iterator();

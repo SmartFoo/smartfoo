@@ -199,7 +199,7 @@ public class FooGattHandler
         mDeviceAddressLong = deviceAddress;
         mDeviceAddressString = FooGattUtils.deviceAddressLongToString(deviceAddress);
 
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
 
         mHandlerMain = new FooHandler(mGattManager.getLooper(), new Handler.Callback()
         {

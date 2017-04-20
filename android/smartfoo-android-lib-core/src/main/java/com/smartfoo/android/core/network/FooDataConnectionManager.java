@@ -52,7 +52,7 @@ public class FooDataConnectionManager
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
 
         //mPowerLock = new FooPowerLock(mContext);
         //mWifiLock = new FooWifiLock(mContext);

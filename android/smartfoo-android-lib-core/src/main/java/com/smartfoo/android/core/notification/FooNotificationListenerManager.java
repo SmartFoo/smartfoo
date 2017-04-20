@@ -28,10 +28,15 @@ public class FooNotificationListenerManager
 {
     private static final String TAG = FooLog.TAG(FooNotificationListenerManager.class);
 
-    public static final int NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS = 100;
+    /**
+     * This has been observed to take >500ms when unlocking after a fresh reboot.
+     * TODO:(pv) Consider making this two values, one before first unlock, one after first unlock
+     */
+    public static final int NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS = 750;
 
     /**
-     * Usually VERSION.SDK_INT, but may be used to force a specific OS Version # FOR TESTING!
+     * Usually {@link VERSION#SDK_INT VERSION.SDK_INT}, but may be used to force a specific OS Version # <b>FOR TESTING
+     * PURPOSES ONLY!</b>
      */
     private static final int VERSION_SDK_INT = VERSION.SDK_INT;
 
@@ -40,7 +45,12 @@ public class FooNotificationListenerManager
         return VERSION_SDK_INT >= 19;
     }
 
-    private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
+    /**
+     * Per hidden field {@link android.provider.Settings.Secure android.provider.Settings.Secure.ENABLED_NOTIFICATION_LISTENERS}
+     */
+    private static final String ENABLED_NOTIFICATION_LISTENERS = FooReflectionUtils.getFieldValueString(
+            android.provider.Settings.Secure.class,
+            "ENABLED_NOTIFICATION_LISTENERS");
 
     public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context)
     {
@@ -122,7 +132,7 @@ public class FooNotificationListenerManager
          */
         boolean onNotificationListenerConnected(@NonNull StatusBarNotification[] activeNotifications);
 
-        void onNotificationListenerNotConnected(@NonNull NotConnectedReason reason);
+        void onNotificationListenerNotConnected(@NonNull NotConnectedReason reason, long elapsedMillis);
 
         void onNotificationPosted(@NonNull StatusBarNotification sbn);
 
@@ -141,12 +151,11 @@ public class FooNotificationListenerManager
     private final FooHandler                                                  mHandler;
 
     private FooNotificationListener mNotificationListener;
-    private boolean                 mIsWaitingForNotificationListenerConnectedTimeout;
 
     private FooNotificationListenerManager()
     {
         mSyncLock = new Object();
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
         mHandler = new FooHandler();
     }
 
@@ -165,13 +174,13 @@ public class FooNotificationListenerManager
 
         if (isNotificationAccessSettingConfirmedNotEnabled(context))
         {
-            callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled);
+            callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled, 0);
         }
         else
         {
             if (mListenerManager.size() == 1)
             {
-                if (!mIsWaitingForNotificationListenerConnectedTimeout)
+                if (mNotificationListenerBindTimeoutStartMillis == -1)
                 {
                     notificationListenerConnectedTimeoutStart(NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS);
                 }
@@ -248,15 +257,25 @@ public class FooNotificationListenerManager
      */
     private void notificationListenerConnectedTimeoutStart(long timeoutMillis)
     {
-        mIsWaitingForNotificationListenerConnectedTimeout = true;
+        FooLog.v(TAG, "+notificationListenerConnectedTimeoutStart(timeoutMillis=" + timeoutMillis + ')');
+        if (mNotificationListenerBindTimeoutStartMillis != -1)
+        {
+            notificationListenerConnectedTimeoutStop();
+        }
+        mNotificationListenerBindTimeoutStartMillis = System.currentTimeMillis();
         mHandler.postDelayed(mNotificationListenerBindTimeout, timeoutMillis);
+        FooLog.v(TAG, "-notificationListenerConnectedTimeoutStart(timeoutMillis=" + timeoutMillis + ')');
     }
 
     private void notificationListenerConnectedTimeoutStop()
     {
-        mIsWaitingForNotificationListenerConnectedTimeout = false;
+        FooLog.v(TAG, "+notificationListenerConnectedTimeoutStop()");
+        mNotificationListenerBindTimeoutStartMillis = -1;
         mHandler.removeCallbacks(mNotificationListenerBindTimeout);
+        FooLog.v(TAG, "-notificationListenerConnectedTimeoutStop()");
     }
+
+    private long mNotificationListenerBindTimeoutStartMillis = -1;
 
     private final Runnable mNotificationListenerBindTimeout = new Runnable()
     {
@@ -264,7 +283,8 @@ public class FooNotificationListenerManager
         public void run()
         {
             FooLog.v(TAG, "+mNotificationListenerBindTimeout.run()");
-            onNotificationListenerNotConnected(NotConnectedReason.ConnectedTimeout);
+            long elapsedMillis = System.currentTimeMillis() - mNotificationListenerBindTimeoutStartMillis;
+            onNotificationListenerNotConnected(NotConnectedReason.ConnectedTimeout, elapsedMillis);
             FooLog.v(TAG, "-mNotificationListenerBindTimeout.run()");
         }
     };
@@ -294,8 +314,10 @@ public class FooNotificationListenerManager
     }
 
     private void onNotificationListenerNotConnected(
-            @NonNull NotConnectedReason reason)
+            @NonNull NotConnectedReason reason,
+            long elapsedMillis)
     {
+        FooLog.v(TAG, "+onNotificationListenerNotConnected(reason=" + reason + ')');
         synchronized (mSyncLock)
         {
             notificationListenerConnectedTimeoutStop();
@@ -309,10 +331,11 @@ public class FooNotificationListenerManager
 
             for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
             {
-                callbacks.onNotificationListenerNotConnected(reason);
+                callbacks.onNotificationListenerNotConnected(reason, elapsedMillis);
             }
             mListenerManager.endTraversing();
         }
+        FooLog.v(TAG, "-onNotificationListenerNotConnected(reason=" + reason + ')');
     }
 
     private void onNotificationPosted(
@@ -373,6 +396,7 @@ public class FooNotificationListenerManager
             }
         }
 
+        private long                           mOnListenerConnectedStartMillis;
         private FooNotificationListenerManager mNotificationListenerManager;
         private RemoteController               mRemoteController;
 
@@ -389,7 +413,7 @@ public class FooNotificationListenerManager
             FooLog.v(TAG, "+onCreate()");
             super.onCreate();
 
-            mNotificationListenerManager = getInstance();
+            mNotificationListenerManager = FooNotificationListenerManager.getInstance();
 
             Context applicationContext = getApplicationContext();
 
@@ -416,6 +440,7 @@ public class FooNotificationListenerManager
         {
             FooLog.v(TAG, "onListenerConnected()");
             super.onListenerConnected();
+            mOnListenerConnectedStartMillis = System.currentTimeMillis();
             StatusBarNotification[] activeNotifications = getActiveNotifications();
             mNotificationListenerManager.onNotificationListenerConnected(this, activeNotifications);
         }
@@ -472,7 +497,8 @@ public class FooNotificationListenerManager
         {
             FooLog.v(TAG, "onListenerDisconnected()");
             super.onListenerDisconnected();
-            mNotificationListenerManager.onNotificationListenerNotConnected(NotConnectedReason.Disconnected);
+            long elapsedMillis = System.currentTimeMillis() - mOnListenerConnectedStartMillis;
+            mNotificationListenerManager.onNotificationListenerNotConnected(NotConnectedReason.Disconnected, elapsedMillis);
         }
 
         //

@@ -1,6 +1,5 @@
 package com.smartfoo.android.core.logging;
 
-import android.os.Process;
 import android.util.Log;
 
 public class FooLogAdbPrinter
@@ -79,15 +78,14 @@ public class FooLogAdbPrinter
     protected boolean printlnInternal(String tag, int level, String msg, Throwable e)
     {
         // LogCat does not output the Thread ID; prepend msg with it here.
-        StringBuilder sb = new StringBuilder().append('T').append(Process.myTid())
-                .append(' ').append(msg);
+        StringBuilder sb = new StringBuilder()
+                //.append('T').append(Process.myTid()).append(' ')
+                .append(msg);
 
         // LogCat does not output the exception; append msg with it here.
         if (e != null)
         {
             sb.append(": throwable=").append(Log.getStackTraceString(e));
-            // null the exception so that format(...) [below] doesn't append it to msg a second time.
-            e = null;
         }
 
         //noinspection WrongConstant

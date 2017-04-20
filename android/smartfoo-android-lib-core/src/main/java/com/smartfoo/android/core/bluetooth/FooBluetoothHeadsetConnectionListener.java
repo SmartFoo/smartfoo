@@ -39,7 +39,7 @@ public class FooBluetoothHeadsetConnectionListener
     public FooBluetoothHeadsetConnectionListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
         mBluetoothConnectionBroadcastReceiver = new FooBluetoothHeadsetConnectionBroadcastReceiver(context);
     }
 

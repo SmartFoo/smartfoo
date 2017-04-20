@@ -94,7 +94,7 @@ public class FooAudioStreamVolumeObserver
                 .get(audioStreamType);
         if (listenerManager == null)
         {
-            listenerManager = new FooListenerAutoStartManager<>();
+            listenerManager = new FooListenerAutoStartManager<>(this);
             listenerManager.attach(new FooListenerAutoStartManagerCallbacks()
             {
                 @Override

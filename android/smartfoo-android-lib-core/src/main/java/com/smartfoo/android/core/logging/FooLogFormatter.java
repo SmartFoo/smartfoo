@@ -43,10 +43,10 @@ public abstract class FooLogFormatter
         StringBuilder sb = new StringBuilder() //
                 .append(DATE_FORMAT.format(dateTime)) //
                 .append(' ').append(FooString.padNumber(pid, ' ', 5)) //
-                .append(' ').append(FooString.padNumber(tid, ' ', 5)) //
+                .append('-').append(FooString.padNumber(tid, ' ', 5)) //
                 .append(' ').append(LEVEL_NAMES[level]) //
-                .append(' ').append(tag) //
-                .append(' ').append(msg);
+                .append('/').append(tag) //
+                .append(": ").append(msg);
         if (e != null)
         {
             sb.append(": throwable=").append(Log.getStackTraceString(e));

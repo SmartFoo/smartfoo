@@ -149,7 +149,7 @@ public class FooChargePortListener
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         mContext = context;
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
         mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
     }
 

@@ -43,7 +43,7 @@ public class MainApplication
                 return MainApplication.this.onAudioFocusLost(audioFocusListener, audioFocusStreamType, audioFocusDurationHint, focusChange);
             }
         };
-        mAudioFocusListenerManager = new FooListenerManager<>();
+        mAudioFocusListenerManager = new FooListenerManager<>(this);
     }
 
     @Override

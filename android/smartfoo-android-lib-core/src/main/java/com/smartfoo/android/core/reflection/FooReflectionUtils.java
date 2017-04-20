@@ -2,9 +2,14 @@ package com.smartfoo.android.core.reflection;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.logging.FooLog;
+
+import java.lang.reflect.Field;
 
 public class FooReflectionUtils
 {
+    private static final String TAG = FooLog.TAG(FooReflectionUtils.class);
+
     private FooReflectionUtils()
     {
     }
@@ -150,5 +155,40 @@ public class FooReflectionUtils
         }
 
         return true;
+    }
+
+    public static Object getFieldValue(Object o, String fieldName)
+    {
+        Object fieldValue = null;
+
+        Class<?> c = getClass(o);
+        if (c != null)
+        {
+            try
+            {
+                Field field = c.getField(fieldName);
+
+                try
+                {
+                    fieldValue = field.get(c);
+                    //FooLog.v(TAG, "getField: fieldValue == " + fieldValue);
+                }
+                catch (IllegalAccessException e)
+                {
+                    FooLog.w(TAG, "getField: get", e);
+                }
+            }
+            catch (NoSuchFieldException e)
+            {
+                FooLog.w(TAG, "getField: getField", e);
+            }
+        }
+
+        return fieldValue;
+    }
+
+    public static String getFieldValueString(Object o, String fieldName)
+    {
+        return (String) getFieldValue(o, fieldName);
     }
 }

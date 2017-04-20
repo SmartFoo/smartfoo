@@ -2,7 +2,9 @@ package com.smartfoo.android.core;
 
 import android.support.annotation.NonNull;
 
+import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
 public class FooListenerAutoStartManager<T>
         extends FooListenerManager<T>
@@ -24,15 +26,15 @@ public class FooListenerAutoStartManager<T>
 
     private boolean mIsStarted;
 
-    public FooListenerAutoStartManager()
+    public FooListenerAutoStartManager(@NonNull Object name)
     {
-        this(null);
+        this(FooReflectionUtils.getShortClassName(name));
     }
 
-    public FooListenerAutoStartManager(String name)
+    public FooListenerAutoStartManager(@NonNullNonEmpty String name)
     {
         super(name);
-        mAutoStartListeners = new FooListenerManager<>();
+        mAutoStartListeners = new FooListenerManager<>(this);
     }
 
     public void attach(@NonNull FooListenerAutoStartManagerCallbacks callbacks)

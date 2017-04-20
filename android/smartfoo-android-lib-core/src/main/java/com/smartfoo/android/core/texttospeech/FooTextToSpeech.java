@@ -127,7 +127,7 @@ public class FooTextToSpeech
                 return FooTextToSpeech.this.onAudioFocusLost(audioFocusListener, audioFocusStreamType, audioFocusDurationHint, focusChange);
             }
         };
-        mListeners = new FooListenerManager<>();
+        mListeners = new FooListenerManager<>(this);
         mTextToSpeechQueue = new LinkedList<>();
         mUtteranceCallbacks = new HashMap<>();
         mRunAfterSpeak = new Runnable()

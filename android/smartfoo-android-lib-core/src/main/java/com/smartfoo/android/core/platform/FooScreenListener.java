@@ -30,7 +30,7 @@ public class FooScreenListener
     public FooScreenListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(this);
         mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     }

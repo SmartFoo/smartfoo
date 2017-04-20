@@ -59,6 +59,16 @@ public class FooCellularStateListener
         return mTelephonyManager.getCallState();
     }
 
+    public int getDataConnectionState()
+    {
+        return mTelephonyManager.getDataState();
+    }
+
+    public int getDataConnectionType()
+    {
+        return mTelephonyManager.getDataNetworkType();
+    }
+
     public boolean isStarted()
     {
         synchronized (mSyncLock)

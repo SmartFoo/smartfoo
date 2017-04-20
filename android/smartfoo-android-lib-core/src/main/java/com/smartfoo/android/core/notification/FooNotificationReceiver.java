@@ -23,7 +23,7 @@ public class FooNotificationReceiver
 
     static
     {
-        mListenerManager = new FooListenerManager<>();
+        mListenerManager = new FooListenerManager<>(FooNotificationReceiver.class);
     }
 
     public static void attach(@NonNull FooNotificationReceiverCallbacks callbacks)
