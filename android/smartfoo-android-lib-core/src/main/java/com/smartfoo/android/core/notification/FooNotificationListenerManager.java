@@ -29,10 +29,10 @@ public class FooNotificationListenerManager
     private static final String TAG = FooLog.TAG(FooNotificationListenerManager.class);
 
     /**
-     * This has been observed to take >500ms when unlocking after a fresh reboot.
+     * This has been observed to take &gt;500ms when unlocking after a fresh reboot.
      * TODO:(pv) Consider making this two values, one before first unlock, one after first unlock
      */
-    public static final int NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS = 750;
+    public static final int NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS = 1000;
 
     /**
      * Usually {@link VERSION#SDK_INT VERSION.SDK_INT}, but may be used to force a specific OS Version # <b>FOR TESTING
