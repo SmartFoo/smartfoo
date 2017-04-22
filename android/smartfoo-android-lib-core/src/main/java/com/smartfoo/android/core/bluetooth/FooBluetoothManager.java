@@ -20,8 +20,8 @@ public class FooBluetoothManager
     private final boolean                             mIsBluetoothLowEnergySupported;
     private final BluetoothManager                    mBluetoothManager;
     private final BluetoothAdapter                    mBluetoothAdapter;
-    private final FooBluetoothAudioConnectionListener mBluetoothHeadsetConnectionListener;
     private final FooBluetoothAdapterStateListener    mBluetoothAdapterStateListener;
+    private final FooBluetoothAudioConnectionListener mBluetoothAudioConnectionListener;
 
     public FooBluetoothManager(@NonNull Context applicationContext)
     {
@@ -31,9 +31,9 @@ public class FooBluetoothManager
         mBluetoothManager = FooBluetoothUtils.getBluetoothManager(applicationContext);
         mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(applicationContext);
 
-        mBluetoothHeadsetConnectionListener = new FooBluetoothAudioConnectionListener(applicationContext);
-
         mBluetoothAdapterStateListener = new FooBluetoothAdapterStateListener(applicationContext);
+
+        mBluetoothAudioConnectionListener = new FooBluetoothAudioConnectionListener(applicationContext);
     }
 
     public boolean isBluetoothSupported()
@@ -159,8 +159,8 @@ public class FooBluetoothManager
     }
 
     @NonNull
-    public FooBluetoothAudioConnectionListener getBluetoothHeadsetConnectionListener()
+    public FooBluetoothAudioConnectionListener getBluetoothAudioConnectionListener()
     {
-        return mBluetoothHeadsetConnectionListener;
+        return mBluetoothAudioConnectionListener;
     }
 }
