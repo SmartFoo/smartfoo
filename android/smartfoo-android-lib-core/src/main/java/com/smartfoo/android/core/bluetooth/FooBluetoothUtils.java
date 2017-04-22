@@ -2,6 +2,10 @@ package com.smartfoo.android.core.bluetooth;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothClass.Device;
+import android.bluetooth.BluetoothClass.Device.Major;
+import android.bluetooth.BluetoothClass.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -97,6 +101,34 @@ public class FooBluetoothUtils
         }
 
         return bluetoothAdapter;
+    }
+
+    public static boolean isAudioOutput(BluetoothDevice bluetoothDevice)
+    {
+        if (bluetoothDevice == null)
+        {
+            return false;
+        }
+
+        BluetoothClass deviceBluetoothClass = bluetoothDevice.getBluetoothClass();
+        boolean hasServiceRender = deviceBluetoothClass.hasService(Service.RENDER);
+        int deviceClass = deviceBluetoothClass.getDeviceClass();
+
+        if (hasServiceRender)
+        {
+            switch (deviceClass)
+            {
+                case Device.AUDIO_VIDEO_WEARABLE_HEADSET:
+                case Device.AUDIO_VIDEO_HANDSFREE:
+                case Device.AUDIO_VIDEO_LOUDSPEAKER:
+                case Device.AUDIO_VIDEO_HEADPHONES:
+                case Device.AUDIO_VIDEO_CAR_AUDIO:
+                case Device.AUDIO_VIDEO_HIFI_AUDIO:
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     public static long gattDeviceAddressToLong(@NonNull BluetoothGatt gatt)
@@ -203,10 +235,10 @@ public class FooBluetoothUtils
         return name + '(' + bluetoothAdapterState + ')';
     }
 
-    public static String bluetoothProfileStateToString(int bluetoothProfileState)
+    public static String bluetoothConnectionStateToString(int bluetoothConnectionState)
     {
         String name;
-        switch (bluetoothProfileState)
+        switch (bluetoothConnectionState)
         {
             case BluetoothProfile.STATE_DISCONNECTED:
                 name = "STATE_DISCONNECTED";
@@ -224,13 +256,13 @@ public class FooBluetoothUtils
                 name = "UNKNOWN";
                 break;
         }
-        return name + '(' + bluetoothProfileState + ')';
+        return name + '(' + bluetoothConnectionState + ')';
     }
 
-    public static String bluetoothHeadsetAudioStateToString(int bluetoothHeadsetAudioState)
+    public static String bluetoothAudioStateToString(int bluetoothAudioState)
     {
         String name;
-        switch (bluetoothHeadsetAudioState)
+        switch (bluetoothAudioState)
         {
             case BluetoothHeadset.STATE_AUDIO_DISCONNECTED:
                 name = "STATE_AUDIO_DISCONNECTED";
@@ -245,7 +277,7 @@ public class FooBluetoothUtils
                 name = "UNKNOWN";
                 break;
         }
-        return name + '(' + bluetoothHeadsetAudioState + ')';
+        return name + '(' + bluetoothAudioState + ')';
     }
 
     public static String scanCallbackErrorToString(int value)

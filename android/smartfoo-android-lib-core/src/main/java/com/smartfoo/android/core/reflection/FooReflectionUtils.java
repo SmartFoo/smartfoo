@@ -171,16 +171,16 @@ public class FooReflectionUtils
                 try
                 {
                     fieldValue = field.get(c);
-                    //FooLog.v(TAG, "getField: fieldValue == " + fieldValue);
+                    //FooLog.v(TAG, "getFieldValue: fieldValue == " + fieldValue);
                 }
                 catch (IllegalAccessException e)
                 {
-                    FooLog.w(TAG, "getField: get", e);
+                    FooLog.w(TAG, "getFieldValue: get", e);
                 }
             }
             catch (NoSuchFieldException e)
             {
-                FooLog.w(TAG, "getField: getField", e);
+                FooLog.w(TAG, "getFieldValue: getField", e);
             }
         }
 

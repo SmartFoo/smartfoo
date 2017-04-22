@@ -19,9 +19,11 @@ public class FooAudioUtils
     {
     }
 
-    public static int[] getAudioStreamTypes()
+    private static final int[] AUDIO_STREAM_TYPES;
+
+    static
     {
-        return new int[] {
+        AUDIO_STREAM_TYPES = new int[] {
                 AudioManager.STREAM_VOICE_CALL,
                 AudioManager.STREAM_SYSTEM,
                 AudioManager.STREAM_RING,
@@ -29,6 +31,11 @@ public class FooAudioUtils
                 AudioManager.STREAM_ALARM,
                 AudioManager.STREAM_NOTIFICATION
         };
+    }
+
+    public static int[] getAudioStreamTypes()
+    {
+        return AUDIO_STREAM_TYPES;
     }
 
     public static String audioStreamTypeToString(int audioStreamType)

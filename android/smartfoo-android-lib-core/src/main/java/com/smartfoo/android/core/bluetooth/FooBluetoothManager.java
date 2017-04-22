@@ -1,22 +1,27 @@
 package com.smartfoo.android.core.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.logging.FooLog;
 
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 public class FooBluetoothManager
 {
     private static final String TAG = FooLog.TAG(FooBluetoothManager.class);
 
-    private final boolean                          mIsBluetoothSupported;
-    private final boolean                          mIsBluetoothLowEnergySupported;
-    private final BluetoothManager                 mBluetoothManager;
-    private final BluetoothAdapter                 mBluetoothAdapter;
-    //private final FooBluetoothHeadsetConnectionListener mBluetoothHeadsetConnectionListener;
-    private final FooBluetoothAdapterStateListener mBluetoothAdapterStateListener;
+    private final boolean                             mIsBluetoothSupported;
+    private final boolean                             mIsBluetoothLowEnergySupported;
+    private final BluetoothManager                    mBluetoothManager;
+    private final BluetoothAdapter                    mBluetoothAdapter;
+    private final FooBluetoothAudioConnectionListener mBluetoothHeadsetConnectionListener;
+    private final FooBluetoothAdapterStateListener    mBluetoothAdapterStateListener;
 
     public FooBluetoothManager(@NonNull Context applicationContext)
     {
@@ -26,7 +31,7 @@ public class FooBluetoothManager
         mBluetoothManager = FooBluetoothUtils.getBluetoothManager(applicationContext);
         mBluetoothAdapter = FooBluetoothUtils.getBluetoothAdapter(applicationContext);
 
-        //mBluetoothHeadsetConnectionListener = new FooBluetoothHeadsetConnectionListener(applicationContext);
+        mBluetoothHeadsetConnectionListener = new FooBluetoothAudioConnectionListener(applicationContext);
 
         mBluetoothAdapterStateListener = new FooBluetoothAdapterStateListener(applicationContext);
     }
@@ -55,7 +60,7 @@ public class FooBluetoothManager
     {
         try
         {
-            // TODO:(pv) Known to sometimes throw DeadObjectException
+            // NOTE:(pv) Known to sometimes throw DeadObjectException
             //  https://code.google.com/p/android/issues/detail?id=67272
             //  https://github.com/RadiusNetworks/android-ibeacon-service/issues/16
             return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
@@ -126,15 +131,36 @@ public class FooBluetoothManager
         }
     }
 
-    /*
-    public FooBluetoothHeadsetConnectionListener getBluetoothHeadsetConnectionListener()
-    {
-        return mBluetoothHeadsetConnectionListener;
-    }
-    */
-
+    @NonNull
     public FooBluetoothAdapterStateListener getBluetoothAdapterStateListener()
     {
         return mBluetoothAdapterStateListener;
+    }
+
+    private static final Comparator<BluetoothDevice> BLUETOOTH_DEVICE_COMPARATOR = new Comparator<BluetoothDevice>()
+    {
+        @Override
+        public int compare(BluetoothDevice o1, BluetoothDevice o2)
+        {
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
+
+    public SortedSet<BluetoothDevice> getBondedDevices()
+    {
+        if (mBluetoothAdapter == null)
+        {
+            return null;
+        }
+
+        SortedSet<BluetoothDevice> bondedDevices = new TreeSet<>(BLUETOOTH_DEVICE_COMPARATOR);
+        bondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
+        return bondedDevices;
+    }
+
+    @NonNull
+    public FooBluetoothAudioConnectionListener getBluetoothHeadsetConnectionListener()
+    {
+        return mBluetoothHeadsetConnectionListener;
     }
 }
