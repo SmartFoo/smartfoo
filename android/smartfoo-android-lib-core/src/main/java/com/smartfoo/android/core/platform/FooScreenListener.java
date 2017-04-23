@@ -8,7 +8,8 @@ import android.os.Build.VERSION;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 
-import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 
@@ -23,14 +24,50 @@ public class FooScreenListener
         void onScreenOn();
     }
 
-    private final FooListenerManager<FooScreenListenerCallbacks> mListenerManager;
-    private final FooScreenBroadcastReceiver                     mScreenBroadcastReceiver;
-    private final PowerManager                                   mPowerManager;
+    private final FooListenerAutoStartManager<FooScreenListenerCallbacks> mListenerManager;
+    private final FooScreenBroadcastReceiver                              mScreenBroadcastReceiver;
+    private final PowerManager                                            mPowerManager;
 
     public FooScreenListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mListenerManager = new FooListenerManager<>(this);
+        mListenerManager = new FooListenerAutoStartManager<>(this);
+        mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
+        {
+            @Override
+            public void onFirstAttach()
+            {
+                mScreenBroadcastReceiver.start(new FooScreenListenerCallbacks()
+                {
+                    @Override
+                    public void onScreenOff()
+                    {
+                        for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onScreenOff();
+                        }
+                        mListenerManager.endTraversing();
+                    }
+
+                    @Override
+                    public void onScreenOn()
+                    {
+                        for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onScreenOn();
+                        }
+                        mListenerManager.endTraversing();
+                    }
+                });
+            }
+
+            @Override
+            public boolean onLastDetach()
+            {
+                mScreenBroadcastReceiver.stop();
+                return false;
+            }
+        });
         mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     }
@@ -44,40 +81,11 @@ public class FooScreenListener
     public void attach(FooScreenListenerCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
-        if (mListenerManager.size() == 1 && !mScreenBroadcastReceiver.isStarted())
-        {
-            mScreenBroadcastReceiver.start(new FooScreenListenerCallbacks()
-            {
-                @Override
-                public void onScreenOff()
-                {
-                    for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
-                    {
-                        callbacks.onScreenOff();
-                    }
-                    mListenerManager.endTraversing();
-                }
-
-                @Override
-                public void onScreenOn()
-                {
-                    for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
-                    {
-                        callbacks.onScreenOn();
-                    }
-                    mListenerManager.endTraversing();
-                }
-            });
-        }
     }
 
     public void detach(FooScreenListenerCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);
-        if (mListenerManager.size() == 0 && mScreenBroadcastReceiver.isStarted())
-        {
-            mScreenBroadcastReceiver.stop();
-        }
     }
 
     private static class FooScreenBroadcastReceiver

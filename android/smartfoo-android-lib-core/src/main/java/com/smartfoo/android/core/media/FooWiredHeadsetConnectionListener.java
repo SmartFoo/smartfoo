@@ -8,7 +8,8 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
-import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
@@ -27,13 +28,55 @@ public class FooWiredHeadsetConnectionListener
         void onWiredHeadsetDisconnected(String name, boolean hasMicrophone);
     }
 
-    private final FooListenerManager<OnWiredHeadsetConnectionCallbacks> mListenerManager;
-    private final WiredHeadsetBroadcastReceiver                         mWiredHeadsetBroadcastReceiver;
+    private final FooListenerAutoStartManager<OnWiredHeadsetConnectionCallbacks> mListenerManager;
+    private final WiredHeadsetBroadcastReceiver                                  mWiredHeadsetBroadcastReceiver;
 
     public FooWiredHeadsetConnectionListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mListenerManager = new FooListenerManager<>(this);
+        mListenerManager = new FooListenerAutoStartManager<>(this);
+        mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
+        {
+            @Override
+            public void onFirstAttach()
+            {
+                if (!mWiredHeadsetBroadcastReceiver.isStarted())
+                {
+                    mWiredHeadsetBroadcastReceiver.start(new OnWiredHeadsetConnectionCallbacks()
+                    {
+                        @Override
+                        public void onWiredHeadsetConnected(String name, boolean hasMicrophone)
+                        {
+                            for (OnWiredHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
+                            {
+                                callbacks.onWiredHeadsetConnected(name, hasMicrophone);
+                            }
+                            mListenerManager.endTraversing();
+                        }
+
+                        @Override
+                        public void onWiredHeadsetDisconnected(String name, boolean hasMicrophone)
+                        {
+                            for (OnWiredHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
+                            {
+                                callbacks.onWiredHeadsetDisconnected(name, hasMicrophone);
+                            }
+                            mListenerManager.endTraversing();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public boolean onLastDetach()
+            {
+                if (mWiredHeadsetBroadcastReceiver.isStarted())
+                {
+                    mWiredHeadsetBroadcastReceiver.stop();
+                }
+                return false;
+            }
+        });
         mWiredHeadsetBroadcastReceiver = new WiredHeadsetBroadcastReceiver(context);
     }
 
@@ -46,41 +89,12 @@ public class FooWiredHeadsetConnectionListener
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         mListenerManager.attach(callbacks);
-        if (mListenerManager.size() == 1 && !mWiredHeadsetBroadcastReceiver.isStarted())
-        {
-            mWiredHeadsetBroadcastReceiver.start(new OnWiredHeadsetConnectionCallbacks()
-            {
-                @Override
-                public void onWiredHeadsetConnected(String name, boolean hasMicrophone)
-                {
-                    for (OnWiredHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
-                    {
-                        callbacks.onWiredHeadsetConnected(name, hasMicrophone);
-                    }
-                    mListenerManager.endTraversing();
-                }
-
-                @Override
-                public void onWiredHeadsetDisconnected(String name, boolean hasMicrophone)
-                {
-                    for (OnWiredHeadsetConnectionCallbacks callbacks : mListenerManager.beginTraversing())
-                    {
-                        callbacks.onWiredHeadsetDisconnected(name, hasMicrophone);
-                    }
-                    mListenerManager.endTraversing();
-                }
-            });
-        }
     }
 
     public void detach(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         mListenerManager.detach(callbacks);
-        if (mListenerManager.size() == 0 && mWiredHeadsetBroadcastReceiver.isStarted())
-        {
-            mWiredHeadsetBroadcastReceiver.stop();
-        }
     }
 
     private static class WiredHeadsetBroadcastReceiver

@@ -172,6 +172,9 @@ public class FooNotificationListenerManager
 
         mListenerManager.attach(callbacks);
 
+        //
+        // Purposefully not using FooListenerAutoStartManager due to the following incompatible logic...
+        //
         if (isNotificationAccessSettingConfirmedNotEnabled(context))
         {
             callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled, 0);

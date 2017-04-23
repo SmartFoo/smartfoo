@@ -8,7 +8,8 @@ import android.os.BatteryManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 
-import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.logging.FooLog;
@@ -141,15 +142,51 @@ public class FooChargePortListener
         return result;
     }
 
-    private final Context                                            mContext;
-    private final FooListenerManager<FooChargePortListenerCallbacks> mListenerManager;
-    private final FooScreenBroadcastReceiver                         mScreenBroadcastReceiver;
+    private final Context                                                     mContext;
+    private final FooListenerAutoStartManager<FooChargePortListenerCallbacks> mListenerManager;
+    private final FooScreenBroadcastReceiver                                  mScreenBroadcastReceiver;
 
     public FooChargePortListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         mContext = context;
-        mListenerManager = new FooListenerManager<>(this);
+        mListenerManager = new FooListenerAutoStartManager<>(this);
+        mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
+        {
+            @Override
+            public void onFirstAttach()
+            {
+                mScreenBroadcastReceiver.start(new FooChargePortListenerCallbacks()
+                {
+                    @Override
+                    public void onChargePortConnected(ChargePort chargePort)
+                    {
+                        for (FooChargePortListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onChargePortConnected(chargePort);
+                        }
+                        mListenerManager.endTraversing();
+                    }
+
+                    @Override
+                    public void onChargePortDisconnected(ChargePort chargePort)
+                    {
+                        for (FooChargePortListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onChargePortDisconnected(chargePort);
+                        }
+                        mListenerManager.endTraversing();
+                    }
+                });
+            }
+
+            @Override
+            public boolean onLastDetach()
+            {
+                mScreenBroadcastReceiver.stop();
+                return false;
+            }
+        });
         mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
     }
 
@@ -166,40 +203,11 @@ public class FooChargePortListener
     public void attach(FooChargePortListenerCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
-        if (mListenerManager.size() == 1 && !mScreenBroadcastReceiver.isStarted())
-        {
-            mScreenBroadcastReceiver.start(new FooChargePortListenerCallbacks()
-            {
-                @Override
-                public void onChargePortConnected(ChargePort chargePort)
-                {
-                    for (FooChargePortListenerCallbacks callbacks : mListenerManager.beginTraversing())
-                    {
-                        callbacks.onChargePortConnected(chargePort);
-                    }
-                    mListenerManager.endTraversing();
-                }
-
-                @Override
-                public void onChargePortDisconnected(ChargePort chargePort)
-                {
-                    for (FooChargePortListenerCallbacks callbacks : mListenerManager.beginTraversing())
-                    {
-                        callbacks.onChargePortDisconnected(chargePort);
-                    }
-                    mListenerManager.endTraversing();
-                }
-            });
-        }
     }
 
     public void detach(FooChargePortListenerCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);
-        if (mListenerManager.size() == 0 && mScreenBroadcastReceiver.isStarted())
-        {
-            mScreenBroadcastReceiver.stop();
-        }
     }
 
     private static class FooScreenBroadcastReceiver

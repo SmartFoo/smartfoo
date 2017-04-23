@@ -3,7 +3,8 @@ package com.smartfoo.android.core.network;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager;
+import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.network.FooCellularStateListener.FooCellularHookStateCallbacks;
@@ -37,13 +38,13 @@ public class FooDataConnectionManager
         void onDataDisconnected(FooDataConnectionInfo dataConnectionInfo);
     }
 
-    private final FooListenerManager<FooDataConnectionManagerCallbacks> mListenerManager;
+    private final FooListenerAutoStartManager<FooDataConnectionManagerCallbacks> mListenerManager;
     //private final FooPowerLock                                          mPowerLock;
     //private final FooWifiLock                                           mWifiLock;
-    private final FooCellularStateListener                              mCellularStateListener;
-    private final FooCellularHookStateCallbacks                         mCellularHookStateCallbacks;
-    private final FooDataConnectionListener                             mDataConnectionListener;
-    private final FooDataConnectionListenerCallbacks                    mDataConnectionListenerCallbacks;
+    private final FooCellularStateListener                                       mCellularStateListener;
+    private final FooCellularHookStateCallbacks                                  mCellularHookStateCallbacks;
+    private final FooDataConnectionListener                                      mDataConnectionListener;
+    private final FooDataConnectionListenerCallbacks                             mDataConnectionListenerCallbacks;
 
     private boolean   mIsStarted;
     private HookState mLastCellularHookState;
@@ -52,7 +53,47 @@ public class FooDataConnectionManager
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
 
-        mListenerManager = new FooListenerManager<>(this);
+        mListenerManager = new FooListenerAutoStartManager<>(this);
+        mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
+        {
+            @Override
+            public void onFirstAttach()
+            {
+                if (!mIsStarted)
+                {
+                    mIsStarted = true;
+
+                    //mPowerLock.lock();
+                    //mWifiLock.lock();
+
+                    if (!mCellularStateListener.isStarted())
+                    {
+                        mLastCellularHookState = mCellularStateListener.getHookState();
+                        mCellularStateListener.start(mCellularHookStateCallbacks, null);
+                    }
+                    if (!mDataConnectionListener.isStarted())
+                    {
+                        mDataConnectionListener.start(mDataConnectionListenerCallbacks);
+                    }
+                }
+            }
+
+            @Override
+            public boolean onLastDetach()
+            {
+                if (mIsStarted)
+                {
+                    mIsStarted = false;
+
+                    //mWifiLock.unlock();
+                    //mPowerLock.unlock();
+
+                    mCellularStateListener.stop();
+                    mDataConnectionListener.stop();
+                }
+                return false;
+            }
+        });
 
         //mPowerLock = new FooPowerLock(mContext);
         //mWifiLock = new FooWifiLock(mContext);
@@ -106,45 +147,14 @@ public class FooDataConnectionManager
     public void attach(FooDataConnectionManagerCallbacks callbacks)
     {
         FooLog.v(TAG, "+attach(...)");
-
         mListenerManager.attach(callbacks);
-        if (mListenerManager.size() == 1 && !mIsStarted)
-        {
-            mIsStarted = true;
-
-            //mPowerLock.lock();
-            //mWifiLock.lock();
-
-            if (!mCellularStateListener.isStarted())
-            {
-                mLastCellularHookState = mCellularStateListener.getHookState();
-                mCellularStateListener.start(mCellularHookStateCallbacks, null);
-            }
-            if (!mDataConnectionListener.isStarted())
-            {
-                mDataConnectionListener.start(mDataConnectionListenerCallbacks);
-            }
-        }
-
         FooLog.v(TAG, "-attach(...)");
     }
 
     public void detach(FooDataConnectionManagerCallbacks callbacks)
     {
         FooLog.v(TAG, "+detach(...)");
-
         mListenerManager.detach(callbacks);
-        if (mListenerManager.size() == 0 && mIsStarted)
-        {
-            mIsStarted = false;
-
-            //mWifiLock.unlock();
-            //mPowerLock.unlock();
-
-            mCellularStateListener.stop();
-            mDataConnectionListener.stop();
-        }
-
         FooLog.v(TAG, "-detach(...)");
     }
 
