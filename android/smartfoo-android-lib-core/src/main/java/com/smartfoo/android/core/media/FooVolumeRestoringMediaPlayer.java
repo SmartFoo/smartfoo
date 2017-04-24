@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
-import com.smartfoo.android.core.media.FooAudioStreamVolumeObserver.OnAudioStreamVolumeChangedListener;
+import com.smartfoo.android.core.media.FooAudioStreamVolumeObserver.OnAudioStreamVolumeChangedCallbacks;
 
 import java.io.IOException;
 
@@ -27,16 +27,14 @@ public class FooVolumeRestoringMediaPlayer
     private MediaPlayer mMediaPlayer;
     private boolean     mWasStreamVolumeUnchanged;
 
-    private final OnAudioStreamVolumeChangedListener mVolumeObserverListener = new
-
-            OnAudioStreamVolumeChangedListener()
-            {
-                @Override
-                public void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent)
-                {
-                    FooVolumeRestoringMediaPlayer.this.onAudioStreamVolumeChanged(audioStreamType, volume, volumeMax, volumePercent);
-                }
-            };
+    private final OnAudioStreamVolumeChangedCallbacks mVolumeObserverCallbacks = new OnAudioStreamVolumeChangedCallbacks()
+    {
+        @Override
+        public void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent)
+        {
+            FooVolumeRestoringMediaPlayer.this.onAudioStreamVolumeChanged(audioStreamType, volume, volumeMax, volumePercent);
+        }
+    };
 
     public FooVolumeRestoringMediaPlayer(@NonNull Context context)
     {
@@ -146,7 +144,7 @@ public class FooVolumeRestoringMediaPlayer
         try
         {
             mWasStreamVolumeUnchanged = true;
-            mVolumeObserver.attach(mStreamType, mVolumeObserverListener);
+            mVolumeObserver.attach(mStreamType, mVolumeObserverCallbacks);
             mAudioManager.setStreamVolume(streamType, mStreamVolumeRequested, 0);
             mediaPlayer.start();
         }
@@ -181,7 +179,7 @@ public class FooVolumeRestoringMediaPlayer
             return;
         }
 
-        mVolumeObserver.detach(mStreamType, mVolumeObserverListener);
+        mVolumeObserver.detach(mStreamType, mVolumeObserverCallbacks);
 
         mMediaPlayer.stop();
         mMediaPlayer.release();
