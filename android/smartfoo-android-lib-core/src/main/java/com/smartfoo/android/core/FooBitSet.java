@@ -9,6 +9,21 @@ public class FooBitSet
     private final int    length;
     private final BitSet bitset;
 
+    public FooBitSet(byte value)
+    {
+        length = BITS_PER_BYTE;
+        bitset = new BitSet(length);
+
+        // Walk through bytes and set the bits
+        for (int j = 0; j < BITS_PER_BYTE; j++)
+        {
+            if ((value & (1 << j)) != 0)
+            {
+                bitset.set(BITS_PER_BYTE + j);
+            }
+        }
+    }
+
     public FooBitSet(byte[] bytes)
     {
         length = bytes.length * BITS_PER_BYTE;

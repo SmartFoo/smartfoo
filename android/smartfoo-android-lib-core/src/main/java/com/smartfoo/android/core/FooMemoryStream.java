@@ -367,40 +367,43 @@ public class FooMemoryStream
 
     public synchronized String toDebugString()
     {
-        StringBuffer sb = new StringBuffer();
-        sb.append('(').append(this.length).append("):").append(FooString.toHexString(this.buffer, 0, this.length));
-        return sb.toString();
+        return "(" + this.length + "):" + FooString.toHexString(this.buffer, 0, this.length);
     }
 
-    public static byte[] getBytes(short value)
+    public static byte[] newBytes(byte value)
     {
-        byte[] bytes =
+        return new byte[]
+                {
+                        value
+                };
+    }
+
+    public static byte[] newBytes(short value)
+    {
+        return new byte[]
                 {
                         (byte) (value & 0xFF), (byte) ((value >> 8) & 0xFF),
-                };
-        return bytes;
+                        };
     }
 
-    public static byte[] getBytes(int value)
+    public static byte[] newBytes(int value)
     {
-        byte[] bytes =
+        return new byte[]
                 {
                         (byte) (value & 0xFF),
                         (byte) ((value >> 8) & 0xFF),
                         (byte) ((value >> 16) & 0xFF),
                         (byte) ((value >> 24) & 0xFF),
-                };
-        return bytes;
+                        };
     }
 
-    public static byte[] getBytes(long value)
+    public static byte[] newBytes(long value)
     {
-        byte[] bytes =
+        return new byte[]
                 {
                         (byte) (value & 0xFF), (byte) ((value >> 8) & 0xFF), (byte) ((value >> 16) & 0xFF),
                         (byte) ((value >> 24) & 0xFF), (byte) ((value >> 32) & 0xFF), (byte) ((value >> 40) & 0xFF),
                         (byte) ((value >> 48) & 0xFF), (byte) ((value >> 56) & 0xFF),
-                };
-        return bytes;
+                        };
     }
 }

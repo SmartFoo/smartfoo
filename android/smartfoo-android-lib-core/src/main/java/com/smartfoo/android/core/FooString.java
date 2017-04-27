@@ -137,7 +137,7 @@ public class FooString
     {
         if (bytes == null)
         {
-            return "";
+            return null;
         }
         return toHexString(bytes, 0, bytes.length, asByteArray);
     }
@@ -147,20 +147,20 @@ public class FooString
         return toHexString(bytes, offset, count, true);
     }
 
+    private static final char[] HEX_CHARS =
+            {
+                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+            };
+
     public static String toHexString(byte[] bytes, int offset, int count, //
                                      boolean asByteArray)
     {
         if (bytes == null)
         {
-            return "";
+            return null;
         }
 
-        final char[] hexChars =
-                {
-                        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-                };
-
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (asByteArray)
         {
             for (int i = offset; i < count; i++)
@@ -169,34 +169,35 @@ public class FooString
                 {
                     sb.append('-');
                 }
-                sb.append(hexChars[((bytes[i]) & 0x000000f0) >> 4]);
-                sb.append(hexChars[((bytes[i]) & 0x0000000f)]);
+                sb.append(HEX_CHARS[((bytes[i]) & 0x000000f0) >> 4]);
+                sb.append(HEX_CHARS[((bytes[i]) & 0x0000000f)]);
             }
         }
         else
         {
             for (int i = count - 1; i >= 0; i--)
             {
-                sb.append(hexChars[((bytes[i]) & 0x000000f0) >> 4]);
-                sb.append(hexChars[((bytes[i]) & 0x0000000f)]);
+                sb.append(HEX_CHARS[((bytes[i]) & 0x000000f0) >> 4]);
+                sb.append(HEX_CHARS[((bytes[i]) & 0x0000000f)]);
             }
         }
+
         return sb.toString();
     }
 
     public static String toHexString(short value, int maxBytes)
     {
-        return toHexString(FooMemoryStream.getBytes(value), 0, maxBytes, false);
+        return toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false);
     }
 
     public static String toHexString(int value, int maxBytes)
     {
-        return toHexString(FooMemoryStream.getBytes(value), 0, maxBytes, false);
+        return toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false);
     }
 
     public static String toHexString(long value, int maxBytes)
     {
-        return toHexString(FooMemoryStream.getBytes(value), 0, maxBytes, false);
+        return toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false);
     }
 
     public static String toHexString(String value)
@@ -204,11 +205,27 @@ public class FooString
         return toHexString(value.getBytes());
     }
 
+    public static String toBitString(byte value, int maxBits, int spaceEvery)
+    {
+        FooBitSet bits = new FooBitSet(value);
+        maxBits = Math.max(0, Math.min(maxBits, bits.getLength()));
+        StringBuilder sb = new StringBuilder();
+        for (int i = maxBits - 1; i >= 0; i--)
+        {
+            sb.append(bits.get(i) ? '1' : '0');
+            if ((spaceEvery != 0) && (i > 0) && (i % spaceEvery == 0))
+            {
+                sb.append(' ');
+            }
+        }
+        return sb.toString();
+    }
+
     public static String toBitString(byte[] bytes, int maxBits, int spaceEvery)
     {
         FooBitSet bits = new FooBitSet(bytes);
         maxBits = Math.max(0, Math.min(maxBits, bits.getLength()));
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = maxBits - 1; i >= 0; i--)
         {
             sb.append(bits.get(i) ? '1' : '0');
@@ -222,10 +239,7 @@ public class FooString
 
     public static String toBitString(byte value, int maxBits)
     {
-        return toBitString(new byte[]
-                {
-                        value
-                }, maxBits, 0);
+        return toBitString(value, maxBits, 0);
     }
 
     public static String toBitString(short value, int maxBits)
@@ -235,7 +249,7 @@ public class FooString
 
     public static String toBitString(short value, int maxBits, int spaceEvery)
     {
-        return toBitString(FooMemoryStream.getBytes(value), maxBits, spaceEvery);
+        return toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery);
     }
 
     public static String toBitString(int value, int maxBits)
@@ -245,7 +259,7 @@ public class FooString
 
     public static String toBitString(int value, int maxBits, int spaceEvery)
     {
-        return toBitString(FooMemoryStream.getBytes(value), maxBits, spaceEvery);
+        return toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery);
     }
 
     public static String toBitString(long value, int maxBits)
@@ -255,7 +269,7 @@ public class FooString
 
     public static String toBitString(long value, int maxBits, int spaceEvery)
     {
-        return toBitString(FooMemoryStream.getBytes(value), maxBits, spaceEvery);
+        return toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery);
     }
 
     public static char toChar(boolean value)
@@ -386,7 +400,7 @@ public class FooString
             return "";
         }
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int index = -1;
         int fromIndex = 0;
         int count = 0;
@@ -487,7 +501,7 @@ public class FooString
 
     public static String toString(Object[] items)
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         if (items == null)
         {
@@ -534,7 +548,7 @@ public class FooString
     public static String toFlagString(Vector flags)
     {
         String flag;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append('(');
         for (int i = 0; i < flags.size(); i++)
         {
