@@ -26,7 +26,7 @@ public class FooScreenListener
 
         void onScreenOn();
 
-        void onScreenUnlocked();
+        void onUserUnlocked();
     }
 
     private final FooListenerAutoStartManager<FooScreenListenerCallbacks> mListenerManager;
@@ -67,11 +67,11 @@ public class FooScreenListener
                     }
 
                     @Override
-                    public void onScreenUnlocked()
+                    public void onUserUnlocked()
                     {
                         for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
                         {
-                            callbacks.onScreenUnlocked();
+                            callbacks.onUserUnlocked();
                         }
                         mListenerManager.endTraversing();
                     }
@@ -189,7 +189,7 @@ public class FooScreenListener
                     mCallbacks.onScreenOn();
                     break;
                 case Intent.ACTION_USER_UNLOCKED:
-                    mCallbacks.onScreenUnlocked();
+                    mCallbacks.onUserUnlocked();
                     break;
             }
         }
