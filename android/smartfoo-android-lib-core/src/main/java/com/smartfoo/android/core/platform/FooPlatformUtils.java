@@ -368,6 +368,33 @@ public class FooPlatformUtils
         return builder.toString();
     }
 
+    public static boolean hasSystemFeature(@NonNull Context context, @NonNullNonEmpty String name)
+    {
+        return FooRun.toNonNull(context, "context")
+                .getPackageManager()
+                .hasSystemFeature(FooRun.toNonNullNonEmpty(name, "name"));
+    }
+
+    public static boolean hasSystemFeatureAutomotive(@NonNull Context context)
+    {
+        return hasSystemFeature(context, PackageManager.FEATURE_AUTOMOTIVE);
+    }
+
+    public static boolean hasSystemFeatureTelephony(@NonNull Context context)
+    {
+        return hasSystemFeature(context, PackageManager.FEATURE_TELEPHONY);
+    }
+
+    public static boolean hasSystemFeatureTelevision(@NonNull Context context)
+    {
+        return hasSystemFeature(context, PackageManager.FEATURE_LEANBACK);
+    }
+
+    public static boolean hasSystemFeatureWatch(@NonNull Context context)
+    {
+        return hasSystemFeature(context, PackageManager.FEATURE_WATCH);
+    }
+
     /*
     public static String getVersionFriendly(Context context)
     {
@@ -834,24 +861,32 @@ public class FooPlatformUtils
         //
         // Logging other info to see if it may still be useful if sent inside the log
         //
-        String id = Build.ID; // ex: "LMY47D"
-        FooLog.d(TAG, "getPlatformInfo:            id=" + FooString.quote(id));
-        String display = Build.DISPLAY; // ex: "LMY47D"
-        FooLog.d(TAG, "getPlatformInfo:       display=" + FooString.quote(display));
-        String product = Build.PRODUCT; // ex: "hammerhead"
-        FooLog.d(TAG, "getPlatformInfo:       product=" + FooString.quote(product));
-        String device = Build.DEVICE; // ex: "hammerhead"
-        FooLog.d(TAG, "getPlatformInfo:        device=" + FooString.quote(device));
-        String board = Build.BOARD; // ex: "hammerhead"
-        FooLog.d(TAG, "getPlatformInfo:         board=" + FooString.quote(board));
-        String brand = Build.BRAND; // ex: "google"
-        FooLog.d(TAG, "getPlatformInfo:         brand=" + FooString.quote(brand));
-        String hardware = Build.HARDWARE; // ex: "hammerhead"
-        FooLog.d(TAG, "getPlatformInfo:      hardware=" + FooString.quote(hardware));
-        String localeDefault = Locale.getDefault().toString();
+        String buildId = Build.ID; // ex: "N2G47E"
+        FooLog.d(TAG, "getPlatformInfo:       buildId=" + FooString.quote(buildId));
+        String buildDisplay = Build.DISPLAY; // ex: "N2G47E"
+        FooLog.d(TAG, "getPlatformInfo:  buildDisplay=" + FooString.quote(buildDisplay));
+        String buildProduct = Build.PRODUCT; // ex: "marlin"
+        FooLog.d(TAG, "getPlatformInfo:  buildProduct=" + FooString.quote(buildProduct));
+        String buildDevice = Build.DEVICE; // ex: "marlin"
+        FooLog.d(TAG, "getPlatformInfo:   buildDevice=" + FooString.quote(buildDevice));
+        String buildBoard = Build.BOARD; // ex: "marlin"
+        FooLog.d(TAG, "getPlatformInfo:    buildBoard=" + FooString.quote(buildBoard));
+        String buildBrand = Build.BRAND; // ex: "google"
+        FooLog.d(TAG, "getPlatformInfo:    buildBrand=" + FooString.quote(buildBrand));
+        String buildHardware = Build.HARDWARE; // ex: "marlin"
+        FooLog.d(TAG, "getPlatformInfo: buildHardware=" + FooString.quote(buildHardware));
+        String buildTags = Build.TAGS; // ex: "release-keys"
+        FooLog.d(TAG, "getPlatformInfo:     buildTags=" + FooString.quote(buildTags));
+        String buildType = Build.TYPE; // ex: "user"
+        FooLog.d(TAG, "getPlatformInfo:     buildType=" + FooString.quote(buildType));
+        String localeDefault = Locale.getDefault().toString(); // ex: "en_US"
         FooLog.d(TAG, "getPlatformInfo: localeDefault=" + FooString.quote(localeDefault));
-        String orientation = FooRes.orientationToString(FooRes.getOrientation(context));
-        FooLog.d(TAG, "getPlatformInfo: orientation=" + orientation);
+        String orientation = FooRes.orientationToString(FooRes.getOrientation(context)); // ex: ORIENTATION_PORTRAIT(1)
+        FooLog.d(TAG, "getPlatformInfo:   orientation=" + FooString.quote(orientation));
+        FooLog.d(TAG, "getPlatformInfo: hasAutomotive=" + hasSystemFeatureAutomotive(context));
+        FooLog.d(TAG, "getPlatformInfo:  hasTelephony=" + hasSystemFeatureTelephony(context));
+        FooLog.d(TAG, "getPlatformInfo: hasTelevision=" + hasSystemFeatureTelevision(context));
+        FooLog.d(TAG, "getPlatformInfo:      hasWatch=" + hasSystemFeatureWatch(context));
 
         Map<String, String> platformInfo = new LinkedHashMap<>();
         platformInfo.put("Package", packageName);

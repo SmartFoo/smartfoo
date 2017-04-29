@@ -80,7 +80,7 @@ public class FooCellularStateListener
     public void start(FooCellularHookStateCallbacks callbacksHookState,
                       FooCellularDataConnectionCallbacks callbacksDataConnection)
     {
-        FooLog.i(TAG, "+start(...)");
+        FooLog.v(TAG, "+start(...)");
         synchronized (mSyncLock)
         {
             int events = PhoneStateListener.LISTEN_NONE;
@@ -95,47 +95,41 @@ public class FooCellularStateListener
                 events |= PhoneStateListener.LISTEN_DATA_CONNECTION_STATE;
             }
 
-            if (events == PhoneStateListener.LISTEN_NONE)
+            if (events != PhoneStateListener.LISTEN_NONE)
             {
-                return;
+                if (!mIsStarted)
+                {
+                    mIsStarted = true;
+
+                    mCallbacksHookState = callbacksHookState;
+                    mCallbacksDataConnection = callbacksDataConnection;
+
+                    mHookState = HookState.Unknown;
+                    int callState = getCallState();
+                    updateHookState(callState);
+
+                    mTelephonyManager.listen(this, events);
+                }
             }
-
-            if (mIsStarted)
-            {
-                return;
-            }
-
-            mIsStarted = true;
-
-            mCallbacksHookState = callbacksHookState;
-            mCallbacksDataConnection = callbacksDataConnection;
-
-            mHookState = HookState.Unknown;
-            int callState = getCallState();
-            updateHookState(callState);
-
-            mTelephonyManager.listen(this, events);
         }
-        FooLog.i(TAG, "-start(...)");
+        FooLog.v(TAG, "-start(...)");
     }
 
     public void stop()
     {
-        FooLog.i(TAG, "+stop()");
+        FooLog.v(TAG, "+stop()");
         synchronized (mSyncLock)
         {
-            if (!mIsStarted)
+            if (mIsStarted)
             {
-                return;
+                mIsStarted = false;
+
+                mTelephonyManager.listen(this, PhoneStateListener.LISTEN_NONE);
+
+                mHookState = HookState.Unknown;
             }
-
-            mIsStarted = false;
-
-            mTelephonyManager.listen(this, PhoneStateListener.LISTEN_NONE);
-
-            mHookState = HookState.Unknown;
         }
-        FooLog.i(TAG, "-stop()");
+        FooLog.v(TAG, "-stop()");
     }
 
     public enum HookState
@@ -227,8 +221,10 @@ public class FooCellularStateListener
     @Override
     public void onCallStateChanged(int callState, String incomingNumber)
     {
-        FooLog.i(TAG, "onCallStateChanged(callState=" + getCallStateName(callState)
-                      + ", incomingNumber=" + FooString.quote(incomingNumber) + ')');
+        FooLog.i(TAG,
+                "onCallStateChanged(callState=" + getCallStateName(callState)
+                + ", incomingNumber=" + FooString.quote(incomingNumber) +
+                ')');
 
         if (!updateHookState(callState))
         {
@@ -249,10 +245,10 @@ public class FooCellularStateListener
     @Override
     public void onDataConnectionStateChanged(int dataConnectionState, int dataNetworkType)
     {
-        FooLog.w(TAG, "onDataConnectionStateChanged: dataConnectionState="
-                      + getDataConnectionStateName(dataConnectionState));
-        FooLog.w(TAG, "onDataConnectionStateChanged: dataNetworkType="
-                      + getDataNetworkTypeName(dataNetworkType));
+        FooLog.i(TAG,
+                "onDataConnectionStateChanged(dataConnectionState=" + getDataConnectionStateName(dataConnectionState) +
+                ", dataNetworkType=" + getDataNetworkTypeName(dataNetworkType) +
+                ')');
 
         switch (dataConnectionState)
         {

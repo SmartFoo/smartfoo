@@ -1,11 +1,14 @@
 package com.smartfoo.android.core.platform;
 
+import android.annotation.SuppressLint;
+import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build.VERSION;
 import android.os.PowerManager;
+import android.os.UserManager;
 import android.support.annotation.NonNull;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
@@ -22,11 +25,15 @@ public class FooScreenListener
         void onScreenOff();
 
         void onScreenOn();
+
+        void onScreenUnlocked();
     }
 
     private final FooListenerAutoStartManager<FooScreenListenerCallbacks> mListenerManager;
     private final FooScreenBroadcastReceiver                              mScreenBroadcastReceiver;
     private final PowerManager                                            mPowerManager;
+    private final KeyguardManager                                         mKeyguardManager;
+    private final UserManager                                             mUserManager;
 
     public FooScreenListener(@NonNull Context context)
     {
@@ -58,6 +65,16 @@ public class FooScreenListener
                         }
                         mListenerManager.endTraversing();
                     }
+
+                    @Override
+                    public void onScreenUnlocked()
+                    {
+                        for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onScreenUnlocked();
+                        }
+                        mListenerManager.endTraversing();
+                    }
                 });
             }
 
@@ -70,12 +87,21 @@ public class FooScreenListener
         });
         mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     public boolean isScreenOn()
     {
         //noinspection deprecation
         return VERSION.SDK_INT >= 20 ? mPowerManager.isInteractive() : mPowerManager.isScreenOn();
+    }
+
+    public boolean isScreenUnlocked()
+    {
+        boolean isUserUnlocked = mUserManager.isUserUnlocked();
+        return isUserUnlocked;
     }
 
     public void attach(FooScreenListenerCallbacks callbacks)
@@ -160,6 +186,9 @@ public class FooScreenListener
                     break;
                 case Intent.ACTION_SCREEN_ON:
                     mCallbacks.onScreenOn();
+                    break;
+                case Intent.ACTION_USER_UNLOCKED:
+                    mCallbacks.onScreenUnlocked();
                     break;
             }
         }
