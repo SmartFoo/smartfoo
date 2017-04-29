@@ -98,9 +98,10 @@ public class FooScreenListener
         return VERSION.SDK_INT >= 20 ? mPowerManager.isInteractive() : mPowerManager.isScreenOn();
     }
 
-    public boolean isScreenUnlocked()
+    public boolean isUserUnlocked()
     {
         boolean isUserUnlocked = mUserManager.isUserUnlocked();
+        FooLog.e(TAG, "isUserUnlocked: isUserUnlocked == " + isUserUnlocked);
         return isUserUnlocked;
     }
 
