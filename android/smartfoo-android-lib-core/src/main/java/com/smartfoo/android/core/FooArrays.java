@@ -17,7 +17,7 @@ public class FooArrays
 
     public static boolean equals(byte[] a, byte[] b)
     {
-        return java.util.Arrays.equals(a, b);
+        return Arrays.equals(a, b);
     }
 
     public static void copy(byte[] source, int sourceOffset, byte[] destination, int destinationOffset, int count)

@@ -5,6 +5,7 @@ import android.speech.tts.TextToSpeech;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.collections.FooCollections;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -55,6 +56,13 @@ public class FooTextToSpeechBuilder
         {
             return "mText=" + FooString.quote(mText);
         }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            return obj instanceof FooTextToSpeechPartSpeech &&
+                   FooString.equals(mText, ((FooTextToSpeechPartSpeech) obj).mText);
+        }
     }
 
     public static class FooTextToSpeechPartSilence
@@ -72,6 +80,13 @@ public class FooTextToSpeechBuilder
         public String toString()
         {
             return "mSilenceDurationMillis=" + mSilenceDurationMillis;
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            return obj instanceof FooTextToSpeechPartSilence &&
+                   mSilenceDurationMillis == ((FooTextToSpeechPartSilence) obj).mSilenceDurationMillis;
         }
     }
 
@@ -106,6 +121,12 @@ public class FooTextToSpeechBuilder
         appendSpeech(text);
     }
 
+    public FooTextToSpeechBuilder(FooTextToSpeechBuilder builder)
+    {
+        this(builder != null ? builder.mContext : null, null);
+        append(builder);
+    }
+
     @Override
     public String toString()
     {
@@ -122,6 +143,13 @@ public class FooTextToSpeechBuilder
         }
         sb.append(']');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return obj instanceof FooTextToSpeechBuilder &&
+               FooCollections.identical(mParts, ((FooTextToSpeechBuilder) obj).mParts);
     }
 
     public boolean isEmpty()

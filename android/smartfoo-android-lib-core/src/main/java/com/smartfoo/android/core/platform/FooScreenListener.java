@@ -1,15 +1,15 @@
 package com.smartfoo.android.core.platform;
 
-import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build.VERSION;
+import android.hardware.display.DisplayManager;
 import android.os.PowerManager;
 import android.os.UserManager;
 import android.support.annotation.NonNull;
+import android.view.Display;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
 import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
@@ -91,11 +91,9 @@ public class FooScreenListener
         mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
     }
 
-    @SuppressLint("ObsoleteSdkInt")
     public boolean isScreenOn()
     {
-        //noinspection deprecation
-        return VERSION.SDK_INT >= 20 ? mPowerManager.isInteractive() : mPowerManager.isScreenOn();
+        return mScreenBroadcastReceiver.isScreenOn();
     }
 
     public boolean isUserUnlocked()
@@ -120,16 +118,32 @@ public class FooScreenListener
     {
         private static final String TAG = FooLog.TAG(FooScreenBroadcastReceiver.class);
 
-        private final Context mContext;
-        private final Object  mSyncLock;
+        private final Context        mContext;
+        private final Object         mSyncLock;
+        private final DisplayManager mDisplayManager;
 
         private boolean                    mIsStarted;
         private FooScreenListenerCallbacks mCallbacks;
 
-        public FooScreenBroadcastReceiver(@NonNull Context context)
+        private FooScreenBroadcastReceiver(@NonNull Context context)
         {
             mContext = context;
             mSyncLock = new Object();
+            mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+        }
+
+        public boolean isScreenOn()
+        {
+            boolean isScreenOn = false;
+            for (Display display : mDisplayManager.getDisplays())
+            {
+                if (display.getState() != Display.STATE_OFF)
+                {
+                    isScreenOn = true;
+                    break;
+                }
+            }
+            return isScreenOn;
         }
 
         public boolean isStarted()
@@ -183,11 +197,19 @@ public class FooScreenListener
             switch (action)
             {
                 case Intent.ACTION_SCREEN_OFF:
-                    mCallbacks.onScreenOff();
+                    if (!isScreenOn())
+                    {
+                        mCallbacks.onScreenOff();
+                    }
                     break;
                 case Intent.ACTION_SCREEN_ON:
-                    mCallbacks.onScreenOn();
+                {
+                    if (isScreenOn())
+                    {
+                        mCallbacks.onScreenOn();
+                    }
                     break;
+                }
                 case Intent.ACTION_USER_UNLOCKED:
                     mCallbacks.onUserUnlocked();
                     break;
