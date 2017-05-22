@@ -144,7 +144,7 @@ public class FooBluetoothAudioConnectionListener
             @Override
             public void onServiceConnected(int profileId, BluetoothProfile proxy)
             {
-                FooLog.e(TAG, "onServiceConnected(profileId=" + profileId + ", proxy=" + proxy + ')');
+                //FooLog.v(TAG, "onServiceConnected(profileId=" + profileId + ", proxy=" + proxy + ')');
 
                 for (BluetoothDevice bluetoothDevice : proxy.getConnectedDevices())
                 {
@@ -157,7 +157,7 @@ public class FooBluetoothAudioConnectionListener
             @Override
             public void onServiceDisconnected(int profileId)
             {
-                FooLog.e(TAG, "onServiceDisconnected(profileId=" + profileId + ')');
+                //FooLog.v(TAG, "onServiceDisconnected(profileId=" + profileId + ')');
             }
         }
 

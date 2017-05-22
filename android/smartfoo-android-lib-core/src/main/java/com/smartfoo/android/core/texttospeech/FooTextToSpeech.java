@@ -104,6 +104,8 @@ public class FooTextToSpeech
     private boolean      mIsInitialized;
     private int          mNextUtteranceId;
     private String       mVoiceName;
+    private float        mVoiceSpeed;
+    private float        mVoicePitch;
     private int          mAudioStreamType;
     private float        mVolumeRelativeToAudioStream;
 
@@ -139,6 +141,8 @@ public class FooTextToSpeech
             }
         };
 
+        mVoiceSpeed = 2.0f;
+        mVoicePitch = 1.0f;
         mAudioStreamType = TextToSpeech.Engine.DEFAULT_STREAM;
         mVolumeRelativeToAudioStream = 1.0f;
 
@@ -232,6 +236,38 @@ public class FooTextToSpeech
         }
 
         return changed;
+    }
+
+    public float getVoiceSpeed()
+    {
+        return mVoiceSpeed;
+    }
+
+    /**
+     * @param voiceSpeed Speech rate. {@code 1.0} is the normal speech rate,
+     *                   lower values slow down the speech ({@code 0.5} is half the normal speech rate),
+     *                   greater values accelerate it ({@code 2.0} is twice the normal speech rate).
+     */
+    public void setVoiceSpeed(float voiceSpeed)
+    {
+        mVoiceSpeed = voiceSpeed;
+        mTextToSpeech.setSpeechRate(voiceSpeed);
+    }
+
+    public float getVoicePitch()
+    {
+        return mVoicePitch;
+    }
+
+    /**
+     * @param voicePitch Speech pitch. {@code 1.0} is the normal pitch,
+     *                   lower values lower the tone of the synthesized voice,
+     *                   greater values increase it.
+     */
+    public void setVoicePitch(float voicePitch)
+    {
+        mVoicePitch = voicePitch;
+        mTextToSpeech.setPitch(voicePitch);
     }
 
     public int getAudioStreamType()
@@ -383,6 +419,8 @@ public class FooTextToSpeech
                 else
                 {
                     setVoiceName(mVoiceName);
+                    setVoiceSpeed(mVoiceSpeed);
+                    setVoicePitch(mVoicePitch);
 
                     mIsInitialized = true;
                 }
