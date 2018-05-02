@@ -2,30 +2,27 @@
 
 buildscript {
     repositories {
+        google()
         jcenter()
     }
     dependencies {
-        /**
-         * Updates:
-         *  http://developer.android.com/tools/revisions/gradle-plugin.html
-         *  http://tools.android.com/tech-docs/new-build-system
-         */
-        classpath 'com.android.tools.build:gradle:2.3.0' // last checked 2017/03/14
+        classpath 'com.android.tools.build:gradle:3.1.2'
         /**
          * Updates:
          *  https://bintray.com/dcendents/gradle-plugins/com.github.dcendents%3Aandroid-maven-gradle-plugin
          */
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5' // last checked 2017/03/14
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // last checked 2018/05/01
         /**
          * Updates:
          *  https://bintray.com/jfrog/jfrog-jars/gradle-bintray-plugin
          */
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3' // last checked 2017/03/14
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0' // last checked 2018/05/01
     }
 }
 
 allprojects {
     repositories {
+        google()
         jcenter()
     }
 

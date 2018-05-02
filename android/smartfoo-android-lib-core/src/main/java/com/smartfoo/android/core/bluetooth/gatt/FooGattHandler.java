@@ -9,12 +9,14 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
 import com.smartfoo.android.core.BuildConfig;
 import com.smartfoo.android.core.FooListenerManager;
+import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.bluetooth.FooBluetoothUtils;
 import com.smartfoo.android.core.bluetooth.gatt.FooGattHandler.GattHandlerListener.DisconnectReason;
@@ -30,35 +32,60 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-@SuppressWarnings({ "JavaDoc", "unused" })
+@SuppressWarnings({ "JavaDoc", "WeakerAccess", "unused" })
 public class FooGattHandler
 {
     private static final String TAG = FooLog.TAG(FooGattHandler.class);
 
     public static boolean VERBOSE_LOG_CHARACTERISTIC_CHANGE = false;
 
-    public static final long DEFAULT_TIMEOUT_MILLIS            = 10 * 1000;
-    public static final long DEFAULT_DISCONNECT_TIMEOUT_MILLIS = 250;
+    public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS;
 
-    private static long sDefaultTimeoutMillis           = DEFAULT_TIMEOUT_MILLIS;
-    private static long sDefaultDisconnectTimeoutMillis = DEFAULT_DISCONNECT_TIMEOUT_MILLIS;
-
-    public static long getDefaultTimeoutMillis()
+    static
     {
-        return sDefaultTimeoutMillis;
+        if (BuildConfig.DEBUG)
+        {
+            DEFAULT_CONNECT_TIMEOUT_MILLIS = 60 * 1000;
+        }
+        else
+        {
+            DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000;
+        }
     }
 
-    public static void setDefaultTimeoutMillis(long timeoutMillis)
+    public static final int DEFAULT_OPERATION_TIMEOUT_MILLIS  = 5 * 1000;
+    public static final int DEFAULT_DISCONNECT_TIMEOUT_MILLIS = 250;
+
+    private static int sDefaultConnectTimeoutMillis    = DEFAULT_CONNECT_TIMEOUT_MILLIS;
+    private static int sDefaultOperationTimeoutMillis  = DEFAULT_OPERATION_TIMEOUT_MILLIS;
+    private static int sDefaultDisconnectTimeoutMillis = DEFAULT_DISCONNECT_TIMEOUT_MILLIS;
+
+    public static int getDefaultConnectTimeoutMillis()
     {
-        sDefaultTimeoutMillis = timeoutMillis;
+        return sDefaultConnectTimeoutMillis;
     }
 
-    public static long getDefaultDisconnectTimeoutMillis()
+    public static void setDefaultConnectTimeoutMillis(int timeoutMillis)
+    {
+        sDefaultConnectTimeoutMillis = timeoutMillis;
+    }
+
+    public static int getDefaultOperationTimeoutMillis()
+    {
+        return sDefaultOperationTimeoutMillis;
+    }
+
+    public static void setDefaultOperationTimeoutMillis(int timeoutMillis)
+    {
+        sDefaultOperationTimeoutMillis = timeoutMillis;
+    }
+
+    public static int getDefaultDisconnectTimeoutMillis()
     {
         return sDefaultDisconnectTimeoutMillis;
     }
 
-    public static void setDefaultDisconnectTimeoutMillis(long timeoutMillis)
+    public static void setDefaultDisconnectTimeoutMillis(int timeoutMillis)
     {
         sDefaultDisconnectTimeoutMillis = timeoutMillis;
     }
@@ -96,12 +123,14 @@ public class FooGattHandler
             return false;
         }
 
-        public void onDeviceConnecting(FooGattHandler gattHandler)
+        public boolean onDeviceConnecting(FooGattHandler gattHandler)
         {
+            return false;
         }
 
-        public void onDeviceConnected(FooGattHandler gattHandler, long elapsedMillis)
+        public boolean onDeviceConnected(FooGattHandler gattHandler, long elapsedMillis)
         {
+            return false;
         }
 
         public enum DisconnectReason
@@ -123,28 +152,34 @@ public class FooGattHandler
         {
         }
 
-        public void onDeviceServicesDiscovered(FooGattHandler gattHandler, List<BluetoothGattService> services, boolean success, long elapsedMillis)
+        public boolean onDeviceServicesDiscovered(FooGattHandler gattHandler, List<BluetoothGattService> services, boolean success, long elapsedMillis)
         {
+            return false;
         }
 
-        public void onDeviceCharacteristicRead(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
+        public boolean onDeviceCharacteristicRead(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
         {
+            return false;
         }
 
-        public void onDeviceCharacteristicWrite(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
+        public boolean onDeviceCharacteristicWrite(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
         {
+            return false;
         }
 
-        public void onDeviceCharacteristicSetNotification(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
+        public boolean onDeviceCharacteristicSetNotification(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
         {
+            return false;
         }
 
-        public void onDeviceCharacteristicChanged(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic)
+        public boolean onDeviceCharacteristicChanged(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic)
         {
+            return false;
         }
 
-        public void onDeviceReadRemoteRssi(FooGattHandler gattHandler, int rssi, boolean success, long elapsedMillis)
+        public boolean onDeviceReadRemoteRssi(FooGattHandler gattHandler, int rssi, boolean success, long elapsedMillis)
         {
+            return false;
         }
     }
 
@@ -185,11 +220,7 @@ public class FooGattHandler
     //package
     FooGattHandler(FooGattManager gattManager, long deviceAddress)
     {
-        if (gattManager == null)
-        {
-            throw new IllegalArgumentException("gattManager must not be null");
-        }
-
+        FooRun.throwIllegalArgumentExceptionIfNull(gattManager, "gattManager");
         FooGattUtils.throwExceptionIfInvalidBluetoothAddress(deviceAddress);
 
         mGattManager = gattManager;
@@ -277,6 +308,7 @@ public class FooGattHandler
         return mBluetoothAdapter;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isBluetoothAdapterEnabled(String callerName)
     {
         if (mBluetoothAdapter == null)
@@ -339,7 +371,17 @@ public class FooGattHandler
         return mHandlerBackground.getLooper() == Looper.myLooper();
     }
 
-    private boolean isConnectingOrConnectedAndNotDisconnecting(String callerName)
+    public boolean isConnectingOrConnectedAndNotDisconnecting(String callerName)
+    {
+        return internalIsConnectingOrConnectedAndNotDisconnecting(callerName, null);
+    }
+
+    private boolean ignoreIfIsConnectingOrConnectedAndNotDisconnecting(String callerName)
+    {
+        return internalIsConnectingOrConnectedAndNotDisconnecting(callerName, "ignoring");
+    }
+
+    private boolean internalIsConnectingOrConnectedAndNotDisconnecting(String callerName, String logSuffixIfTrue)
     {
         //FooLog.e(TAG, "isConnectingOrConnectedAndNotDisconnecting(callerName=" + callerName + ')');
         if (getBluetoothGatt(true) == null)
@@ -347,11 +389,22 @@ public class FooGattHandler
             return false;
         }
 
-        FooLog.w(TAG, logPrefix(callerName + ": isConnectingOrConnectedAndNotDisconnecting(...) == true; ignoring"));
+        FooLog.w(TAG, logPrefix(callerName + ": isConnectingOrConnectedAndNotDisconnecting(...) == true" +
+                                (FooString.isNullOrEmpty(logSuffixIfTrue) ? "" : "; " + logSuffixIfTrue)));
         return true;
     }
 
-    private boolean isDisconnectingOrDisconnected(String callerName)
+    public boolean isDisconnectingOrDisconnected(String callerName)
+    {
+        return internalIsDisconnectingOrDisconnected(callerName, null);
+    }
+
+    public boolean ignoreIfIsDisconnectingOrDisconnected(String callerName)
+    {
+        return internalIsDisconnectingOrDisconnected(callerName, "ignoring");
+    }
+
+    private boolean internalIsDisconnectingOrDisconnected(String callerName, String logSuffixIfTrue)
     {
         //FooLog.e(TAG, "isConnectingOrConnectedAndNotDisconnecting(callerName=" + callerName + ')');
         if (getBluetoothGatt(false) != null)
@@ -359,8 +412,19 @@ public class FooGattHandler
             return false;
         }
 
-        FooLog.w(TAG, logPrefix(callerName + ": isDisconnectingOrDisconnected(...) == true; ignoring"));
+        FooLog.w(TAG, logPrefix(callerName + ": isDisconnectingOrDisconnected(...) == true" +
+                                (FooString.isNullOrEmpty(logSuffixIfTrue) ? "" : "; " + logSuffixIfTrue)));
         return true;
+    }
+
+    public boolean isDisconnecting()
+    {
+        return mIsSolicitedDisconnecting;
+    }
+
+    public boolean isDisconnected()
+    {
+        return getBluetoothGatt(false) == null;
     }
 
     private BluetoothGatt getBluetoothGatt(boolean onlyIfConnectingOrConnectedAndNotDisconnecting)
@@ -442,50 +506,61 @@ public class FooGattHandler
      */
     public boolean connect()
     {
-        return connect(sDefaultTimeoutMillis);
+        return connect(sDefaultConnectTimeoutMillis, null);
     }
 
     /**
      * @param timeoutMillis timeoutMillis
      * @return true if the connect request was enqueued, otherwise false
      */
-    public boolean connect(long timeoutMillis)
+    public boolean connect(Runnable runAfterConnect)
     {
-        return connect(false, timeoutMillis);
+        return connect(sDefaultConnectTimeoutMillis, runAfterConnect);
     }
 
     /**
      * @param autoConnect autoConnect
      * @return true if the connect request was enqueued, otherwise false
      */
-    public boolean connect(boolean autoConnect)
+    public boolean connect(long timeoutMillis, Runnable runAfterConnect)
     {
-        return connect(autoConnect, sDefaultTimeoutMillis);
+        return connect(false, timeoutMillis, runAfterConnect);
     }
 
     /**
      * @param autoConnect   autoConnect
-     * @param timeoutMillis timeoutMillis
+     * @return true if the connect request was enqueued, otherwise false
+     */
+    public boolean connect(boolean autoConnect, Runnable runAfterConnect)
+    {
+        return connect(autoConnect, sDefaultConnectTimeoutMillis, runAfterConnect);
+    }
+
+    /**
+     * @param autoConnect
+     * @param timeoutMillis
+     * @param runAfterConnect
      * @return true if already connected and *NOT* disconnecting, or the connect request was enqueued, otherwise false
      */
-    public boolean connect(final boolean autoConnect, final long timeoutMillis)
+    public boolean connect(final boolean autoConnect, final long timeoutMillis, final Runnable runAfterConnect)
     {
         FooLog.i(TAG, logPrefix("connect(autoConnect=" + autoConnect +
-                                ", timeoutMillis=" + timeoutMillis + ')'));
+                                ", timeoutMillis=" + timeoutMillis +
+                                ", runAfterConnect=" + runAfterConnect + ')'));
 
         if (!isBluetoothAdapterEnabled("connect"))
         {
             return false;
         }
 
-        if (isConnectingOrConnectedAndNotDisconnecting("connect"))
+        if (ignoreIfIsConnectingOrConnectedAndNotDisconnecting("connect"))
         {
             return false;
         }
 
-        final GattOperation operation = GattOperation.Connect;
+        final GattOperation operation = GattOperation.DiscoverServices;
 
-        final long startTimeMillis = timerStart(operation);
+        final long startTimeMillis = timerStart(GattOperation.Connect);
 
         mHandlerBackground.post(new Runnable()
         {
@@ -496,7 +571,7 @@ public class FooGattHandler
                     FooLog.v(TAG, logPrefix("+connect.run(): autoConnect=" + autoConnect +
                                             ", timeoutMillis=" + timeoutMillis));
 
-                    if (isConnectingOrConnectedAndNotDisconnecting("connect.run"))
+                    if (ignoreIfIsConnectingOrConnectedAndNotDisconnecting("connect.run"))
                     {
                         return;
                     }
@@ -515,9 +590,34 @@ public class FooGattHandler
 
                     synchronized (mGattManager)
                     {
+                        //
+                        // NOTE:(pv) mBluetoothGatt is only set here and in #onDeviceDisconnected
+                        //
                         FooLog.v(TAG, logPrefix("connect.run: +bluetoothDevice.connectGatt(...)"));
-                        // Only set here and in #onDeviceDisconnected
-                        mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback);
+                        if (Build.VERSION.SDK_INT >= 23)
+                        {
+                            int transport = BluetoothDevice.TRANSPORT_LE;
+
+                            if (false && Build.VERSION.SDK_INT >= 26)
+                            {
+                                int phy = 0;
+                                if (!autoConnect)
+                                {
+                                    phy |= BluetoothDevice.PHY_LE_1M_MASK;
+                                    phy |= BluetoothDevice.PHY_LE_2M_MASK;
+                                    phy |= BluetoothDevice.PHY_LE_CODED_MASK;
+                                }
+                                mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback, transport, phy);
+                            }
+                            else
+                            {
+                                mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback, transport);
+                            }
+                        }
+                        else
+                        {
+                            mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback);
+                        }
                         FooLog.v(TAG, logPrefix("connect.run: -bluetoothDevice.connectGatt(...) returned " +
                                                 mBluetoothGatt));
                     }
@@ -529,7 +629,15 @@ public class FooGattHandler
                     }
                     else
                     {
-                        pendingOperationWait(operation, timeoutMillis);
+                        if (!pendingOperationWait(operation, timeoutMillis))
+                        {
+                            return;
+                        }
+
+                        if (runAfterConnect != null)
+                        {
+                            runAfterConnect.run();
+                        }
                     }
                 }
                 finally
@@ -543,6 +651,7 @@ public class FooGattHandler
         return true;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean disconnect()
     {
         return disconnect(sDefaultDisconnectTimeoutMillis);
@@ -663,10 +772,17 @@ public class FooGattHandler
                 @Override
                 public void run()
                 {
+                    if (mBluetoothGatt != null)
+                    {
+                        FooLog.w(TAG, logPrefix("onDeviceDisconnected: mBluetoothGatt != null; ignoring"));
+                        return;
+                    }
+
                     FooLog.d(TAG, logPrefix("onDeviceDisconnected: +deviceListener(s).onDeviceDisconnected"));
                     for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                     {
                         mListenerManager.detach(deviceListener);
+                        // TODO:(pv) consider return value here?
                         deviceListener.onDeviceDisconnected(FooGattHandler.this,
                                 status,
                                 reason,
@@ -748,6 +864,7 @@ public class FooGattHandler
         //noinspection ConstantConditions
         if (BuildConfig.DEBUG && DEBUG_FAKE_STATUS_ERROR != BluetoothGatt.GATT_SUCCESS)
         {
+            //noinspection UnusedAssignment
             status = DEBUG_FAKE_STATUS_ERROR;
             FooLog.e(TAG, logPrefix("onConnectionStateChange: ***FAKE*** STATUS " + status + " ERROR"));
         }
@@ -767,7 +884,7 @@ public class FooGattHandler
 
             if (!gatt.discoverServices())
             {
-                FooLog.e(TAG, logPrefix("onConnectionStateChange: gatt.discoverServices() failed; disconnecting…"));
+                FooLog.e(TAG, logPrefix("onConnectionStateChange: gatt.discoverServices() failed; disconnecting..."));
                 disconnect = true;
             }
             else
@@ -784,7 +901,7 @@ public class FooGattHandler
             {
                 FooLog.e(TAG, logPrefix("onConnectionStateChange: UNEXPECTED newState=" + newStateString +
                                         ", status=" + status +
-                                        "; disconnecting…"));
+                                        "; disconnecting..."));
             }
         }
 
@@ -838,11 +955,18 @@ public class FooGattHandler
             @Override
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceConnecting(FooGattHandler.this);
+                    disconnect |= deviceListener.onDeviceConnecting(FooGattHandler.this);
                 }
                 mListenerManager.endTraversing();
+
+                if (disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -856,12 +980,19 @@ public class FooGattHandler
             @Override
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceConnected(FooGattHandler.this,
+                    disconnect |= deviceListener.onDeviceConnected(FooGattHandler.this,
                             elapsedMillis);
                 }
                 mListenerManager.endTraversing();
+
+                if (disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -894,20 +1025,46 @@ public class FooGattHandler
                                               final boolean success,
                                               final long elapsedMillis)
     {
-        pendingOperationWaitSignal();
+        if (!pendingOperationWaitSignal())
+        {
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            return;
+        }
+
+        //noinspection PointlessBooleanExpression
+        if (false && BuildConfig.DEBUG)
+        {
+            for (BluetoothGattService service : services)
+            {
+                FooLog.v(TAG, logPrefix("onDeviceServicesDiscovered: service=" +
+                                        FooBluetoothUtils.getDescription(service)));
+                for (BluetoothGattCharacteristic characteristic : service.getCharacteristics())
+                {
+                    FooLog.v(TAG, logPrefix("onDeviceServicesDiscovered:     characteristic=" +
+                                            FooBluetoothUtils.getDescription(characteristic)));
+                }
+            }
+        }
 
         mHandlerMain.post(new Runnable()
         {
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceServicesDiscovered(FooGattHandler.this,
+                    disconnect |= deviceListener.onDeviceServicesDiscovered(FooGattHandler.this,
                             services,
                             success,
                             elapsedMillis);
                 }
                 mListenerManager.endTraversing();
+
+                if (!success || disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -916,34 +1073,36 @@ public class FooGattHandler
     //
     //
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicRead(UUID serviceUuid, UUID characteristicUuid)
     {
-        return characteristicRead(serviceUuid, characteristicUuid, sDefaultTimeoutMillis);
+        return characteristicRead(serviceUuid, characteristicUuid, sDefaultOperationTimeoutMillis, null);
+    }
+
+    public boolean characteristicRead(UUID serviceUuid, UUID characteristicUuid, Runnable runAfterSuccess)
+    {
+        return characteristicRead(serviceUuid, characteristicUuid, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
     public boolean characteristicRead(final UUID serviceUuid, final UUID characteristicUuid,
-                                      final long timeoutMillis)
+                                      final long timeoutMillis,
+                                      final Runnable runAfterSuccess)
     {
         FooLog.i(TAG, logPrefix("characteristicRead(serviceUuid=" + serviceUuid +
                                 ", characteristicUuid=" + characteristicUuid +
-                                ", timeoutMillis=" + timeoutMillis + ')'));
+                                ", timeoutMillis=" + timeoutMillis +
+                                ", runAfterSuccess=" + runAfterSuccess + ')'));
 
-        if (serviceUuid == null)
-        {
-            throw new IllegalArgumentException("serviceUuid must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(serviceUuid, "serviceUuid");
 
-        if (characteristicUuid == null)
-        {
-            throw new IllegalArgumentException("characteristicUuid must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(characteristicUuid, "characteristicUuid");
 
         if (!isBluetoothAdapterEnabled("characteristicRead"))
         {
             return false;
         }
 
-        if (isDisconnectingOrDisconnected("characteristicRead"))
+        if (ignoreIfIsDisconnectingOrDisconnected("characteristicRead"))
         {
             return false;
         }
@@ -998,7 +1157,15 @@ public class FooGattHandler
                         return;
                     }
 
-                    pendingOperationWait(operation, timeoutMillis);
+                    if (!pendingOperationWait(operation, timeoutMillis))
+                    {
+                        return;
+                    }
+
+                    if (runAfterSuccess != null)
+                    {
+                        mHandlerMain.post(runAfterSuccess);
+                    }
                 }
                 finally
                 {
@@ -1026,7 +1193,7 @@ public class FooGattHandler
     }
 
     private void onDeviceCharacteristicRead(UUID serviceUuid, UUID characteristicUuid,
-                                            boolean success)
+                                            @SuppressWarnings("SameParameterValue") boolean success)
     {
         BluetoothGattCharacteristic characteristic = FooGattUtils.createBluetoothGattCharacteristic(serviceUuid, characteristicUuid);
         onDeviceCharacteristicRead(characteristic, success);
@@ -1035,7 +1202,11 @@ public class FooGattHandler
     private void onDeviceCharacteristicRead(final BluetoothGattCharacteristic characteristic,
                                             final boolean success)
     {
-        pendingOperationWaitSignal();
+        if (!pendingOperationWaitSignal())
+        {
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            return;
+        }
 
         final long elapsedMillis = timerElapsed(GattOperation.CharacteristicRead, true);
 
@@ -1043,14 +1214,21 @@ public class FooGattHandler
         {
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceCharacteristicRead(FooGattHandler.this,
+                    disconnect |= deviceListener.onDeviceCharacteristicRead(FooGattHandler.this,
                             characteristic,
                             success,
                             elapsedMillis);
                 }
                 mListenerManager.endTraversing();
+
+                if (!success || disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -1084,7 +1262,14 @@ public class FooGattHandler
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, null);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       String value,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, runAfterSuccess);
     }
 
     /**
@@ -1098,7 +1283,15 @@ public class FooGattHandler
                                        String value,
                                        CharacteristicWriteType characteristicWriteType)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultTimeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       String value,
+                                       @SuppressWarnings("SameParameterValue") CharacteristicWriteType characteristicWriteType,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1112,7 +1305,15 @@ public class FooGattHandler
                                        String value,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       String value,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1128,7 +1329,16 @@ public class FooGattHandler
                                        CharacteristicWriteType characteristicWriteType,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value), characteristicWriteType, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value), characteristicWriteType, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       String value,
+                                       CharacteristicWriteType characteristicWriteType,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value), characteristicWriteType, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1139,10 +1349,18 @@ public class FooGattHandler
      * @param offset             offset
      * @return true if the request was enqueued, otherwise false
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
-                                       int value, int formatType, int offset)
+                                       int value, int formatType, @SuppressWarnings("SameParameterValue") int offset)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int value, int formatType, @SuppressWarnings("SameParameterValue") int offset,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, runAfterSuccess);
     }
 
     /**
@@ -1158,7 +1376,15 @@ public class FooGattHandler
                                        int value, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, characteristicWriteType, sDefaultTimeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int value, int formatType, int offset,
+                                       @SuppressWarnings("SameParameterValue") CharacteristicWriteType characteristicWriteType,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1174,7 +1400,15 @@ public class FooGattHandler
                                        int value, int formatType, int offset,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int value, int formatType, int offset,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1192,7 +1426,16 @@ public class FooGattHandler
                                        CharacteristicWriteType characteristicWriteType,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value, formatType, offset), characteristicWriteType, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value, formatType, offset), characteristicWriteType, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int value, int formatType, int offset,
+                                       CharacteristicWriteType characteristicWriteType,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value, formatType, offset), characteristicWriteType, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1207,7 +1450,14 @@ public class FooGattHandler
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null);
+        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int mantissa, int exponent, int formatType, int offset,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, runAfterSuccess);
     }
 
     /**
@@ -1224,7 +1474,15 @@ public class FooGattHandler
                                        int mantissa, int exponent, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, characteristicWriteType, sDefaultTimeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int mantissa, int exponent, int formatType, int offset,
+                                       @SuppressWarnings("SameParameterValue") CharacteristicWriteType characteristicWriteType,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1241,7 +1499,15 @@ public class FooGattHandler
                                        int mantissa, int exponent, int formatType, int offset,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int mantissa, int exponent, int formatType, int offset,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1260,7 +1526,16 @@ public class FooGattHandler
                                        CharacteristicWriteType characteristicWriteType,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(mantissa, exponent, formatType, offset), characteristicWriteType, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(mantissa, exponent, formatType, offset), characteristicWriteType, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       int mantissa, int exponent, int formatType, int offset,
+                                       CharacteristicWriteType characteristicWriteType,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(mantissa, exponent, formatType, offset), characteristicWriteType, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1272,7 +1547,14 @@ public class FooGattHandler
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, null);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, (Runnable) null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       byte[] value,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, runAfterSuccess);
     }
 
     /**
@@ -1282,11 +1564,20 @@ public class FooGattHandler
      * @param characteristicWriteType null to ignore
      * @return true if the request was enqueued, otherwise false
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
                                        CharacteristicWriteType characteristicWriteType)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultTimeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       byte[] value,
+                                       CharacteristicWriteType characteristicWriteType,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1300,7 +1591,15 @@ public class FooGattHandler
                                        byte[] value,
                                        long timeoutMillis)
     {
-        return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis);
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
+                                       byte[] value,
+                                       long timeoutMillis,
+                                       Runnable runAfterSuccess)
+    {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, runAfterSuccess);
     }
 
     /**
@@ -1316,33 +1615,34 @@ public class FooGattHandler
                                        final CharacteristicWriteType characteristicWriteType,
                                        final long timeoutMillis)
     {
+        return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, timeoutMillis, null);
+    }
+
+    public boolean characteristicWrite(final UUID serviceUuid, final UUID characteristicUuid,
+                                       final byte[] value,
+                                       final CharacteristicWriteType characteristicWriteType,
+                                       final long timeoutMillis,
+                                       final Runnable runAfterSuccess)
+    {
         FooLog.i(TAG, logPrefix("characteristicWrite(serviceUuid=" + serviceUuid +
                                 ", characteristicUuid=" + characteristicUuid +
                                 ", value=" + Arrays.toString(value) +
                                 ", characteristicWriteType=" + characteristicWriteType +
-                                ", timeoutMillis=" + timeoutMillis + ')'));
+                                ", timeoutMillis=" + timeoutMillis +
+                                ", runAfterSuccess=" + runAfterSuccess + ')'));
 
-        if (serviceUuid == null)
-        {
-            throw new IllegalArgumentException("serviceUuid must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(serviceUuid, "serviceUuid");
 
-        if (characteristicUuid == null)
-        {
-            throw new IllegalArgumentException("characteristicUuid must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(characteristicUuid, "characteristicUuid");
 
-        if (value == null)
-        {
-            throw new IllegalArgumentException("value must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(value, "value");
 
         if (!isBluetoothAdapterEnabled("characteristicWrite"))
         {
             return false;
         }
 
-        if (isDisconnectingOrDisconnected("characteristicWrite"))
+        if (ignoreIfIsDisconnectingOrDisconnected("characteristicWrite"))
         {
             return false;
         }
@@ -1427,7 +1727,15 @@ public class FooGattHandler
                         return;
                     }
 
-                    pendingOperationWait(operation, timeoutMillis);
+                    if (!pendingOperationWait(operation, timeoutMillis))
+                    {
+                        return;
+                    }
+
+                    if (runAfterSuccess != null)
+                    {
+                        mHandlerMain.post(runAfterSuccess);
+                    }
                 }
                 finally
                 {
@@ -1457,7 +1765,7 @@ public class FooGattHandler
     }
 
     private void onDeviceCharacteristicWrite(UUID serviceUuid, UUID characteristicUuid,
-                                             boolean success)
+                                             @SuppressWarnings("SameParameterValue") boolean success)
     {
         BluetoothGattCharacteristic characteristic = FooGattUtils.createBluetoothGattCharacteristic(serviceUuid, characteristicUuid);
         onDeviceCharacteristicWrite(characteristic, success);
@@ -1466,7 +1774,11 @@ public class FooGattHandler
     private void onDeviceCharacteristicWrite(final BluetoothGattCharacteristic characteristic,
                                              final boolean success)
     {
-        pendingOperationWaitSignal();
+        if (!pendingOperationWaitSignal())
+        {
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            return;
+        }
 
         final long elapsedMillis = timerElapsed(GattOperation.CharacteristicWrite, true);
 
@@ -1474,14 +1786,21 @@ public class FooGattHandler
         {
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceCharacteristicWrite(FooGattHandler.this,
+                    disconnect |= deviceListener.onDeviceCharacteristicWrite(FooGattHandler.this,
                             characteristic,
                             success,
                             elapsedMillis);
                 }
                 mListenerManager.endTraversing();
+
+                if (!success || disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -1506,17 +1825,34 @@ public class FooGattHandler
         EnableWithResponse,
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType)
     {
-        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, true);
+        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, null);
     }
 
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
-                                                 boolean setDescriptorClientCharacteristicConfig)
+                                                 @SuppressWarnings("SameParameterValue") Runnable runAfterSuccess)
     {
-        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, sDefaultTimeoutMillis);
+        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, true, runAfterSuccess);
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
+                                                 CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
+                                                 @SuppressWarnings("SameParameterValue") boolean setDescriptorClientCharacteristicConfig)
+    {
+        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, null);
+    }
+
+    public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
+                                                 CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
+                                                 boolean setDescriptorClientCharacteristicConfig,
+                                                 Runnable runAfterSuccess)
+    {
+        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
     public boolean characteristicSetNotification(final UUID serviceUuid, final UUID characteristicUuid,
@@ -1524,34 +1860,35 @@ public class FooGattHandler
                                                  final boolean setDescriptorClientCharacteristicConfig,
                                                  final long timeoutMillis)
     {
+        return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, timeoutMillis, null);
+    }
+
+    public boolean characteristicSetNotification(final UUID serviceUuid, final UUID characteristicUuid,
+                                                 final CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
+                                                 final boolean setDescriptorClientCharacteristicConfig,
+                                                 final long timeoutMillis,
+                                                 final Runnable runAfterSuccess)
+    {
         FooLog.i(TAG, logPrefix("characteristicSetNotification(serviceUuid=" + serviceUuid +
                                 ", characteristicUuid=" + characteristicUuid +
                                 ", characteristicNotificationDescriptorType=" +
                                 characteristicNotificationDescriptorType +
                                 ", setDescriptorClientCharacteristicConfig=" + setDescriptorClientCharacteristicConfig +
-                                ", timeoutMillis=" + timeoutMillis + ')'));
+                                ", timeoutMillis=" + timeoutMillis +
+                                ", runAfterSuccess=" + runAfterSuccess + ')'));
 
-        if (serviceUuid == null)
-        {
-            throw new IllegalArgumentException("serviceUuid must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(serviceUuid, "serviceUuid");
 
-        if (characteristicUuid == null)
-        {
-            throw new IllegalArgumentException("characteristicUuid must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(characteristicUuid, "characteristicUuid");
 
-        if (characteristicNotificationDescriptorType == null)
-        {
-            throw new IllegalArgumentException("characteristicNotificationDescriptorType must not be null");
-        }
+        FooRun.throwIllegalArgumentExceptionIfNull(characteristicNotificationDescriptorType, "characteristicNotificationDescriptorType");
 
         if (!isBluetoothAdapterEnabled("characteristicSetNotification"))
         {
             return false;
         }
 
-        if (isDisconnectingOrDisconnected("characteristicSetNotification"))
+        if (ignoreIfIsDisconnectingOrDisconnected("characteristicSetNotification"))
         {
             return false;
         }
@@ -1619,7 +1956,7 @@ public class FooGattHandler
                         //
                         // Success
                         //
-                        onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, false);
+                        onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, true);
                         return;
                     }
 
@@ -1669,7 +2006,15 @@ public class FooGattHandler
 
                     mIsWaitingForCharacteristicSetNotification = true;
 
-                    pendingOperationWait(operation, timeoutMillis);
+                    if (!pendingOperationWait(operation, timeoutMillis))
+                    {
+                        return;
+                    }
+
+                    if (runAfterSuccess != null)
+                    {
+                        mHandlerMain.post(runAfterSuccess);
+                    }
                 }
                 finally
                 {
@@ -1724,7 +2069,11 @@ public class FooGattHandler
     private void onDeviceCharacteristicSetNotification(final BluetoothGattCharacteristic characteristic,
                                                        final boolean success)
     {
-        pendingOperationWaitSignal();
+        if (!pendingOperationWaitSignal())
+        {
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            return;
+        }
 
         final long elapsedMillis = timerElapsed(GattOperation.CharacteristicSetNotification, true);
 
@@ -1732,14 +2081,21 @@ public class FooGattHandler
         {
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceCharacteristicSetNotification(FooGattHandler.this,
+                    disconnect |= deviceListener.onDeviceCharacteristicSetNotification(FooGattHandler.this,
                             characteristic,
                             success,
                             elapsedMillis);
                 }
                 mListenerManager.endTraversing();
+
+                if (!success || disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -1754,7 +2110,7 @@ public class FooGattHandler
         //
         // Handle the case where disconnect has been called, but the OS has queued up lots of characteristic changes
         //
-        if (isDisconnectingOrDisconnected("onCharacteristicChanged"))
+        if (ignoreIfIsDisconnectingOrDisconnected("onCharacteristicChanged"))
         {
             return;
         }
@@ -1801,7 +2157,7 @@ public class FooGattHandler
             }
             case HandlerMainMessages.onCharacteristicChanged:
             {
-                if (isDisconnectingOrDisconnected("handleMessage: onCharacteristicChanged"))
+                if (ignoreIfIsDisconnectingOrDisconnected("handleMessage: onCharacteristicChanged"))
                 {
                     return false;
                 }
@@ -1813,11 +2169,18 @@ public class FooGattHandler
                                             characteristic.getUuid()));
                 }
 
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceCharacteristicChanged(FooGattHandler.this, characteristic);
+                    disconnect |= deviceListener.onDeviceCharacteristicChanged(FooGattHandler.this, characteristic);
                 }
                 mListenerManager.endTraversing();
+
+                if (disconnect)
+                {
+                    disconnect();
+                }
 
                 break;
             }
@@ -1826,21 +2189,28 @@ public class FooGattHandler
         return false;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean readRemoteRssi()
     {
-        return readRemoteRssi(sDefaultTimeoutMillis);
+        return readRemoteRssi(sDefaultOperationTimeoutMillis, null);
     }
 
-    public boolean readRemoteRssi(final long timeoutMillis)
+    public boolean readRemoteRssi(Runnable runAfterSuccess)
     {
-        FooLog.i(TAG, logPrefix("+readRemoteRssi(timeoutMillis=" + timeoutMillis + ')'));
+        return readRemoteRssi(sDefaultOperationTimeoutMillis, runAfterSuccess);
+    }
+
+    public boolean readRemoteRssi(final long timeoutMillis, final Runnable runAfterSuccess)
+    {
+        FooLog.i(TAG, logPrefix("+readRemoteRssi(timeoutMillis=" + timeoutMillis +
+                                ", runAfterSuccess=" + runAfterSuccess + ')'));
 
         if (!isBluetoothAdapterEnabled("readRemoteRssi"))
         {
             return false;
         }
 
-        if (isDisconnectingOrDisconnected("readRemoteRssi"))
+        if (ignoreIfIsDisconnectingOrDisconnected("readRemoteRssi"))
         {
             return false;
         }
@@ -1871,7 +2241,15 @@ public class FooGattHandler
                         return;
                     }
 
-                    pendingOperationWait(operation, timeoutMillis);
+                    if (!pendingOperationWait(operation, timeoutMillis))
+                    {
+                        return;
+                    }
+
+                    if (runAfterSuccess != null)
+                    {
+                        mHandlerMain.post(runAfterSuccess);
+                    }
                 }
                 finally
                 {
@@ -1897,7 +2275,11 @@ public class FooGattHandler
     private void onDeviceReadRemoteRssi(final int rssi,
                                         final boolean success)
     {
-        pendingOperationWaitSignal();
+        if (!pendingOperationWaitSignal())
+        {
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            return;
+        }
 
         final long elapsedMillis = timerElapsed(GattOperation.ReadRemoteRssi, true);
 
@@ -1905,14 +2287,21 @@ public class FooGattHandler
         {
             public void run()
             {
+                boolean disconnect = false;
+
                 for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                 {
-                    deviceListener.onDeviceReadRemoteRssi(FooGattHandler.this,
+                    disconnect |= deviceListener.onDeviceReadRemoteRssi(FooGattHandler.this,
                             rssi,
                             success,
                             elapsedMillis);
                 }
                 mListenerManager.endTraversing();
+
+                if (!success || disconnect)
+                {
+                    disconnect();
+                }
             }
         });
     }
@@ -1961,17 +2350,18 @@ public class FooGattHandler
             }
         }
 
-        public void signal()
+        public boolean signal()
         {
             synchronized (mEvent)
             {
                 //FooLog.e(TAG, "set()");
                 if (mStartTimeMillis == -1)
                 {
-                    throw new IllegalStateException("reset(long startTimeMillis) must be called before set()");
+                    return false;
                 }
                 mIsSignaled = true;
                 mEvent.notify();
+                return true;
             }
         }
 
@@ -1989,7 +2379,8 @@ public class FooGattHandler
          * @param listener      listener
          * @return positive elapsed milliseconds if signaled, negative elapsed milliseconds if not signaled
          */
-        public long waitOne(long timeoutMillis, AutoResetEventListener listener)
+        public long waitOne(long timeoutMillis,
+                            @SuppressWarnings("SameParameterValue") AutoResetEventListener listener)
         {
             synchronized (mEvent)
             {
@@ -2095,16 +2486,17 @@ public class FooGattHandler
         return gatt;
     }
 
-    private void pendingOperationWaitSignal()
+    private boolean pendingOperationWaitSignal()
     {
-        mBackgroundPendingOperationSignal.signal();
+        return mBackgroundPendingOperationSignal.signal();
     }
 
     /**
      * @param operation     operation
      * @param timeoutMillis timeoutMillis
+     * @return true if signaled, otherwise false
      */
-    private void pendingOperationWait(GattOperation operation, long timeoutMillis)
+    private boolean pendingOperationWait(GattOperation operation, long timeoutMillis)
     {
         FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
                                 ", timeoutMillis=" + timeoutMillis));
@@ -2121,7 +2513,7 @@ public class FooGattHandler
         boolean signaled;
         if (elapsedMillis < 0)
         {
-            FooLog.w(TAG, logPrefix("pendingOperationWait: operation=" + operation +
+            FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
                                     ", elapsedMillis=" + elapsedMillis));
             signaled = false;
             elapsedMillis = -elapsedMillis;
@@ -2137,6 +2529,7 @@ public class FooGattHandler
         {
             FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
                                     ", elapsedMillis=" + elapsedMillis + "; SIGNALED/COMPLETED"));
+            return true;
         }
         else
         {
@@ -2150,7 +2543,10 @@ public class FooGattHandler
                 FooLog.w(TAG, logPrefix("pendingOperationWait: operation=" + operation +
                                         ", elapsedMillis=" + elapsedMillis + "; CANCELED/INTERRUPTED"));
             }
+
             onDeviceOperationTimeout(operation, timeoutMillis, elapsedMillis);
+
+            return false;
         }
     }
 }

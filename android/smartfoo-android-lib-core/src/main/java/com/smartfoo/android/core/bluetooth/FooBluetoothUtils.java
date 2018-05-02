@@ -24,6 +24,7 @@ import android.util.SparseArray;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
+import com.smartfoo.android.core.bluetooth.gatt.FooGattUuid;
 import com.smartfoo.android.core.bluetooth.gatt.FooGattUuids;
 
 import java.util.Arrays;
@@ -370,5 +371,29 @@ public class FooBluetoothUtils
         }
         buffer.append('}');
         return buffer.toString();
+    }
+
+    public static String getDescription(BluetoothGattService service)
+    {
+        if (service == null)
+        {
+            return "null";
+        }
+        return getDescription(service.getUuid());
+    }
+
+    public static String getDescription(BluetoothGattCharacteristic characteristic)
+    {
+        if (characteristic == null)
+        {
+            return "null";
+        }
+        return getDescription(characteristic.getUuid());
+    }
+
+    public static String getDescription(UUID uuid)
+    {
+        FooGattUuid gattUuid = FooGattUuids.get(uuid);
+        return (gattUuid != null) ? gattUuid.toString() : uuid.toString();
     }
 }

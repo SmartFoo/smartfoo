@@ -163,7 +163,8 @@ public class FooString
         StringBuilder sb = new StringBuilder();
         if (asByteArray)
         {
-            for (int i = offset; i < count; i++)
+            int i;
+            for (i = offset; i < count; i++)
             {
                 if (i != offset)
                 {
@@ -171,6 +172,10 @@ public class FooString
                 }
                 sb.append(HEX_CHARS[((bytes[i]) & 0x000000f0) >> 4]);
                 sb.append(HEX_CHARS[((bytes[i]) & 0x0000000f)]);
+            }
+            if (i < bytes.length)
+            {
+                sb.append('…');
             }
         }
         else
