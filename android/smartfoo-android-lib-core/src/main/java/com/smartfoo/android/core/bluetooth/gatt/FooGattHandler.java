@@ -9,10 +9,10 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Process;
 
 import com.smartfoo.android.core.BuildConfig;
 import com.smartfoo.android.core.FooListenerManager;
@@ -32,14 +32,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-@SuppressWarnings({ "JavaDoc", "WeakerAccess", "unused" })
 public class FooGattHandler
 {
     private static final String TAG = FooLog.TAG(FooGattHandler.class);
 
+    @SuppressWarnings("WeakerAccess")
     public static boolean VERBOSE_LOG_CHARACTERISTIC_CHANGE = false;
 
-    public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS;
+    @SuppressWarnings("WeakerAccess")
+    public static int DEFAULT_CONNECT_TIMEOUT_MILLIS;
 
     static
     {
@@ -53,7 +54,9 @@ public class FooGattHandler
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static final int DEFAULT_OPERATION_TIMEOUT_MILLIS  = 5 * 1000;
+    @SuppressWarnings("WeakerAccess")
     public static final int DEFAULT_DISCONNECT_TIMEOUT_MILLIS = 250;
 
     private static int sDefaultConnectTimeoutMillis    = DEFAULT_CONNECT_TIMEOUT_MILLIS;
@@ -65,26 +68,31 @@ public class FooGattHandler
         return sDefaultConnectTimeoutMillis;
     }
 
+    @SuppressWarnings("unused")
     public static void setDefaultConnectTimeoutMillis(int timeoutMillis)
     {
         sDefaultConnectTimeoutMillis = timeoutMillis;
     }
 
+    @SuppressWarnings("unused")
     public static int getDefaultOperationTimeoutMillis()
     {
         return sDefaultOperationTimeoutMillis;
     }
 
+    @SuppressWarnings("unused")
     public static void setDefaultOperationTimeoutMillis(int timeoutMillis)
     {
         sDefaultOperationTimeoutMillis = timeoutMillis;
     }
 
+    @SuppressWarnings("unused")
     public static int getDefaultDisconnectTimeoutMillis()
     {
         return sDefaultDisconnectTimeoutMillis;
     }
 
+    @SuppressWarnings("unused")
     public static void setDefaultDisconnectTimeoutMillis(int timeoutMillis)
     {
         sDefaultDisconnectTimeoutMillis = timeoutMillis;
@@ -112,8 +120,8 @@ public class FooGattHandler
         }
 
         /**
-         * @param gattHandler   gattHandler
-         * @param operation     operation
+         * @param gattHandler   GattHandler
+         * @param operation     GattOperation
          * @param timeoutMillis The requested timeout milliseconds
          * @param elapsedMillis The actual elapsed milliseconds
          * @return true to forcibly stay connected, false to allow disconnect
@@ -123,11 +131,20 @@ public class FooGattHandler
             return false;
         }
 
+        /**
+         * @param gattHandler GattHandler
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceConnecting(FooGattHandler gattHandler)
         {
             return false;
         }
 
+        /**
+         * @param gattHandler   GattHandler
+         * @param elapsedMillis long
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceConnected(FooGattHandler gattHandler, long elapsedMillis)
         {
             return false;
@@ -142,41 +159,82 @@ public class FooGattHandler
         }
 
         /**
-         * @param gattHandler   gattHandler
-         * @param status        same as status in {@link android.bluetooth.BluetoothGattCallback#onConnectionStateChange(BluetoothGatt,
-         *                      int, int)}, or -1 if unknown
-         * @param reason        reason
-         * @param elapsedMillis elapsedMillis
+         * @param gattHandler   GattHandler
+         * @param status        same as status in {@link android.bluetooth.BluetoothGattCallback#onConnectionStateChange(BluetoothGatt, int, int)}, or -1 if unknown
+         * @param reason        DisconnectReason
+         * @param elapsedMillis long
+         * @return true to automatically call {@link #removeListener(GattHandlerListener)}
          */
-        public void onDeviceDisconnected(FooGattHandler gattHandler, int status, DisconnectReason reason, long elapsedMillis)
+        public boolean onDeviceDisconnected(FooGattHandler gattHandler, int status, DisconnectReason reason, long elapsedMillis)
         {
+            return false;
         }
 
+        /**
+         * @param gattHandler
+         * @param services
+         * @param success       if false, will always disconnect
+         * @param elapsedMillis
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceServicesDiscovered(FooGattHandler gattHandler, List<BluetoothGattService> services, boolean success, long elapsedMillis)
         {
             return false;
         }
 
+        /**
+         * @param gattHandler
+         * @param characteristic
+         * @param success        if false, will always disconnect
+         * @param elapsedMillis
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceCharacteristicRead(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
         {
             return false;
         }
 
+        /**
+         * @param gattHandler
+         * @param characteristic
+         * @param success        if false, will always disconnect
+         * @param elapsedMillis
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceCharacteristicWrite(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
         {
             return false;
         }
 
+        /**
+         * @param gattHandler
+         * @param characteristic
+         * @param success        if false, will always disconnect
+         * @param elapsedMillis
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceCharacteristicSetNotification(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic, boolean success, long elapsedMillis)
         {
             return false;
         }
 
+        /**
+         * @param gattHandler
+         * @param characteristic
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceCharacteristicChanged(FooGattHandler gattHandler, BluetoothGattCharacteristic characteristic)
         {
             return false;
         }
 
+        /**
+         * @param gattHandler
+         * @param rssi
+         * @param success       if false, will always disconnect
+         * @param elapsedMillis
+         * @return true to forcibly disconnect, false to not forcibly disconnect
+         */
         public boolean onDeviceReadRemoteRssi(FooGattHandler gattHandler, int rssi, boolean success, long elapsedMillis)
         {
             return false;
@@ -207,6 +265,8 @@ public class FooGattHandler
     private final Map<GattOperation, Long>                mStartTimes;
     private final AutoResetEvent                          mBackgroundPendingOperationSignal;
     private final BluetoothGattCallback                   mBackgroundBluetoothGattCallback;
+
+    private int mBackgroundThreadId;
 
     /**
      * synchronized behind mGattManager
@@ -244,6 +304,7 @@ public class FooGattHandler
         FooHandlerThread handlerThreadBackground = new FooHandlerThread(
                 "\"" + mDeviceAddressString + "\".mHandlerBackground");
         handlerThreadBackground.start();
+        mBackgroundThreadId = handlerThreadBackground.getThreadId();
         Looper looperBackground = handlerThreadBackground.getLooper();
         mHandlerBackground = new FooHandler(looperBackground);
 
@@ -303,12 +364,12 @@ public class FooGattHandler
     //
     //
 
+    @SuppressWarnings("unused")
     public BluetoothAdapter getBluetoothAdapter()
     {
         return mBluetoothAdapter;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isBluetoothAdapterEnabled(String callerName)
     {
         if (mBluetoothAdapter == null)
@@ -331,6 +392,7 @@ public class FooGattHandler
         return mDeviceAddressLong;
     }
 
+    @SuppressWarnings("unused")
     public String getDeviceAddressString()
     {
         return mDeviceAddressString;
@@ -368,9 +430,10 @@ public class FooGattHandler
 
     private boolean isBackgroundThread()
     {
-        return mHandlerBackground.getLooper() == Looper.myLooper();
+        return mBackgroundThreadId == Process.myTid();
     }
 
+    @SuppressWarnings("unused")
     public boolean isConnectingOrConnectedAndNotDisconnecting(String callerName)
     {
         return internalIsConnectingOrConnectedAndNotDisconnecting(callerName, null);
@@ -394,11 +457,13 @@ public class FooGattHandler
         return true;
     }
 
+    @SuppressWarnings("unused")
     public boolean isDisconnectingOrDisconnected(String callerName)
     {
         return internalIsDisconnectingOrDisconnected(callerName, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean ignoreIfIsDisconnectingOrDisconnected(String callerName)
     {
         return internalIsDisconnectingOrDisconnected(callerName, "ignoring");
@@ -417,6 +482,7 @@ public class FooGattHandler
         return true;
     }
 
+    @SuppressWarnings("unused")
     public boolean isDisconnecting()
     {
         return mIsSolicitedDisconnecting;
@@ -453,14 +519,17 @@ public class FooGattHandler
 
     public void addListener(GattHandlerListener listener)
     {
+        FooLog.e(TAG, logPrefix("addListener " + listener));
         mListenerManager.attach(listener);
     }
 
     public void removeListener(GattHandlerListener listener)
     {
+        FooLog.e(TAG, logPrefix("removeListener " + listener));
         mListenerManager.detach(listener);
     }
 
+    @SuppressWarnings("unused")
     public void clearListeners()
     {
         mListenerManager.clear();
@@ -510,7 +579,6 @@ public class FooGattHandler
     }
 
     /**
-     * @param timeoutMillis timeoutMillis
      * @return true if the connect request was enqueued, otherwise false
      */
     public boolean connect(Runnable runAfterConnect)
@@ -519,7 +587,7 @@ public class FooGattHandler
     }
 
     /**
-     * @param autoConnect autoConnect
+     * @param timeoutMillis long
      * @return true if the connect request was enqueued, otherwise false
      */
     public boolean connect(long timeoutMillis, Runnable runAfterConnect)
@@ -528,7 +596,7 @@ public class FooGattHandler
     }
 
     /**
-     * @param autoConnect   autoConnect
+     * @param autoConnect boolean
      * @return true if the connect request was enqueued, otherwise false
      */
     public boolean connect(boolean autoConnect, Runnable runAfterConnect)
@@ -537,10 +605,10 @@ public class FooGattHandler
     }
 
     /**
-     * @param autoConnect
-     * @param timeoutMillis
-     * @param runAfterConnect
-     * @return true if already connected and *NOT* disconnecting, or the connect request was enqueued, otherwise false
+     * @param autoConnect     boolean
+     * @param timeoutMillis   long
+     * @param runAfterConnect Runnable
+     * @return true if already connecting/connected and *NOT* disconnecting, or the connect request was enqueued, otherwise false
      */
     public boolean connect(final boolean autoConnect, final long timeoutMillis, final Runnable runAfterConnect)
     {
@@ -555,7 +623,7 @@ public class FooGattHandler
 
         if (ignoreIfIsConnectingOrConnectedAndNotDisconnecting("connect"))
         {
-            return false;
+            return true;
         }
 
         final GattOperation operation = GattOperation.DiscoverServices;
@@ -594,30 +662,8 @@ public class FooGattHandler
                         // NOTE:(pv) mBluetoothGatt is only set here and in #onDeviceDisconnected
                         //
                         FooLog.v(TAG, logPrefix("connect.run: +bluetoothDevice.connectGatt(...)"));
-                        if (Build.VERSION.SDK_INT >= 23)
-                        {
-                            int transport = BluetoothDevice.TRANSPORT_LE;
-
-                            if (false && Build.VERSION.SDK_INT >= 26)
-                            {
-                                int phy = 0;
-                                if (!autoConnect)
-                                {
-                                    phy |= BluetoothDevice.PHY_LE_1M_MASK;
-                                    phy |= BluetoothDevice.PHY_LE_2M_MASK;
-                                    phy |= BluetoothDevice.PHY_LE_CODED_MASK;
-                                }
-                                mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback, transport, phy);
-                            }
-                            else
-                            {
-                                mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback, transport);
-                            }
-                        }
-                        else
-                        {
-                            mBluetoothGatt = bluetoothDevice.connectGatt(mContext, autoConnect, mBackgroundBluetoothGattCallback);
-                        }
+                        BluetoothGattCompat bluetoothGattCompat = new BluetoothGattCompat(mContext);
+                        mBluetoothGatt = bluetoothGattCompat.connectGatt(bluetoothDevice, autoConnect, mBackgroundBluetoothGattCallback);
                         FooLog.v(TAG, logPrefix("connect.run: -bluetoothDevice.connectGatt(...) returned " +
                                                 mBluetoothGatt));
                     }
@@ -657,6 +703,7 @@ public class FooGattHandler
         return disconnect(sDefaultDisconnectTimeoutMillis);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean disconnect(final long timeoutMillis)
     {
         try
@@ -673,7 +720,7 @@ public class FooGattHandler
 
                 if (mIsSolicitedDisconnecting)
                 {
-                    FooLog.w(TAG, logPrefix("disconnect: mIsDisconnecting == true; ignoring"));
+                    FooLog.w(TAG, logPrefix("disconnect: mIsSolicitedDisconnecting == true; ignoring"));
                     return false;
                 }
 
@@ -722,15 +769,15 @@ public class FooGattHandler
      * Consolidates logic for solicited connect failed, solicited disconnect success, solicited disconnect timeout, and
      * unsolicited disconnect.
      *
-     * @param gatt              gatt
-     * @param status            status
-     * @param reason            reason
-     * @param logStatusAndState logStatusAndState
+     * @param gatt              BluetoothGatt
+     * @param status            int
+     * @param reason            DisconnectReason
+     * @param logStatusAndState boolean
      */
-    protected void onDeviceDisconnected(BluetoothGatt gatt,
-                                        final int status,
-                                        final DisconnectReason reason,
-                                        boolean logStatusAndState)
+    private void onDeviceDisconnected(BluetoothGatt gatt,
+                                      final int status,
+                                      final DisconnectReason reason,
+                                      boolean logStatusAndState)
     {
         FooLog.i(TAG, logPrefix("onDeviceDisconnected(gatt, status=" + status +
                                 ", reason=" + reason +
@@ -781,12 +828,13 @@ public class FooGattHandler
                     FooLog.d(TAG, logPrefix("onDeviceDisconnected: +deviceListener(s).onDeviceDisconnected"));
                     for (GattHandlerListener deviceListener : mListenerManager.beginTraversing())
                     {
-                        mListenerManager.detach(deviceListener);
-                        // TODO:(pv) consider return value here?
-                        deviceListener.onDeviceDisconnected(FooGattHandler.this,
+                        if (deviceListener.onDeviceDisconnected(FooGattHandler.this,
                                 status,
                                 reason,
-                                elapsedMillis);
+                                elapsedMillis))
+                        {
+                            removeListener(deviceListener);
+                        }
                     }
                     mListenerManager.endTraversing();
                     FooLog.d(TAG, logPrefix("onDeviceDisconnected: -deviceListener(s).onDeviceDisconnected"));
@@ -796,13 +844,13 @@ public class FooGattHandler
     }
 
     /**
-     * NOTE: Some status codes can be found at…
+     * NOTE: Some status codes can be found at...
      * https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/master/stack/include/gatt_api.h
      * ...not that they are very descriptive or helpful or anything like that! :/
      *
-     * @param callerName callerName
-     * @param status     status
-     * @param text       text
+     * @param callerName String
+     * @param status     int
+     * @param text       String
      */
     private void logStatusIfNotSuccess(String callerName, int status, String text)
     {
@@ -842,15 +890,11 @@ public class FooGattHandler
     }
 
     /**
-     * NOTE: Some status codes can be found at…
+     * NOTE: Some status codes can be found at...
      * https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/master/stack/include/gatt_api.h
      * ...not that they are very descriptive or helpful or anything like that! :/
      * <p/>
      * See {@link BluetoothGattCallback#onConnectionStateChange(BluetoothGatt, int, int)}
-     *
-     * @param gatt     gatt
-     * @param status   status
-     * @param newState newState
      */
     private void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)
     {
@@ -963,6 +1007,7 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceConnecting: disconnect=" + disconnect));
                 if (disconnect)
                 {
                     disconnect();
@@ -989,6 +1034,7 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceConnected: disconnect=" + disconnect));
                 if (disconnect)
                 {
                     disconnect();
@@ -1021,17 +1067,17 @@ public class FooGattHandler
         onDeviceServicesDiscovered(services, success, elapsedMillis);
     }
 
-    protected void onDeviceServicesDiscovered(final List<BluetoothGattService> services,
-                                              final boolean success,
-                                              final long elapsedMillis)
+    private void onDeviceServicesDiscovered(final List<BluetoothGattService> services,
+                                            final boolean success,
+                                            final long elapsedMillis)
     {
         if (!pendingOperationWaitSignal())
         {
-            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            FooLog.w(TAG, logPrefix("onDeviceServicesDiscovered: pendingOperationWaitSignal() == false; ignoring"));
             return;
         }
 
-        //noinspection PointlessBooleanExpression
+        //noinspection PointlessBooleanExpression,ConstantConditions
         if (false && BuildConfig.DEBUG)
         {
             for (BluetoothGattService service : services)
@@ -1061,6 +1107,8 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceServicesDiscovered: success=" + success +
+                                        ", disconnect=" + disconnect));
                 if (!success || disconnect)
                 {
                     disconnect();
@@ -1079,11 +1127,13 @@ public class FooGattHandler
         return characteristicRead(serviceUuid, characteristicUuid, sDefaultOperationTimeoutMillis, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicRead(UUID serviceUuid, UUID characteristicUuid, Runnable runAfterSuccess)
     {
         return characteristicRead(serviceUuid, characteristicUuid, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicRead(final UUID serviceUuid, final UUID characteristicUuid,
                                       final long timeoutMillis,
                                       final Runnable runAfterSuccess)
@@ -1132,7 +1182,7 @@ public class FooGattHandler
                     if (service == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicRead: gatt.getService(" +
+                                "characteristicRead.run: gatt.getService(" +
                                 serviceUuid + ") failed"));
                         onDeviceCharacteristicRead(serviceUuid, characteristicUuid, false);
                         return;
@@ -1142,7 +1192,7 @@ public class FooGattHandler
                     if (characteristic == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicRead: service.getCharacteristic(" +
+                                "characteristicRead.run: service.getCharacteristic(" +
                                 characteristicUuid + ") failed"));
                         onDeviceCharacteristicRead(serviceUuid, characteristicUuid, false);
                         return;
@@ -1151,7 +1201,7 @@ public class FooGattHandler
                     if (!gatt.readCharacteristic(characteristic))
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicRead: gatt.characteristicRead(...) failed for characteristic " +
+                                "characteristicRead.run: gatt.characteristicRead(...) failed for characteristic " +
                                 characteristicUuid));
                         onDeviceCharacteristicRead(serviceUuid, characteristicUuid, false);
                         return;
@@ -1179,7 +1229,9 @@ public class FooGattHandler
         return true;
     }
 
-    private void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status)
+    private void onCharacteristicRead(@SuppressWarnings("unused") BluetoothGatt gatt,
+                                      BluetoothGattCharacteristic characteristic,
+                                      int status)
     {
         UUID characteristicUuid = characteristic.getUuid();
         FooLog.v(TAG, logPrefix("onCharacteristicRead(gatt, characteristic=" + characteristicUuid +
@@ -1204,7 +1256,7 @@ public class FooGattHandler
     {
         if (!pendingOperationWaitSignal())
         {
-            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicRead: pendingOperationWaitSignal() == false; ignoring"));
             return;
         }
 
@@ -1225,6 +1277,8 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceCharacteristicRead: success=" + success +
+                                        ", disconnect=" + disconnect));
                 if (!success || disconnect)
                 {
                     disconnect();
@@ -1254,17 +1308,18 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param value              value
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param value              String
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value)
     {
         return characteristicWrite(serviceUuid, characteristicUuid, value, null, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        Runnable runAfterSuccess)
@@ -1273,12 +1328,12 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param value                   value
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param value                   String
      * @param characteristicWriteType null to ignore
-     * @return true if the request was enqueued, otherwise false
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        CharacteristicWriteType characteristicWriteType)
@@ -1286,6 +1341,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        @SuppressWarnings("SameParameterValue") CharacteristicWriteType characteristicWriteType,
@@ -1295,12 +1351,12 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param value              value
-     * @param timeoutMillis      timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param value              String
+     * @param timeoutMillis      long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        long timeoutMillis)
@@ -1308,6 +1364,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        long timeoutMillis,
@@ -1317,13 +1374,13 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param value                   value
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param value                   String
      * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param timeoutMillis           long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1332,6 +1389,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value), characteristicWriteType, timeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1342,12 +1400,11 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param value              value
-     * @param formatType         formatType
-     * @param offset             offset
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param value              int
+     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset             int
      */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1364,14 +1421,14 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param value                   value
-     * @param formatType              formatType
-     * @param offset                  offset
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param value                   int
+     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset                  int
      * @param characteristicWriteType null to ignore
-     * @return true if the request was enqueued, otherwise false
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType)
@@ -1379,6 +1436,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
                                        @SuppressWarnings("SameParameterValue") CharacteristicWriteType characteristicWriteType,
@@ -1388,14 +1446,14 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param value              value
-     * @param formatType         formatType
-     * @param offset             offset
-     * @param timeoutMillis      timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param value              int
+     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset             int
+     * @param timeoutMillis      long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
                                        long timeoutMillis)
@@ -1403,6 +1461,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, timeoutMillis, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
                                        long timeoutMillis,
@@ -1412,15 +1471,15 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param value                   value
-     * @param formatType              formatType
-     * @param offset                  offset
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param value                   int
+     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset                  int
      * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param timeoutMillis           long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1429,6 +1488,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value, formatType, offset), characteristicWriteType, timeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1439,20 +1499,21 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param mantissa           mantissa
-     * @param exponent           exponent
-     * @param formatType         formatType
-     * @param offset             offset
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param mantissa           int
+     * @param exponent           int
+     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset             int
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset)
     {
         return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        Runnable runAfterSuccess)
@@ -1461,15 +1522,15 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param mantissa                mantissa
-     * @param exponent                exponent
-     * @param formatType              formatType
-     * @param offset                  offset
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param mantissa                int
+     * @param exponent                int
+     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset                  int
      * @param characteristicWriteType null to ignore
-     * @return true if the request was enqueued, otherwise false
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType)
@@ -1477,6 +1538,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        @SuppressWarnings("SameParameterValue") CharacteristicWriteType characteristicWriteType,
@@ -1486,15 +1548,15 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param mantissa           mantissa
-     * @param exponent           exponent
-     * @param formatType         formatType
-     * @param offset             offset
-     * @param timeoutMillis      timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param mantissa           int
+     * @param exponent           int
+     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset             int
+     * @param timeoutMillis      long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        long timeoutMillis)
@@ -1502,6 +1564,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, timeoutMillis, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        long timeoutMillis,
@@ -1511,16 +1574,16 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param mantissa                mantissa
-     * @param exponent                exponent
-     * @param formatType              formatType
-     * @param offset                  offset
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param mantissa                int
+     * @param exponent                int
+     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
+     * @param offset                  int
      * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param timeoutMillis           long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1529,6 +1592,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(mantissa, exponent, formatType, offset), characteristicWriteType, timeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1539,17 +1603,18 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param value              value
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param value              byte[]
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value)
     {
         return characteristicWrite(serviceUuid, characteristicUuid, value, (Runnable) null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
                                        Runnable runAfterSuccess)
@@ -1558,11 +1623,10 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param value                   value
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param value                   byte[]
      * @param characteristicWriteType null to ignore
-     * @return true if the request was enqueued, otherwise false
      */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1581,12 +1645,12 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        serviceUuid
-     * @param characteristicUuid characteristicUuid
-     * @param value              value
-     * @param timeoutMillis      timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param serviceUuid        UUID
+     * @param characteristicUuid UUID
+     * @param value              byte[]
+     * @param timeoutMillis      long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
                                        long timeoutMillis)
@@ -1594,6 +1658,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
                                        long timeoutMillis,
@@ -1603,13 +1668,13 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             serviceUuid
-     * @param characteristicUuid      characteristicUuid
-     * @param value                   value
+     * @param serviceUuid             UUID
+     * @param characteristicUuid      UUID
+     * @param value                   byte[]
      * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           timeoutMillis
-     * @return true if the request was enqueued, otherwise false
+     * @param timeoutMillis           long
      */
+    @SuppressWarnings("unused")
     public boolean characteristicWrite(final UUID serviceUuid, final UUID characteristicUuid,
                                        final byte[] value,
                                        final CharacteristicWriteType characteristicWriteType,
@@ -1618,6 +1683,7 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, timeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(final UUID serviceUuid, final UUID characteristicUuid,
                                        final byte[] value,
                                        final CharacteristicWriteType characteristicWriteType,
@@ -1674,7 +1740,7 @@ public class FooGattHandler
                     if (service == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicWrite: gatt.getService(" +
+                                "characteristicWrite.run: gatt.getService(" +
                                 serviceUuid + ") failed"));
                         onDeviceCharacteristicWrite(serviceUuid, characteristicUuid, false);
                         return;
@@ -1684,7 +1750,7 @@ public class FooGattHandler
                     if (characteristic == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicWrite: service.getCharacteristic(" +
+                                "characteristicWrite.run: service.getCharacteristic(" +
                                 characteristicUuid + ") failed"));
                         onDeviceCharacteristicWrite(serviceUuid, characteristicUuid, false);
                         return;
@@ -1721,7 +1787,7 @@ public class FooGattHandler
                     if (!gatt.writeCharacteristic(characteristic))
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicWrite: gatt.characteristicWrite(...) failed for characteristic " +
+                                "characteristicWrite.run: gatt.characteristicWrite(...) failed for characteristic " +
                                 characteristicUuid));
                         onDeviceCharacteristicWrite(serviceUuid, characteristicUuid, false);
                         return;
@@ -1751,7 +1817,8 @@ public class FooGattHandler
         return true;
     }
 
-    private void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status)
+    private void onCharacteristicWrite(@SuppressWarnings("unused") BluetoothGatt gatt,
+                                       BluetoothGattCharacteristic characteristic, int status)
     {
         UUID characteristicUuid = characteristic.getUuid();
         FooLog.v(TAG, logPrefix("onCharacteristicWrite(gatt, characteristic=" + characteristicUuid +
@@ -1797,6 +1864,8 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceCharacteristicWrite: success=" + success +
+                                        ", disconnect=" + disconnect));
                 if (!success || disconnect)
                 {
                     disconnect();
@@ -1832,6 +1901,7 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
                                                  @SuppressWarnings("SameParameterValue") Runnable runAfterSuccess)
@@ -1847,6 +1917,7 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
                                                  boolean setDescriptorClientCharacteristicConfig,
@@ -1855,6 +1926,7 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
+    @SuppressWarnings("unused")
     public boolean characteristicSetNotification(final UUID serviceUuid, final UUID characteristicUuid,
                                                  final CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
                                                  final boolean setDescriptorClientCharacteristicConfig,
@@ -1863,6 +1935,7 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, timeoutMillis, null);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean characteristicSetNotification(final UUID serviceUuid, final UUID characteristicUuid,
                                                  final CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
                                                  final boolean setDescriptorClientCharacteristicConfig,
@@ -1922,7 +1995,7 @@ public class FooGattHandler
                     if (service == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicSetNotification: gatt.getService(" +
+                                "characteristicSetNotification.run: gatt.getService(" +
                                 serviceUuid + ") failed"));
                         onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, false);
                         return;
@@ -1932,7 +2005,7 @@ public class FooGattHandler
                     if (characteristic == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicSetNotification: service.getCharacteristic(" +
+                                "characteristicSetNotification.run: service.getCharacteristic(" +
                                 characteristicUuid + ") failed"));
                         onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, false);
                         return;
@@ -1945,7 +2018,7 @@ public class FooGattHandler
                     if (!gatt.setCharacteristicNotification(characteristic, enable))
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicSetNotification: mGattConnectingOrConnected.characteristicSetNotification(..., enable=" +
+                                "characteristicSetNotification.run: mGattConnectingOrConnected.characteristicSetNotification(..., enable=" +
                                 enable + ") failed for characteristic " + characteristicUuid));
                         onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, false);
                         return;
@@ -1964,7 +2037,7 @@ public class FooGattHandler
                     if (descriptor == null)
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicSetNotification: characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG" +
+                                "characteristicSetNotification.run: characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG" +
                                 ") failed for characteristic " + characteristicUuid));
                         onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, false);
                         return;
@@ -1988,7 +2061,7 @@ public class FooGattHandler
                     if (!descriptor.setValue(descriptorValue))
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicSetNotification: descriptor.setValue(" +
+                                "characteristicSetNotification.run: descriptor.setValue(" +
                                 Arrays.toString(descriptorValue) +
                                 ") failed for descriptor CLIENT_CHARACTERISTIC_CONFIG for characteristic " +
                                 characteristicUuid));
@@ -1999,7 +2072,7 @@ public class FooGattHandler
                     if (!gatt.writeDescriptor(descriptor))
                     {
                         FooLog.e(TAG, logPrefix(
-                                "characteristicSetNotification: mGattConnectingOrConnected.writeDescriptor(...) failed descriptor CLIENT_CHARACTERISTIC_CONFIG"));
+                                "characteristicSetNotification.run: mGattConnectingOrConnected.writeDescriptor(...) failed descriptor CLIENT_CHARACTERISTIC_CONFIG"));
                         onDeviceCharacteristicSetNotification(serviceUuid, characteristicUuid, false);
                         return;
                     }
@@ -2034,7 +2107,8 @@ public class FooGattHandler
 
     private boolean mIsWaitingForCharacteristicSetNotification;
 
-    private void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status)
+    private void onDescriptorWrite(@SuppressWarnings("unused") BluetoothGatt gatt,
+                                   BluetoothGattDescriptor descriptor, int status)
     {
         if (!mIsWaitingForCharacteristicSetNotification)
         {
@@ -2071,7 +2145,7 @@ public class FooGattHandler
     {
         if (!pendingOperationWaitSignal())
         {
-            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            FooLog.w(TAG, logPrefix("onDeviceCharacteristicSetNotification: pendingOperationWaitSignal() == false; ignoring"));
             return;
         }
 
@@ -2092,6 +2166,8 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceCharacteristicSetNotification: success=" + success +
+                                        ", disconnect=" + disconnect));
                 if (!success || disconnect)
                 {
                     disconnect();
@@ -2100,7 +2176,8 @@ public class FooGattHandler
         });
     }
 
-    private void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic)
+    private void onCharacteristicChanged(@SuppressWarnings("unused") BluetoothGatt gatt,
+                                         BluetoothGattCharacteristic characteristic)
     {
         if (VERBOSE_LOG_CHARACTERISTIC_CHANGE)
         {
@@ -2177,6 +2254,7 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("handleMessage: onCharacteristicChanged: disconnect=" + disconnect));
                 if (disconnect)
                 {
                     disconnect();
@@ -2195,11 +2273,13 @@ public class FooGattHandler
         return readRemoteRssi(sDefaultOperationTimeoutMillis, null);
     }
 
+    @SuppressWarnings("unused")
     public boolean readRemoteRssi(Runnable runAfterSuccess)
     {
         return readRemoteRssi(sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean readRemoteRssi(final long timeoutMillis, final Runnable runAfterSuccess)
     {
         FooLog.i(TAG, logPrefix("+readRemoteRssi(timeoutMillis=" + timeoutMillis +
@@ -2236,7 +2316,7 @@ public class FooGattHandler
 
                     if (!gatt.readRemoteRssi())
                     {
-                        FooLog.e(TAG, logPrefix("readRemoteRssi: gatt.readRemoteRssi() failed"));
+                        FooLog.e(TAG, logPrefix("readRemoteRssi.run: gatt.readRemoteRssi() failed"));
                         onDeviceReadRemoteRssi(-1, false);
                         return;
                     }
@@ -2261,7 +2341,7 @@ public class FooGattHandler
         return true;
     }
 
-    private void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status)
+    private void onReadRemoteRssi(@SuppressWarnings("unused") BluetoothGatt gatt, int rssi, int status)
     {
         FooLog.v(TAG, logPrefix("onReadRemoteRssi(gatt, rssi=" + rssi + ", status=" + status + ')'));
 
@@ -2277,7 +2357,7 @@ public class FooGattHandler
     {
         if (!pendingOperationWaitSignal())
         {
-            FooLog.w(TAG, logPrefix("onDeviceCharacteristicWrite: pendingOperationWaitSignal() == false; ignoring"));
+            FooLog.w(TAG, logPrefix("onDeviceReadRemoteRssi: pendingOperationWaitSignal() == false; ignoring"));
             return;
         }
 
@@ -2298,6 +2378,8 @@ public class FooGattHandler
                 }
                 mListenerManager.endTraversing();
 
+                FooLog.v(TAG, logPrefix("onDeviceReadRemoteRssi: success=" + success +
+                                        ", disconnect=" + disconnect));
                 if (!success || disconnect)
                 {
                     disconnect();
@@ -2328,7 +2410,7 @@ public class FooGattHandler
         private long    mStartTimeMillis;
         private boolean mIsSignaled;
 
-        public AutoResetEvent()
+        AutoResetEvent()
         {
             mStartTimeMillis = -1;
             mIsSignaled = false;
@@ -2350,7 +2432,7 @@ public class FooGattHandler
             }
         }
 
-        public boolean signal()
+        boolean signal()
         {
             synchronized (mEvent)
             {
@@ -2366,21 +2448,25 @@ public class FooGattHandler
         }
 
         /**
-         * @param timeoutMillis timeoutMillis
-         * @return positive elapsed milliseconds if signaled, negative elapsed milliseconds if not signaled
+         * Must call {@link #reset(long)} before calling this
+         *
+         * @param timeoutMillis long
+         * @return positive elapsed milliseconds if signaled, negative elapsed milliseconds if not signaled, or null if {@link #reset(long)} has not been called
          */
-        public long waitOne(long timeoutMillis)
+        Long waitOne(long timeoutMillis)
         {
             return waitOne(timeoutMillis, null);
         }
 
         /**
-         * @param timeoutMillis timeoutMillis
-         * @param listener      listener
-         * @return positive elapsed milliseconds if signaled, negative elapsed milliseconds if not signaled
+         * Must call {@link #reset(long)} before calling this
+         *
+         * @param timeoutMillis long
+         * @param listener      AutoResetEventListener
+         * @return positive elapsed milliseconds if signaled, negative elapsed milliseconds if not signaled, or null if {@link #reset(long)} has not been called
          */
-        public long waitOne(long timeoutMillis,
-                            @SuppressWarnings("SameParameterValue") AutoResetEventListener listener)
+        Long waitOne(long timeoutMillis,
+                     @SuppressWarnings("SameParameterValue") AutoResetEventListener listener)
         {
             synchronized (mEvent)
             {
@@ -2388,7 +2474,8 @@ public class FooGattHandler
                 {
                     if (mStartTimeMillis == -1)
                     {
-                        throw new IllegalStateException("reset(long startTimeMillis) must be called before waitOne(long timeoutMillis)");
+                        return null;
+                        //throw new IllegalStateException("reset(long startTimeMillis) must be called before waitOne(long timeoutMillis)");
                     }
 
                     long startTimeMillis = mStartTimeMillis;
@@ -2486,22 +2573,33 @@ public class FooGattHandler
         return gatt;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean pendingOperationWaitSignal()
     {
         return mBackgroundPendingOperationSignal.signal();
     }
 
     /**
-     * @param operation     operation
-     * @param timeoutMillis timeoutMillis
+     * @param operation     GattOperation
+     * @param timeoutMillis long
      * @return true if signaled, otherwise false
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean pendingOperationWait(GattOperation operation, long timeoutMillis)
     {
-        FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
-                                ", timeoutMillis=" + timeoutMillis));
+        /*
+        if (isDisconnectingOrDisconnected("pendingOperationWait"))
+        {
+            FooLog.v(TAG, logPrefix("pendingOperationWait: isDisconnectingOrDisconnected(...) == true; ignoring"));
+            return false;
+        }
+        */
 
-        long elapsedMillis = mBackgroundPendingOperationSignal.waitOne(timeoutMillis);
+        FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
+                                " +waitOne(" + timeoutMillis + ')'));
+        Long elapsedMillis = mBackgroundPendingOperationSignal.waitOne(timeoutMillis);
+        FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
+                                " -waitOne(" + timeoutMillis + "); elapsedMillis=" + elapsedMillis));
 
         switch (operation)
         {
@@ -2511,42 +2609,58 @@ public class FooGattHandler
         }
 
         boolean signaled;
-        if (elapsedMillis < 0)
+        if (elapsedMillis == null || elapsedMillis < 0)
         {
-            FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
-                                    ", elapsedMillis=" + elapsedMillis));
             signaled = false;
-            elapsedMillis = -elapsedMillis;
-        }
-        else
-        {
-            FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
-                                    ", elapsedMillis=" + elapsedMillis));
-            signaled = true;
-        }
-
-        if (signaled && elapsedMillis <= timeoutMillis)
-        {
-            FooLog.v(TAG, logPrefix("pendingOperationWait: operation=" + operation +
-                                    ", elapsedMillis=" + elapsedMillis + "; SIGNALED/COMPLETED"));
-            return true;
-        }
-        else
-        {
-            if (elapsedMillis >= timeoutMillis)
+            if (elapsedMillis != null)
             {
-                FooLog.w(TAG, logPrefix("pendingOperationWait: operation=" + operation +
-                                        ", elapsedMillis=" + elapsedMillis + "; *TIMED OUT*"));
+                elapsedMillis = -elapsedMillis;
             }
             else
             {
-                FooLog.w(TAG, logPrefix("pendingOperationWait: operation=" + operation +
-                                        ", elapsedMillis=" + elapsedMillis + "; CANCELED/INTERRUPTED"));
+                FooLog.e(TAG, logPrefix("pendingOperationWait: REPRO IllegalStateException: reset(long startTimeMillis) must be called before waitOne(long timeoutMillis)"));
             }
-
-            onDeviceOperationTimeout(operation, timeoutMillis, elapsedMillis);
-
-            return false;
         }
+        else
+        {
+            signaled = true;
+        }
+
+        String resultText;
+        boolean success;
+
+        if (signaled && elapsedMillis <= timeoutMillis)
+        {
+            resultText = "SIGNALED/COMPLETED";
+            success = true;
+        }
+        else
+        {
+            if (elapsedMillis == null)
+            {
+                resultText = "NOT CONNECTED";
+                elapsedMillis = 0L;
+            }
+            else
+            {
+                resultText = elapsedMillis >= timeoutMillis ? "*TIMED OUT*" : "CANCELED/INTERRUPTED";
+            }
+            success = false;
+        }
+
+        resultText = logPrefix("pendingOperationWait: operation=" + operation +
+                               ", elapsedMillis=" + elapsedMillis + "; " + resultText);
+
+        if (success)
+        {
+            FooLog.v(TAG, resultText);
+        }
+        else
+        {
+            FooLog.w(TAG, resultText);
+            onDeviceOperationTimeout(operation, timeoutMillis, elapsedMillis);
+        }
+
+        return success;
     }
 }
