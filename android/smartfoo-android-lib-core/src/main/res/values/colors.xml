@@ -5,9 +5,9 @@
     <color name="black">#FF000000</color>
     <color name="cyan">#FF00FFFF</color>
 
-    <color name="fooColorPrimaryText">@color/white</color>
-    <color name="fooColorPrimaryBackground">#3F51B5</color>
-    <color name="fooColorPrimaryBackgroundDark">#303F9F</color>
-    <color name="fooColorSecondaryText">@color/cyan</color>
-    <color name="fooColorAccent">#FF4081</color>
+    <color name="FooColorPrimaryText">@color/white</color>
+    <color name="FooColorPrimaryBackground">#3F51B5</color>
+    <color name="FooColorPrimaryBackgroundDark">#303F9F</color>
+    <color name="FooColorSecondaryText">@color/cyan</color>
+    <color name="FooColorAccent">#FF4081</color>
 </resources>

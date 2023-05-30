@@ -1,6 +1,6 @@
 package com.smartfoo.android.core.annotations;
 
-import android.support.annotation.Size;
+import androidx.annotation.Size;
 
 //
 // TODO:(pv) Implement NonNullNonBlank logic

@@ -8,27 +8,28 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.ColorInt;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.Action;
-import android.support.v4.app.NotificationCompat.Extender;
-import android.support.v4.app.NotificationCompat.Style;
 import android.widget.RemoteViews;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+import androidx.core.app.NotificationCompat.Builder;
+import androidx.core.app.NotificationCompat.Action;
+import androidx.core.app.NotificationCompat.Extender;
+import androidx.core.app.NotificationCompat.Style;
 
 import com.smartfoo.android.core.FooRun;
 
 public class FooNotificationBuilder
 {
-    private final Context                    mContext;
-    private final NotificationCompat.Builder mBuilder;
+    private final Context mContext;
+    private final Builder mBuilder;
 
     public FooNotificationBuilder(@NonNull Context context)
     {
         mContext = FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mBuilder = new NotificationCompat.Builder(context);
+        mBuilder = new Builder(context);
     }
 
     public FooNotificationBuilder setWhen(long when)

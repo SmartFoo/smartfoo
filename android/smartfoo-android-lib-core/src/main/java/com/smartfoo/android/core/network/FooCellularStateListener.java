@@ -2,9 +2,10 @@ package com.smartfoo.android.core.network;
 
 import android.content.Context;
 import android.net.NetworkInfo;
-import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+
+import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;

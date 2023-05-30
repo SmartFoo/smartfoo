@@ -1,7 +1,7 @@
 package com.smartfoo.android.core;
 
-import android.support.annotation.FloatRange;
-import android.support.annotation.NonNull;
+import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
 
 import java.util.Random;
 

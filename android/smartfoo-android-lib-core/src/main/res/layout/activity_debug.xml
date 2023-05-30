@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,10 +9,10 @@
     tools:context=".app.FooDebugActivity"
     >
 
-    <android.support.design.widget.AppBarLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay"
+        android:theme="@style/FooTheme.AppBarOverlay"
         >
 
         <include
@@ -20,7 +20,7 @@
             layout="@layout/toolbar"
             />
 
-    </android.support.design.widget.AppBarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -28,9 +28,9 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         >
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
-            style="@style/AppTheme.RecyclerViewTheme"
+            style="@style/FooTheme.RecyclerViewTheme"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/black"
@@ -92,7 +92,7 @@
                 android:gravity="center_horizontal"
                 android:padding="16dp"
                 android:text="Loading Log…"
-                android:textColor="@color/fooColorPrimaryText"
+                android:textColor="@color/FooColorPrimaryText"
                 android:visibility="visible"
                 tools:text="progress title"
                 />
@@ -104,7 +104,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:padding="16dp"
-                android:textColor="@color/fooColorSecondaryText"
+                android:textColor="@color/FooColorSecondaryText"
                 android:visibility="gone"
                 tools:text="progress message"
                 />
@@ -125,4 +125,4 @@
 
     </RelativeLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

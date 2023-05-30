@@ -1,6 +1,6 @@
 package com.smartfoo.android.core;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.logging.FooLog;

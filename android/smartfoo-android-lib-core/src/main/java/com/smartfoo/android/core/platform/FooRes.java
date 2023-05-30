@@ -8,9 +8,10 @@ import android.content.res.Resources.NotFoundException;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION;
-import android.support.annotation.NonNull;
-import android.support.annotation.RawRes;
 import android.util.DisplayMetrics;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
 
 import com.smartfoo.android.core.FooRun;
 

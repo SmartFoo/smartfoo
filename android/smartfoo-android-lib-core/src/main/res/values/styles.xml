@@ -2,18 +2,18 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="FooTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/fooColorPrimaryBackground</item>
-        <item name="colorPrimaryDark">@color/fooColorPrimaryBackgroundDark</item>
-        <item name="colorAccent">@color/fooColorAccent</item>
+        <item name="colorPrimary">@color/FooColorPrimaryBackground</item>
+        <item name="colorPrimaryDark">@color/FooColorPrimaryBackgroundDark</item>
+        <item name="colorAccent">@color/FooColorAccent</item>
     </style>
 
-    <style name="AppTheme.ToolbarTitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
-        <item name="android:titleTextColor">@color/fooColorPrimaryText</item>
+    <style name="FooTheme.ToolbarTitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:titleTextColor">@color/FooColorPrimaryText</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="FooTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <!--
         <!- - android:textColorPrimary is the color of the title text in the Toolbar  - ->
         <item name="android:textColorPrimary">@android:color/holo_blue_light</item>
@@ -36,9 +36,9 @@
         -->
     </style>
 
-    <style name="AppTheme.AppBarOverlayPopup" parent="ThemeOverlay.AppCompat.Light"/>
+    <style name="FooTheme.AppBarOverlayPopup" parent="ThemeOverlay.AppCompat.Light"/>
 
-    <style name="AppTheme.RecyclerViewTheme">
+    <style name="FooTheme.RecyclerViewTheme">
         <!-- NOTE: clipChildren should be true on API level 10 -->
         <item name="android:clipChildren">true</item>
         <item name="android:clipToPadding">false</item>

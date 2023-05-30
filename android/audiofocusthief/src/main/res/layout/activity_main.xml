@@ -13,8 +13,8 @@
         android:orientation="vertical"
         >
 
-        <Switch
-            android:id="@+id/switchBackgroundSevice"
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchBackgroundService"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -22,7 +22,7 @@
             android:textSize="18sp"
             />
 
-        <Switch
+        <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchAudioFocus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -31,7 +31,7 @@
             android:textSize="18sp"
             />
 
-        <Switch
+        <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchAudioFocusThief"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -3,7 +3,7 @@
  Attributes found at:
     build/intermediates/exploded-aar/com.android.support/appcompat-v7/21.0.3/res/values/values.xml
  -->
-<android.support.v7.widget.Toolbar
+<androidx.appcompat.widget.Toolbar
     android:id="@+id/toolbar"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -11,9 +11,9 @@
     android:layout_height="?actionBarSize"
     android:background="?attr/colorPrimary"
     android:elevation="4dp"
-    android:theme="@style/AppTheme.AppBarOverlay"
-    app:popupTheme="@style/AppTheme.AppBarOverlayPopup"
-    app:titleTextAppearance="@style/AppTheme.ToolbarTitleText"
+    android:theme="@style/FooTheme.AppBarOverlay"
+    app:popupTheme="@style/FooTheme.AppBarOverlayPopup"
+    app:titleTextAppearance="@style/FooTheme.ToolbarTitleText"
     >
 
     <!--
@@ -30,4 +30,4 @@
         android:visibility="gone"
         />
 
-</android.support.v7.widget.Toolbar>
+</androidx.appcompat.widget.Toolbar>

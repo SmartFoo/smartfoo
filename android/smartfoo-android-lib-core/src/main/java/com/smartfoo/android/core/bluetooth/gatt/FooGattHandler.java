@@ -42,9 +42,11 @@ public class FooGattHandler
     @SuppressWarnings("WeakerAccess")
     public static int DEFAULT_CONNECT_TIMEOUT_MILLIS;
 
+    private static boolean DEBUG = BuildConfig.DEBUG;
+
     static
     {
-        if (BuildConfig.DEBUG)
+        if (DEBUG)
         {
             DEFAULT_CONNECT_TIMEOUT_MILLIS = 60 * 1000;
         }
@@ -906,7 +908,7 @@ public class FooGattHandler
         //noinspection UnusedAssignment
         final int DEBUG_FAKE_STATUS_ERROR = BluetoothGatt.GATT_SUCCESS;
         //noinspection ConstantConditions
-        if (BuildConfig.DEBUG && DEBUG_FAKE_STATUS_ERROR != BluetoothGatt.GATT_SUCCESS)
+        if (DEBUG && DEBUG_FAKE_STATUS_ERROR != BluetoothGatt.GATT_SUCCESS)
         {
             //noinspection UnusedAssignment
             status = DEBUG_FAKE_STATUS_ERROR;
@@ -1078,7 +1080,7 @@ public class FooGattHandler
         }
 
         //noinspection PointlessBooleanExpression,ConstantConditions
-        if (false && BuildConfig.DEBUG)
+        if (false && DEBUG)
         {
             for (BluetoothGattService service : services)
             {

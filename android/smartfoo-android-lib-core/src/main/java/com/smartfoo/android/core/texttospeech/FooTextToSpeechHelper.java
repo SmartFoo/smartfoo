@@ -3,8 +3,9 @@ package com.smartfoo.android.core.texttospeech;
 import android.app.Activity;
 import android.content.Intent;
 import android.speech.tts.TextToSpeech;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;

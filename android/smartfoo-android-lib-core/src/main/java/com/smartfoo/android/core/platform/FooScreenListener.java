@@ -8,8 +8,9 @@ import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
 import android.os.PowerManager;
 import android.os.UserManager;
-import android.support.annotation.NonNull;
 import android.view.Display;
+
+import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
 import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;

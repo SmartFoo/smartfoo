@@ -2,11 +2,12 @@ package com.smartfoo.android.audiofocusthief;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.Switch;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.media.FooAudioFocusListener;
@@ -44,9 +45,9 @@ public class MainActivity
     };
 
     private MainApplication mMainApplication;
-    private Switch          mSwitchNotification;
-    private Switch          mSwitchAudioFocus;
-    private Switch          mSwitchAudioFocusThief;
+    private SwitchCompat mSwitchNotification;
+    private SwitchCompat mSwitchAudioFocus;
+    private SwitchCompat mSwitchAudioFocusThief;
 
     private String getAudioFocusHashtag()
     {
@@ -66,11 +67,11 @@ public class MainActivity
 
         setContentView(R.layout.activity_main);
 
-        mSwitchNotification = (Switch) findViewById(R.id.switchBackgroundSevice);
+        mSwitchNotification = findViewById(R.id.switchBackgroundService);
         mSwitchNotification.setOnCheckedChangeListener(mOnCheckedChangeListener);
-        mSwitchAudioFocus = (Switch) findViewById(R.id.switchAudioFocus);
+        mSwitchAudioFocus = findViewById(R.id.switchAudioFocus);
         mSwitchAudioFocus.setOnCheckedChangeListener(mOnCheckedChangeListener);
-        mSwitchAudioFocusThief = (Switch) findViewById(R.id.switchAudioFocusThief);
+        mSwitchAudioFocusThief = findViewById(R.id.switchAudioFocusThief);
         mSwitchAudioFocusThief.setOnCheckedChangeListener(mOnCheckedChangeListener);
     }
 
@@ -102,36 +103,26 @@ public class MainActivity
 
     private void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
     {
-        switch (buttonView.getId())
-        {
-            case R.id.switchBackgroundSevice:
-                if (isChecked)
-                {
-                    mMainApplication.notificationOn();
-                }
-                else
-                {
-                    mMainApplication.notificationOff();
-                }
-                break;
-            case R.id.switchAudioFocus:
-                if (isChecked)
-                {
-                    mMainApplication.audioFocusOn();
-                }
-                else
-                {
-                    mMainApplication.audioFocusOff();
-                }
-                break;
-            case R.id.switchAudioFocusThief:
-                mMainApplication.setIsAudioFocusThief(isChecked);
-                break;
+        int id = buttonView.getId();
+        if (id == R.id.switchBackgroundService) {
+            if (isChecked) {
+                mMainApplication.notificationOn();
+            } else {
+                mMainApplication.notificationOff();
+            }
+        } else if (id == R.id.switchAudioFocus) {
+            if (isChecked) {
+                mMainApplication.audioFocusOn();
+            } else {
+                mMainApplication.audioFocusOff();
+            }
+        } else if (id == R.id.switchAudioFocusThief) {
+            mMainApplication.setIsAudioFocusThief(isChecked);
         }
         updateViews();
     }
 
-    private void setChecked(@NonNull Switch viewSwitch, boolean checked)
+    private void setChecked(@NonNull SwitchCompat viewSwitch, boolean checked)
     {
         viewSwitch.setOnCheckedChangeListener(null);
         viewSwitch.setChecked(checked);
