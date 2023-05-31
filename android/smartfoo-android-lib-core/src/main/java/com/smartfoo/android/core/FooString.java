@@ -14,6 +14,7 @@ import android.text.style.TypefaceSpan;
 import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
@@ -422,7 +423,7 @@ public class FooString
 
     public static boolean contains(String s, String cs)
     {
-        return s.indexOf(cs) != -1;
+        return s.contains(cs);
     }
 
     /**
@@ -502,6 +503,36 @@ public class FooString
         }
 
         return value.toString();
+    }
+
+    public static <T> String toString(Iterable<T> items, boolean multiline)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (items == null)
+        {
+            sb.append("null");
+        }
+        else
+        {
+            sb.append('[');
+            Iterator<T> it = items.iterator();
+            while (it.hasNext())
+            {
+                T item = it.next();
+                sb.append(quote(item));
+                if (it.hasNext())
+                {
+                    sb.append(", ");
+                }
+                if (multiline)
+                {
+                    sb.append(LINEFEED);
+                }
+            }
+            sb.append(']');
+        }
+        return sb.toString();
     }
 
     public static String toString(Object[] items)

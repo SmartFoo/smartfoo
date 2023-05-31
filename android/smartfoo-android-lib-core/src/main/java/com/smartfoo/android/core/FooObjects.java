@@ -1,5 +1,7 @@
 package com.smartfoo.android.core;
 
+import java.util.Objects;
+
 public class FooObjects
 {
     private FooObjects()
@@ -8,6 +10,6 @@ public class FooObjects
 
     public static boolean equals(Object a, Object b)
     {
-        return (a == b) || (a != null && a.equals(b));
+        return Objects.equals(a, b);
     }
 }

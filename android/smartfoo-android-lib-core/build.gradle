@@ -13,14 +13,14 @@ def siteUrl = 'https://github.com/SmartFoo/smartfoo'
 def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
 
 dependencies {
-    implementation libs.core.ktx
-    implementation libs.appcompat
-    implementation libs.material
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.google.android.material
     implementation libs.androidx.recyclerview
     implementation libs.androidx.coordinatorlayout
     testImplementation libs.junit
     androidTestImplementation libs.androidx.test.ext.junit
-    androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.androidx.test.espresso.core
 }
 
 android {

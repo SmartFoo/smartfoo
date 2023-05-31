@@ -13,6 +13,15 @@ public class FooCollections
     {
     }
 
+    public static <T> int hashCode(Collection<T> items)
+    {
+        int hashCode = 0;
+        for (T item : items) {
+            hashCode = 31 * hashCode + item.hashCode();
+        }
+        return hashCode;
+    }
+
     public static <T> boolean identical(Collection<T> a, Collection<T> b)
     {
         if (a == b)
