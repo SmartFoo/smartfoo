@@ -141,10 +141,12 @@ public class FooHandler
         return postDelayed(r, token, 0);
     }
 
+    /*
     public boolean postDelayed(Runnable r, Object token, long delayMillis)
     {
         return sendMessageDelayed(getPostMessage(r, token), delayMillis);
     }
+    */
 
     private Message getPostMessage(Runnable r, Object token)
     {

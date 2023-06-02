@@ -68,11 +68,14 @@ android {
         buildConfig true
     }
 
+    /*
     if (getIsLocalDevelopmentBuild()) {
         defaultPublishConfig 'debug'
     }
+    */
 }
 
+/*
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
@@ -152,3 +155,4 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
+*/
