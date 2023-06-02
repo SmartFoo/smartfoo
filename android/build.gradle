@@ -1,11 +1,11 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    // https://docs.gradle.org/current/userguide/plugins.html#sec:subprojects_plugins_dsl
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
     alias(libs.plugins.kotlinAndroid) apply false
 }
 
+/*
 buildscript {
     ext.kotlin_version = '1.2.41'
     repositories {
@@ -19,12 +19,12 @@ buildscript {
         /**
          * Updates:
          *  https://bintray.com/dcendents/gradle-plugins/com.github.dcendents%3Aandroid-maven-gradle-plugin
-         */
+         * /
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1' // last checked 2018/05/01
         /**
          * Updates:
          *  https://bintray.com/jfrog/jfrog-jars/gradle-bintray-plugin
-         */
+         * /
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0' // last checked 2018/05/01
     }
 }
@@ -56,7 +56,7 @@ task clean(type: Delete) {
  * Checks for project.LOCAL_DEVELOPMENT_BUILD and uses local only projects
  *
  * @return true if project.LOCAL_DEVELOPMENT_BUILD == true, else false
- */
+ * /
 def getIsLocalDevelopmentBuild() {
     def isLocalDevelopmentBuild = project.hasProperty('LOCAL_DEVELOPMENT_BUILD') ? project.LOCAL_DEVELOPMENT_BUILD.toBoolean() : false
     println 'getIsLocalDevelopmentBuild: isLocalDevelopmentBuild=' + isLocalDevelopmentBuild
@@ -66,4 +66,4 @@ def getIsLocalDevelopmentBuild() {
 ext {
     getIsLocalDevelopmentBuild = this.&getIsLocalDevelopmentBuild
 }
-
+*/

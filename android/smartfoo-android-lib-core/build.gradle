@@ -30,8 +30,6 @@ android {
     defaultConfig {
         minSdk 28
         targetSdk 33
-        versionCode 1
-        versionName version
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -44,7 +42,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            debuggable true
             minifyEnabled false
             shrinkResources false
 
@@ -68,11 +65,14 @@ android {
         buildConfig true
     }
 
+    /*
     if (getIsLocalDevelopmentBuild()) {
         defaultPublishConfig 'debug'
     }
+    */
 }
 
+/*
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
@@ -152,3 +152,4 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
+*/

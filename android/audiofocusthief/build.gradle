@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation libs.appcompat
+    implementation libs.androidx.appcompat
 
     androidTestImplementation libs.androidx.test.ext.junit
     testImplementation libs.junit
