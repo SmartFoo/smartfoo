@@ -17,10 +17,14 @@ import java.util.MissingResourceException
  */
 object FooTextToSpeechHelper {
     private val TAG = FooLog.TAG(FooTextToSpeechHelper::class.java)
+
     private const val DBG = false
+
     const val SETTINGS_ACTION_TTS_SETTINGS = "com.android.settings.TTS_SETTINGS"
+
     val IntentTextToSpeechSettings: Intent
         get() = Intent().setAction(SETTINGS_ACTION_TTS_SETTINGS)
+
     val IntentRequestTextToSpeechData: Intent
         get() = Intent().setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA)
 
@@ -28,32 +32,22 @@ object FooTextToSpeechHelper {
      * The Activity should implement [Activity.onActivityResult] similar to:
      * <pre>
      * @Override
-     * protected void onActivityResult(int requestCode, int resultCode, Intent data)
-     * {
-     * super.onActivityResult(requestCode, resultCode, data);
-     *
-     * switch (requestCode)
-     * {
-     * case REQUEST_ACTION_CHECK_TTS_DATA:
-     * {
-     * switch (resultCode)
-     * {
-     * case TextToSpeech.Engine.CHECK_VOICE_DATA_PASS:
-     * {
-     * ArrayList&lt;String&gt; availableVoices = data.getStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES);
-     * FooLog.d(TAG, "onActivityResult: availableVoices=" + availableVoices);
-     *
-     * ArrayAdapter&lt;String&gt; spinnerVoicesAdapter = new ArrayAdapter&lt;&gt;(this,
-     * android.R.layout.simple_spinner_dropdown_item, availableVoices);
-     * mSpinnerVoices.setAdapter(spinnerVoicesAdapter);
-     * break;
+     * protected fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+     *     super.onActivityResult(requestCode, resultCode, data);
+     *     when (requestCode) {
+     *         REQUEST_ACTION_CHECK_TTS_DATA -> {
+     *             when (resultCode) {
+     *                 TextToSpeech.Engine.CHECK_VOICE_DATA_PASS -> {
+     *                     val availableVoices = data.getStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES);
+     *                     FooLog.d(TAG, "onActivityResult: availableVoices=" + availableVoices);
+     *                     val spinnerVoicesAdapter = ArrayAdapter(this, R.layout.simple_spinner_dropdown_item, availableVoices);
+     *                     mSpinnerVoices.setAdapter(spinnerVoicesAdapter);
+     *                 }
+     *             }
+     *         }
+     *     }
      * }
-     * }
-     * break;
-     * }
-     * }
-     * }
-    </pre> *
+     * </pre>
      *
      * @param activity    activity
      * @param requestCode requestCode
