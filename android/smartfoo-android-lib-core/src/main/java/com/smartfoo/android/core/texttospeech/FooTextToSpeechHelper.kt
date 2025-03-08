@@ -58,6 +58,7 @@ object FooTextToSpeechHelper {
      * @param activity    activity
      * @param requestCode requestCode
      */
+    @JvmStatic
     fun requestTextToSpeechData(activity: Activity, requestCode: Int) {
         FooRun.throwIllegalArgumentExceptionIfNull(activity, "activity")
         if (activity.isFinishing || activity.isDestroyed) {

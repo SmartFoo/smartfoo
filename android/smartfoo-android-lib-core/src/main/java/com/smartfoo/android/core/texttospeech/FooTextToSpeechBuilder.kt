@@ -60,6 +60,9 @@ class FooTextToSpeechBuilder {
 
     private var mContext: Context? = null
 
+    constructor() {
+    }
+
     constructor(text: String?) {
         appendSpeech(text)
     }
