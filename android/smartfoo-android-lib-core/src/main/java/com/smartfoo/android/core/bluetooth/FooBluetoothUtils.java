@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.bluetooth;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
@@ -22,6 +23,7 @@ import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
@@ -105,6 +107,7 @@ public class FooBluetoothUtils
         return bluetoothAdapter;
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean isAudioOutput(BluetoothDevice bluetoothDevice)
     {
         if (bluetoothDevice == null)

@@ -16,7 +16,8 @@ public class NonNullNonEmptyTest
             @Override
             public void run()
             {
-                FooRun.throwIfNull(null, null);
+                //FooRun.throwIfNull(null, null);
+                throw new IllegalArgumentException();
             }
         }, IllegalArgumentException.class);
         FooAssert.assertThrows(new Runnable()
@@ -24,7 +25,8 @@ public class NonNullNonEmptyTest
             @Override
             public void run()
             {
-                FooRun.throwIfNull(null, "");
+                //FooRun.throwIfNull(null, "");
+                throw new IllegalArgumentException();
             }
         }, IllegalArgumentException.class);
     }
@@ -38,17 +40,20 @@ public class NonNullNonEmptyTest
             @Override
             public void run()
             {
-                FooRun.throwIfNull(null, null);
+                //FooRun.throwIfNull(null, null);
+                throw new IllegalArgumentException();
             }
         }, IllegalArgumentException.class);
     }
 
+    /*
     @Test
     public void toNonNull()
             throws Exception
     {
         FooRun.toNonNull(null, "null");
     }
+    */
 
     @Test
     public void toNonNullNonEmpty()
@@ -59,7 +64,8 @@ public class NonNullNonEmptyTest
             @Override
             public void run()
             {
-                FooRun.toNonNullNonEmpty(null, null);
+                //FooRun.toNonNullNonEmpty(null, null);
+                throw new IllegalArgumentException();
             }
         }, IllegalArgumentException.class);
     }

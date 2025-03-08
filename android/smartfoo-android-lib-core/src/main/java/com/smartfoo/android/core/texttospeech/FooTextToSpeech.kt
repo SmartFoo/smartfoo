@@ -1,6 +1,5 @@
 package com.smartfoo.android.core.texttospeech
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.media.AudioManager
 import android.os.Bundle
@@ -39,16 +38,14 @@ class FooTextToSpeech private constructor() {
         const val DEFAULT_VOICE_PITCH = 1.0f
         const val DEFAULT_VOICE_VOLUME = 1.0f
 
-        private val sInstance: FooTextToSpeech = FooTextToSpeech()
-
-        @JvmStatic
-        val instance: FooTextToSpeech
-            get() = sInstance
+        val instance: FooTextToSpeech by lazy {
+            FooTextToSpeech()
+        }
 
         fun statusToString(status: Int): String {
             return when (status) {
-                TextToSpeech.SUCCESS -> "TextToSpeech.SUCCESS($status)"
-                TextToSpeech.ERROR -> "TextToSpeech.ERROR($status)"
+                TextToSpeech.SUCCESS -> "SUCCESS($status)"
+                TextToSpeech.ERROR -> "ERROR($status)"
                 else -> "UNKNOWN($status)"
             }
         }
@@ -69,6 +66,7 @@ class FooTextToSpeech private constructor() {
     private val mRunAfterSpeak: Runnable
     private var mApplicationContext: Context? = null
     private var mTextToSpeech: TextToSpeech? = null
+    private var mIsStarted = false
     private var mIsInitialized = false
     private var mNextUtteranceId = 0
     private var mVoiceName: String? = null
@@ -223,7 +221,7 @@ class FooTextToSpeech private constructor() {
 
     val isStarted: Boolean
         get() {
-            synchronized(mSyncLock) { return mTextToSpeech != null }
+            synchronized(mSyncLock) { return mIsStarted }
         }
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -235,6 +233,7 @@ class FooTextToSpeech private constructor() {
     fun stop() {
         synchronized(mSyncLock) {
             clear()
+            mIsStarted = false
             if (mTextToSpeech != null) {
                 mTextToSpeech!!.stop()
                 mTextToSpeech!!.shutdown()
@@ -262,6 +261,7 @@ class FooTextToSpeech private constructor() {
                     callbacks!!.onTextToSpeechInitialized(TextToSpeech.SUCCESS)
                 }
             } else {
+                mIsStarted = true
                 mTextToSpeech = TextToSpeech(mApplicationContext) { status -> onTextToSpeechInitialized(status) }
                 mTextToSpeech!!.setOnUtteranceProgressListener(object :
                     UtteranceProgressListener() {
@@ -273,8 +273,13 @@ class FooTextToSpeech private constructor() {
                         this@FooTextToSpeech.onDone(utteranceId)
                     }
 
+                    @Deprecated("Deprecated in Java")
                     override fun onError(utteranceId: String) {
-                        this@FooTextToSpeech.onError(utteranceId)
+                        onError(utteranceId, TextToSpeech.ERROR)
+                    }
+
+                    override fun onError(utteranceId: String, errorCode: Int) {
+                        this@FooTextToSpeech.onError(utteranceId, errorCode)
                     }
                 })
             }
@@ -366,9 +371,9 @@ class FooTextToSpeech private constructor() {
         FooLog.v(TAG, "+runAfterSpeak()")
     }
 
-    private fun onError(utteranceId: String) {
+    private fun onError(utteranceId: String, errorCode: Int) {
         if (VERBOSE_LOG_UTTERANCE_PROGRESS) {
-            FooLog.w(TAG, "+onError(utteranceId=${FooString.quote(utteranceId)})")
+            FooLog.w(TAG, "+onError(utteranceId=${FooString.quote(utteranceId)}, errorCode=$errorCode)")
         }
         var runAfter: Runnable?
         synchronized(mSyncLock) { runAfter = mUtteranceCallbacks.remove(utteranceId) }
@@ -377,7 +382,7 @@ class FooTextToSpeech private constructor() {
             runAfter!!.run()
         }
         if (VERBOSE_LOG_UTTERANCE_PROGRESS) {
-            FooLog.w(TAG, "-onError(utteranceId=${FooString.quote(utteranceId)})")
+            FooLog.w(TAG, "-onError(utteranceId=${FooString.quote(utteranceId)}), errorCode=$errorCode)")
         }
     }
 

@@ -1,7 +1,10 @@
 package com.smartfoo.android.core.bluetooth.gatt;
 
+import android.Manifest;
 import android.content.Context;
 import android.os.Looper;
+
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.collections.FooLongSparseArray;
 import com.smartfoo.android.core.logging.FooLog;
@@ -85,6 +88,7 @@ public class FooGattManager
         mGattHandlers.remove(deviceAddress);
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public void close()
     {
         FooLog.v(TAG, "+close()");

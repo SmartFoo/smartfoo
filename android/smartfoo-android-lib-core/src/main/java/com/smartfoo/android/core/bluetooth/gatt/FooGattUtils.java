@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.bluetooth.gatt;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -7,6 +8,7 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
@@ -111,6 +113,7 @@ public class FooGattUtils
      * @param gatt       gatt
      * @return true if both gatt.disconnect() and gatt.close() were called successfully, otherwise false
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean safeDisconnectAndClose(@NonNull final String callerName, final BluetoothGatt gatt)
     {
         return safeDisconnect(callerName, gatt, true) && safeClose(callerName, gatt);
@@ -126,11 +129,13 @@ public class FooGattUtils
      * @param gatt       gatt
      * @return true if gatt.disconnect() was called successfully, otherwise false
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean safeDisconnect(@NonNull final String callerName, final BluetoothGatt gatt)
     {
         return safeDisconnect(callerName, gatt, false);
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private static boolean safeDisconnect(@NonNull final String callerName, final BluetoothGatt gatt, boolean ignoreException)
     {
         String debugInfo = gattDeviceAddressString(gatt) + FooString.quote(callerName) + "->safeDisconnect";
@@ -164,6 +169,7 @@ public class FooGattUtils
      * @param gatt       gatt
      * @return true if gatt.close() was called successfully, otherwise false
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean safeClose(@NonNull final String callerName, final BluetoothGatt gatt)
     {
         String debugInfo = gattDeviceAddressString(gatt) + ' ' + callerName + "->safeClose";

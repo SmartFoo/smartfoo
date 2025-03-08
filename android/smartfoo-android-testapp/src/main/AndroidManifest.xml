@@ -13,8 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:name=".MainApplication"
         tools:replace="android:theme"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -26,6 +28,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.smartfoo.android.core.app.FooDebugActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            >
+
+        </activity>
+
     </application>
 
 </manifest>

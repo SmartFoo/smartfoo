@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.notification;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -11,6 +12,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.core.app.NotificationCompat.Builder;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -185,6 +187,7 @@ public class FooNotification
      * @param context context
      * @return true if the FooNotificationService was started, otherwise false and no notification.
      */
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     public boolean show(Context context)
     {
         if (isOngoing())

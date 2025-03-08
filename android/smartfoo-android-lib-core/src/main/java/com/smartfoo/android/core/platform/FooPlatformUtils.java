@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
@@ -171,11 +172,17 @@ public class FooPlatformUtils
         }
 
         Toast toast = Toast.makeText(context, text, duration);
-        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+
+        View v = toast.getView();
         if (v != null)
         {
-            v.setGravity(gravity);
+            TextView tv = v.findViewById(android.R.id.message);
+            if (tv != null)
+            {
+                tv.setGravity(gravity);
+            }
         }
+
         toast.show();
     }
 
@@ -311,6 +318,7 @@ public class FooPlatformUtils
      * @param permissionsChecker permissionsChecker
      * @return An ID that is unique for every device
      */
+    @RequiresPermission("android.permission.READ_PRIVILEGED_PHONE_STATE")
     @SuppressLint("HardwareIds")
     public static String getDeviceId(FooPermissionsChecker permissionsChecker)
     {
@@ -604,11 +612,12 @@ public class FooPlatformUtils
         }
     }
 
+    /*
     /**
      * Reference: http://stackoverflow.com/a/11438245/252308
      *
      * @param context context
-     */
+     * /
     public static void enableDeviceMenuButtonToShowOverflowMenu(Context context)
     {
         try
@@ -627,6 +636,7 @@ public class FooPlatformUtils
             //FooLog.e(TAG, "EXCEPTION setting ActionBar sHasPermanentMenuKey=" + false, e);
         }
     }
+    */
 
     public static void showSoftInput(View view, boolean show)
     {

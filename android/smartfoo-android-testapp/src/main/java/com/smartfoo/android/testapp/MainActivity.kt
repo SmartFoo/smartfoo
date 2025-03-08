@@ -1,5 +1,6 @@
 package com.smartfoo.android.testapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -13,6 +14,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
+import com.smartfoo.android.core.app.FooDebugActivity
 import com.smartfoo.android.core.logging.FooLog
 import com.smartfoo.android.testapp.databinding.ActivityMainBinding
 
@@ -26,7 +28,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var toolbar: Toolbar
     private lateinit var fab: FloatingActionButton
     private lateinit var navView: NavigationView
-    private lateinit var buttonFoo: Button
+    private lateinit var buttonFooDebugActivity: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +37,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toolbar = binding.toolbar.toolbar
         fab = binding.toolbar.fab
         navView = binding.navView
-        buttonFoo = binding.toolbar.contentMain.buttonFoo
+        buttonFooDebugActivity = binding.toolbar.contentMain.buttonFooDebugActivity
 
         setContentView(binding.root)
 
@@ -53,8 +55,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         navView.setNavigationItemSelectedListener(this)
 
-        buttonFoo.setOnClickListener {
-            //...
+        buttonFooDebugActivity.setOnClickListener {
+            val intent = Intent(this, FooDebugActivity::class.java)
+            startActivity(intent)
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

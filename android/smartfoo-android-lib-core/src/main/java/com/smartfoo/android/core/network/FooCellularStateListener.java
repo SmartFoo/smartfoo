@@ -1,11 +1,13 @@
 package com.smartfoo.android.core.network;
 
+import android.Manifest;
 import android.content.Context;
 import android.net.NetworkInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
@@ -65,6 +67,7 @@ public class FooCellularStateListener
         return mTelephonyManager.getDataState();
     }
 
+    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     public int getDataConnectionType()
     {
         return mTelephonyManager.getDataNetworkType();

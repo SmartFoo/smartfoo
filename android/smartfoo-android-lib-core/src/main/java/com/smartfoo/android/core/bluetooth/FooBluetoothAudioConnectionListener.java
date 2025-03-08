@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.bluetooth;
 
+import android.Manifest;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
 import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
@@ -267,6 +269,7 @@ public class FooBluetoothAudioConnectionListener
             FooLog.v(TAG, "-stop()");
         }
 
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public void onReceive(Context context, Intent intent)
         {

@@ -1,11 +1,13 @@
 package com.smartfoo.android.core.bluetooth;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.logging.FooLog;
 
@@ -80,6 +82,7 @@ public class FooBluetoothManager
      * <li><a href="https://github.com/RadiusNetworks/android-ibeacon-service/issues/16">https://github.com/RadiusNetworks/android-ibeacon-service/issues/16</a></li>
      * </ul>
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public boolean bluetoothAdapterStateToggle()
     {
         return bluetoothAdapterEnable(!isBluetoothAdapterEnabled());
@@ -93,6 +96,7 @@ public class FooBluetoothManager
      * <li><a href="https://github.com/RadiusNetworks/android-ibeacon-service/issues/16">https://github.com/RadiusNetworks/android-ibeacon-service/issues/16</a></li>
      * </ul>
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public boolean bluetoothAdapterEnable(boolean on)
     {
         if (mBluetoothAdapter == null)
@@ -140,6 +144,7 @@ public class FooBluetoothManager
 
     private static final Comparator<BluetoothDevice> BLUETOOTH_DEVICE_COMPARATOR = new Comparator<BluetoothDevice>()
     {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public int compare(BluetoothDevice o1, BluetoothDevice o2)
         {
@@ -147,6 +152,7 @@ public class FooBluetoothManager
         }
     };
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public SortedSet<BluetoothDevice> getBondedDevices()
     {
         if (mBluetoothAdapter == null)

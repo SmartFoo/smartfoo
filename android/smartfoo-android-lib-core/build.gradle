@@ -1,7 +1,7 @@
 
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
 }
 
 archivesBaseName = 'smartfoo-android-lib-core'
@@ -25,11 +25,11 @@ dependencies {
 
 android {
     namespace 'com.smartfoo.android.core'
-    compileSdk 33
+    compileSdk 35
 
     defaultConfig {
-        minSdk 28
-        targetSdk 33
+        minSdk 34
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -45,12 +45,11 @@ android {
             minifyEnabled false
             shrinkResources false
 
-            //
-            // NOTE:(pv) Setting this to true can mess up debugging by hiding method parameters (especially anonymous methods)
+            // NOTE: Setting this to true can mess up debugging by hiding method parameters (especially anonymous methods)
             // If you are seeing weird missing variables when debugging, set this to false.
             // DO NOT CHECK THIS IN AS 'false'!
-            //
-            testCoverageEnabled false
+            enableUnitTestCoverage true
+            enableAndroidTestCoverage true
         }
     }
 

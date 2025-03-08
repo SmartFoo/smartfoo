@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.bluetooth.gatt;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.logging.FooLog;
 
@@ -35,6 +37,7 @@ public class BluetoothGattCompat
         this.context = context;
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothGatt connectGatt(BluetoothDevice remoteDevice,
                                      boolean autoConnect,
                                      BluetoothGattCallback bluetoothGattCallback)
@@ -91,6 +94,7 @@ public class BluetoothGattCompat
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private BluetoothGatt connectGattCompat(BluetoothGattCallback bluetoothGattCallback,
                                             BluetoothDevice device,
                                             boolean autoConnect)

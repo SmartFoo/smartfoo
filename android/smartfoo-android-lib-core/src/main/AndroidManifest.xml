@@ -7,7 +7,14 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Must match `com.swooby.alfredai.MobileForegroundService.FOREGROUND_SERVICE_PERMISSION`-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <uses-feature
         android:name="android.hardware.bluetooth"
@@ -42,15 +49,19 @@
         <receiver
             android:name="com.smartfoo.android.core.notification.FooNotificationReceiver"
             android:exported="false"
-            tools:node="remove"
             />
 
         <service
             android:name="com.smartfoo.android.core.notification.FooNotificationService"
             android:enabled="true"
             android:exported="false"
-            tools:node="remove"
-            />
+            android:foregroundServiceType="specialUse"
+            >
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Notification Parsing Voice Assistant Session"
+                />
+        </service>
 
         <service
             android:name="com.smartfoo.android.core.notification.FooNotificationListenerManager$FooNotificationListener"
@@ -58,7 +69,6 @@
             android:exported="true"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            tools:node="remove"
             >
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService"/>
@@ -69,8 +79,8 @@
         <receiver
             android:name="com.smartfoo.android.core.platform.FooBootListener$FooLockedBootCompletedBroadcastReceiver"
             android:directBootAware="true"
-            tools:node="remove"
-            android:exported="true">
+            android:exported="true"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
             </intent-filter>

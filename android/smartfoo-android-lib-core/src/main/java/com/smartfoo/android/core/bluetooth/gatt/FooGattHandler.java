@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.bluetooth.gatt;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -13,6 +14,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.BuildConfig;
 import com.smartfoo.android.core.FooListenerManager;
@@ -296,6 +299,7 @@ public class FooGattHandler
 
         mHandlerMain = new FooHandler(mGattManager.getLooper(), new Handler.Callback()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public boolean handleMessage(Message msg)
             {
@@ -318,6 +322,7 @@ public class FooGattHandler
 
         mBackgroundBluetoothGattCallback = new BluetoothGattCallback()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)
             {
@@ -406,12 +411,14 @@ public class FooGattHandler
         return gatt != null ? gatt.getDevice() : null;
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public void close()
     {
         close(true);
     }
 
     //package
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     void close(boolean remove)
     {
         synchronized (mGattManager)
@@ -634,6 +641,7 @@ public class FooGattHandler
 
         mHandlerBackground.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 try
@@ -699,12 +707,14 @@ public class FooGattHandler
         return true;
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressWarnings("UnusedReturnValue")
     public boolean disconnect()
     {
         return disconnect(sDefaultDisconnectTimeoutMillis);
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressWarnings("WeakerAccess")
     public boolean disconnect(final long timeoutMillis)
     {
@@ -734,6 +744,7 @@ public class FooGattHandler
                     FooLog.v(TAG, logPrefix("disconnect: isBackgroundThread() == false; posting disconnect() to mHandlerBackground;"));
                     mHandlerBackground.post(new Runnable()
                     {
+                        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
                         public void run()
                         {
                             disconnect(timeoutMillis);
@@ -776,6 +787,7 @@ public class FooGattHandler
      * @param reason            DisconnectReason
      * @param logStatusAndState boolean
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private void onDeviceDisconnected(BluetoothGatt gatt,
                                       final int status,
                                       final DisconnectReason reason,
@@ -898,6 +910,7 @@ public class FooGattHandler
      * <p/>
      * See {@link BluetoothGattCallback#onConnectionStateChange(BluetoothGatt, int, int)}
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)
     {
         String newStateString = FooGattUtils.bluetoothProfileStateToString(newState);
@@ -969,6 +982,7 @@ public class FooGattHandler
     {
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public void run()
             {
@@ -998,6 +1012,7 @@ public class FooGattHandler
     {
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public void run()
             {
@@ -1024,6 +1039,7 @@ public class FooGattHandler
 
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             @Override
             public void run()
             {
@@ -1096,6 +1112,7 @@ public class FooGattHandler
 
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 boolean disconnect = false;
@@ -1165,6 +1182,7 @@ public class FooGattHandler
 
         mHandlerBackground.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 try
@@ -1266,6 +1284,7 @@ public class FooGattHandler
 
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 boolean disconnect = false;
@@ -1721,6 +1740,7 @@ public class FooGattHandler
 
         mHandlerBackground.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 try
@@ -1853,6 +1873,7 @@ public class FooGattHandler
 
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 boolean disconnect = false;
@@ -1974,6 +1995,7 @@ public class FooGattHandler
 
         mHandlerBackground.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 try
@@ -2155,6 +2177,7 @@ public class FooGattHandler
 
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 boolean disconnect = false;
@@ -2224,6 +2247,7 @@ public class FooGattHandler
         private static final int onCharacteristicChanged            = 2;
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private boolean handleMessage(Message msg)
     {
         switch (msg.what)
@@ -2303,6 +2327,7 @@ public class FooGattHandler
 
         mHandlerBackground.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 try
@@ -2367,6 +2392,7 @@ public class FooGattHandler
 
         mHandlerMain.post(new Runnable()
         {
+            @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
             public void run()
             {
                 boolean disconnect = false;

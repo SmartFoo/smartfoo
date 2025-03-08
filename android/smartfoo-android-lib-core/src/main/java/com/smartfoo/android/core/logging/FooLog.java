@@ -283,7 +283,7 @@ public class FooLog
     {
         if (sTextToSpeech == null)
         {
-            sTextToSpeech = FooTextToSpeech.getInstance();
+            sTextToSpeech = FooTextToSpeech.Companion.getInstance();
 
             if (!sTextToSpeech.isStarted())
             {

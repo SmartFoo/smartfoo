@@ -76,4 +76,11 @@ public class FooRun
     {
         return toNonNull(context, "context");
     }
+
+    public static void throwIfNull(Object paramValue,
+                                   @NonNullNonEmpty String paramName) {
+        if (paramValue == null) {
+            throw new IllegalArgumentException(paramName + " must not be null");
+        }
+    }
 }
