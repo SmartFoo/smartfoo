@@ -1,45 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start"
     >
 
-    <LinearLayout
+    <include
+        android:id="@+id/app_bar_main"
+        layout="@layout/app_bar_main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        >
+        android:layout_height="match_parent"
+        />
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switchBackgroundService"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:text="Background Service"
-            android:textSize="18sp"
-            />
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switchAudioFocus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:text="Audio Focus"
-            android:textSize="18sp"
-            />
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switchAudioFocusThief"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:text="Steal Back Audio Focus"
-            android:textSize="18sp"
-            />
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.drawerlayout.widget.DrawerLayout>

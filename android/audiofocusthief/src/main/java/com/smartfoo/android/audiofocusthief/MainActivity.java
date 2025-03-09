@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.smartfoo.android.audiofocusthief.databinding.ActivityMainBinding;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.media.FooAudioFocusListener;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
@@ -45,6 +46,8 @@ public class MainActivity
     };
 
     private MainApplication mMainApplication;
+
+    private ActivityMainBinding binding;
     private SwitchCompat mSwitchNotification;
     private SwitchCompat mSwitchAudioFocus;
     private SwitchCompat mSwitchAudioFocusThief;
@@ -65,7 +68,9 @@ public class MainActivity
 
         mMainApplication = (MainApplication) getApplication();
 
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        setSupportActionBar(binding.appBarMain.toolbar);
 
         mSwitchNotification = findViewById(R.id.switchBackgroundService);
         mSwitchNotification.setOnCheckedChangeListener(mOnCheckedChangeListener);

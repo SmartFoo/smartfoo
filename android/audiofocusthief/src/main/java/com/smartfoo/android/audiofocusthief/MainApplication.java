@@ -1,6 +1,7 @@
 package com.smartfoo.android.audiofocusthief;
 
 import android.app.Application;
+import android.content.pm.ServiceInfo;
 import android.media.AudioManager;
 
 import com.smartfoo.android.core.FooListenerManager;
@@ -64,14 +65,24 @@ public class MainApplication
             return false;
         }
 
-        FooNotificationBuilder notificationBuilder = new FooNotificationBuilder(this)
+        FooNotification.ChannelInfo CHANNEL_INFO = new FooNotification.ChannelInfo(
+                "FOREGROUND_SERVICE_CHANNEL",
+                "Foreground Service Channel",
+                android.app.NotificationManager.IMPORTANCE_DEFAULT,
+                "Non-dismissible notifications for session status");
+
+        FooNotification.createNotificationChannel(this, CHANNEL_INFO);
+
+        int FOREGROUND_SERVICE_TYPE = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
+
+        FooNotificationBuilder notificationBuilder = new FooNotificationBuilder(this, CHANNEL_INFO.id)
                 .setOngoing(true)
                 .setSmallIcon(R.drawable.ic_android_white_24dp)
                 .setContentTitle("Running In The Background")
                 .setContentText("Tap to foreground the app.")
                 .setContentIntentActivity(100, MainActivity.class);
 
-        mNotification = new FooNotification(100, notificationBuilder);
+        mNotification = new FooNotification(100, FOREGROUND_SERVICE_TYPE, notificationBuilder);
         mNotification.show(this);
 
         return true;

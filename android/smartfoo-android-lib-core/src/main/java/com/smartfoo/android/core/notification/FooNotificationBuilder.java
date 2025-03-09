@@ -18,18 +18,20 @@ import androidx.core.app.NotificationCompat.Builder;
 import androidx.core.app.NotificationCompat.Action;
 import androidx.core.app.NotificationCompat.Extender;
 import androidx.core.app.NotificationCompat.Style;
+import androidx.core.app.Person;
 
 import com.smartfoo.android.core.FooRun;
 
+/** @noinspection unused, UnusedReturnValue */
 public class FooNotificationBuilder
 {
     private final Context mContext;
     private final Builder mBuilder;
 
-    public FooNotificationBuilder(@NonNull Context context)
+    public FooNotificationBuilder(@NonNull Context context, @NonNull String channelId)
     {
         mContext = FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mBuilder = new Builder(context);
+        mBuilder = new Builder(context, channelId);
     }
 
     public FooNotificationBuilder setWhen(long when)
@@ -178,8 +180,13 @@ public class FooNotificationBuilder
         return this;
     }
 
+    /**
+     * @deprecated use {@link #setTicker(CharSequence)}
+     */
+    @Deprecated
     public FooNotificationBuilder setTicker(CharSequence tickerText, RemoteViews views)
     {
+        //noinspection deprecation
         mBuilder.setTicker(tickerText, views);
         return this;
     }
@@ -256,9 +263,20 @@ public class FooNotificationBuilder
         return this;
     }
 
+    /**
+     * @deprecated use {@link #addPerson(Person)}
+     */
+    @Deprecated
     public FooNotificationBuilder addPerson(String uri)
     {
+        //noinspection deprecation
         mBuilder.addPerson(uri);
+        return this;
+    }
+
+    public FooNotificationBuilder addPerson(Person person)
+    {
+        mBuilder.addPerson(person);
         return this;
     }
 

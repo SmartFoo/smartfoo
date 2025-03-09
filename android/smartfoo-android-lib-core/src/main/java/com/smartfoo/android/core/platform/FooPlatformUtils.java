@@ -510,7 +510,22 @@ public class FooPlatformUtils
         while (it.hasNext())
         {
             String key = it.next();
-            Object value = bundle.get(key);
+            Object value;
+            try {
+                /**
+                 * {@link android.os.BaseBundle#get(java.lang.String)} calls hidden method {@link android.os.BaseBundle#getValue(java.lang.String)}.
+                 * `android.os.BaseBundle#getValue(java.lang.String)` says:
+                 * "Deprecated: Use `getValue(String, Class, Class[])`. This method should only be used in other deprecated APIs."
+                 * That first sentence does not help this method that dynamically enumerates the Bundle entries without awareness/concern of any types.
+                 * That second sentence tells me they probably won't be getting rid of android.os.BaseBundle#get(java.lang.String) any time soon.
+                 * So marking deprecated `android.os.BaseBundle#get(java.lang.String)` as safe to call... for awhile.
+                 */
+                //noinspection deprecation
+                value = bundle.get(key);
+            } catch (RuntimeException e) {
+                // Known issue if a Bundle (Parcelable) incorrectly implements writeToParcel
+                value = "[Error retrieving \"" + key + "\" value: " + e.getMessage() + "]";
+            }
 
             sb.append(FooString.quote(key)).append('=');
 

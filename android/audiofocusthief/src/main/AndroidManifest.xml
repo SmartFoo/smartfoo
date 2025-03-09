@@ -3,6 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     >
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Must match `com.swooby.alfredai.MobileForegroundService.FOREGROUND_SERVICE_PERMISSION`-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
@@ -10,13 +16,16 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/FooTheme"
+        android:theme="@style/AppTheme"
         >
 
         <activity
             android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
             android:launchMode="singleTask"
-            android:exported="true">
+            android:theme="@style/AppTheme.NoActionBar"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -24,13 +33,17 @@
             </intent-filter>
         </activity>
 
-        <!--
         <service
             android:name="com.smartfoo.android.core.notification.FooNotificationService"
             android:enabled="true"
             android:exported="false"
-            />
-            -->
+            android:foregroundServiceType="specialUse"
+            >
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Notification Parsing Voice Assistant Session"
+                />
+        </service>
 
     </application>
 

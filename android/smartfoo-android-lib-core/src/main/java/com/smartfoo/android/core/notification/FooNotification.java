@@ -3,6 +3,7 @@ package com.smartfoo.android.core.notification;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import com.smartfoo.android.core.logging.FooLog;
  * References:
  * http://developer.android.com/guide/topics/ui/notifiers/notifications.html
  * http://developer.android.com/design/patterns/notifications.html
+ * @noinspection unused
  */
 public class FooNotification
         implements Parcelable
@@ -33,6 +35,37 @@ public class FooNotification
     public static NotificationManagerCompat getNotificationManager(@NonNull Context context)
     {
         return NotificationManagerCompat.from(context);
+    }
+
+    /**
+     * Non-deprecated duplicate of {@link android.content.pm.ServiceInfo#FOREGROUND_SERVICE_TYPE_NONE}.
+     */
+    public static int FOREGROUND_SERVICE_TYPE_NONE = 0;
+
+    public static class ChannelInfo {
+        public final @NonNull String id;
+        public final @NonNull String name;
+        public final int importance;
+        public final @NonNull String description;
+
+        public ChannelInfo(
+                @NonNull String id,
+                @NonNull String name,
+                int importance,
+                @NonNull String description) {
+            this.id = id;
+            this.name = name;
+            this.importance = importance;
+            this.description = description;
+        }
+    }
+
+    public static void createNotificationChannel(
+            @NonNull Context context,
+            @NonNull ChannelInfo channelInfo) {
+        NotificationChannel channel = new NotificationChannel(channelInfo.id, channelInfo.name, channelInfo.importance);
+        channel.setDescription(channelInfo.description);
+        getNotificationManager(context).createNotificationChannel(channel);
     }
 
     /**
@@ -88,7 +121,7 @@ public class FooNotification
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         FooRun.throwIllegalArgumentExceptionIfNull(activityIntent, "activityIntent");
         activityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        int pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+        int pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getActivity(context, requestCode, activityIntent, pendingIntentFlags);
     }
 
@@ -110,7 +143,7 @@ public class FooNotification
         return notification.toString();
     }
 
-    public static final Creator<FooNotification> CREATOR = new Creator<FooNotification>()
+    public static final Creator<FooNotification> CREATOR = new Creator<>()
     {
         public FooNotification createFromParcel(Parcel in)
         {
@@ -123,33 +156,71 @@ public class FooNotification
         }
     };
 
-    private int          mRequestCode;
-    private Notification mNotification;
-
-    public FooNotification(int requestCode, @NonNull FooNotificationBuilder builder)
+    @Override
+    public int describeContents()
     {
-        this(requestCode, builder.build());
+        return 0;
     }
 
-    public FooNotification(int requestCode, @NonNull Builder builder)
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
     {
-        this(requestCode, builder.build());
-    }
-
-    public FooNotification(int requestCode, @NonNull Notification notification)
-    {
-        mRequestCode = requestCode;
-        mNotification = notification;
+        dest.writeInt(mRequestCode);
+        dest.writeInt(mForegroundServiceType);
+        mNotification.writeToParcel(dest, flags);
     }
 
     private FooNotification(@NonNull Parcel in)
     {
-        this(in.readInt(), (Notification) in.readParcelable(Notification.class.getClassLoader()));
+        this(in.readInt(),
+                in.readInt(),
+                Notification.CREATOR.createFromParcel(in));
+    }
+
+    private final int          mRequestCode;
+    private final int          mForegroundServiceType;
+    private final Notification mNotification;
+
+    public FooNotification(int requestCode, @NonNull FooNotificationBuilder builder)
+    {
+        this(requestCode, FOREGROUND_SERVICE_TYPE_NONE, builder);
+    }
+
+    public FooNotification(int requestCode, int foregroundServiceType, @NonNull FooNotificationBuilder builder)
+    {
+        this(requestCode, foregroundServiceType, builder.build());
+    }
+
+    public FooNotification(int requestCode, @NonNull Builder builder)
+    {
+        this(requestCode, FOREGROUND_SERVICE_TYPE_NONE, builder.build());
+    }
+
+    public FooNotification(int requestCode, int foregroundServiceType, @NonNull Builder builder)
+    {
+        this(requestCode, foregroundServiceType, builder.build());
+    }
+
+    public FooNotification(int requestCode, @NonNull Notification notification)
+    {
+        this(requestCode, FOREGROUND_SERVICE_TYPE_NONE, notification);
+    }
+
+    public FooNotification(int requestCode, int foregroundServiceType, @NonNull Notification notification)
+    {
+        mRequestCode = requestCode;
+        mForegroundServiceType = foregroundServiceType;
+        mNotification = notification;
     }
 
     public int getRequestCode()
     {
         return mRequestCode;
+    }
+
+    public int getForegroundServiceType()
+    {
+        return mForegroundServiceType;
     }
 
     public Notification getNotification()
@@ -162,23 +233,12 @@ public class FooNotification
         return (mNotification.flags & Notification.FLAG_ONGOING_EVENT) == Notification.FLAG_ONGOING_EVENT;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags)
-    {
-        dest.writeInt(mRequestCode);
-        dest.writeParcelable(mNotification, 0);
-    }
-
-    @Override
-    public int describeContents()
-    {
-        return 0;
-    }
-
+    @NonNull
     @Override
     public String toString()
     {
         return "{ mRequestCode=" + mRequestCode +
+               ", mForegroundServiceType=" + mForegroundServiceType +
                ", mNotification=" + toString(mNotification) +
                " }";
     }
@@ -186,19 +246,20 @@ public class FooNotification
     /**
      * @param context context
      * @return true if the FooNotificationService was started, otherwise false and no notification.
+     * @noinspection UnusedReturnValue
      */
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     public boolean show(Context context)
     {
         if (isOngoing())
         {
-            FooLog.d(TAG, "show: isOngoing()==true; Sending non-dismissable notification to FooNotificationService: " +
+            FooLog.d(TAG, "show: isOngoing()==true; Sending non-dismissible notification to FooNotificationService: " +
                           mNotification);
             return FooNotificationService.showNotification(context, this);
         }
         else
         {
-            FooLog.d(TAG, "show: ongoing==false; Showing dismissable notification: " + mNotification);
+            FooLog.d(TAG, "show: ongoing==false; Showing dismissible notification: " + mNotification);
             getNotificationManager(context).notify(mRequestCode, mNotification);
             return true;
         }
@@ -207,6 +268,7 @@ public class FooNotification
     /**
      * @param context context
      * @return true if the FooNotificationService was stopped, otherwise false and no notification.
+     * @noinspection UnusedReturnValue
      */
     public boolean cancel(Context context)
     {

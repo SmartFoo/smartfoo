@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     >
 
+    <!--
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -10,12 +11,18 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!- -
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+    - ->
+    <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Must match `com.swooby.alfredai.MobileForegroundService.FOREGROUND_SERVICE_PERMISSION`-->
+    <!- - Must match `com.swooby.alfredai.MobileForegroundService.FOREGROUND_SERVICE_PERMISSION`- ->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    -->
 
+    <!--
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true"
@@ -24,13 +31,16 @@
         android:name="android.hardware.bluetooth_le"
         android:required="true"
         />
+        -->
 
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/FooTheme"
         >
+        <!--
+        android:theme="@style/FooTheme"
+        -->
 
         <!--
         <activity
@@ -46,6 +56,7 @@
         </activity>
         -->
 
+        <!--
         <receiver
             android:name="com.smartfoo.android.core.notification.FooNotificationReceiver"
             android:exported="false"
@@ -85,6 +96,7 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+        -->
 
     </application>
 

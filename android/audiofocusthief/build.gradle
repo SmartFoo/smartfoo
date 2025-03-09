@@ -2,16 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-dependencies {
-    implementation libs.androidx.appcompat
-
-    androidTestImplementation libs.androidx.test.ext.junit
-    testImplementation libs.junit
-
-    println 'dependencies: ' + archivesBaseName + ' using local project(s)'
-    implementation project(':smartfoo-android-lib-core')
-}
-
 android {
     namespace 'com.smartfoo.android.audiofocusthief'
     compileSdk 35
@@ -32,4 +22,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout
+    implementation libs.google.android.material
+
+    androidTestImplementation libs.androidx.test.ext.junit
+    testImplementation libs.junit
+
+    println 'dependencies: ' + archivesBaseName + ' using local project(s)'
+    implementation project(':smartfoo-android-lib-core')
 }

@@ -12,6 +12,15 @@ public class FooRun
     {
     }
 
+    /**
+     * This check may seem redundant to use using `@NonNull`, but at Runtime `@NonNull` is just
+     * an honorary check and does not actually enforce that the parameter is not null.
+     *
+     * @param paramValue value of the typed parameter
+     * @param paramName name of the parameter to show in the exception message
+     * @return paramValue
+     * @param <T> type
+     */
     @NonNull
     public static <T> T throwIllegalArgumentExceptionIfNull(T paramValue,
                                                             @NonNullNonEmpty String paramName)
