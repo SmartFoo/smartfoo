@@ -63,6 +63,10 @@ class FooTextToSpeechBuilder {
     constructor() {
     }
 
+    constructor(context: Context) {
+        mContext = context
+    }
+
     constructor(text: String?) {
         appendSpeech(text)
     }

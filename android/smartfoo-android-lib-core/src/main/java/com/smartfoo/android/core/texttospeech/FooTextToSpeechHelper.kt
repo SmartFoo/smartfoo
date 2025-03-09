@@ -22,9 +22,11 @@ object FooTextToSpeechHelper {
 
     const val SETTINGS_ACTION_TTS_SETTINGS = "com.android.settings.TTS_SETTINGS"
 
+    @JvmStatic
     val IntentTextToSpeechSettings: Intent
         get() = Intent().setAction(SETTINGS_ACTION_TTS_SETTINGS)
 
+    @JvmStatic
     val IntentRequestTextToSpeechData: Intent
         get() = Intent().setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA)
 
@@ -33,19 +35,19 @@ object FooTextToSpeechHelper {
      * <pre>
      * @Override
      * protected fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-     *     super.onActivityResult(requestCode, resultCode, data);
-     *     when (requestCode) {
-     *         REQUEST_ACTION_CHECK_TTS_DATA -> {
-     *             when (resultCode) {
-     *                 TextToSpeech.Engine.CHECK_VOICE_DATA_PASS -> {
-     *                     val availableVoices = data.getStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES);
-     *                     FooLog.d(TAG, "onActivityResult: availableVoices=" + availableVoices);
-     *                     val spinnerVoicesAdapter = ArrayAdapter(this, R.layout.simple_spinner_dropdown_item, availableVoices);
-     *                     mSpinnerVoices.setAdapter(spinnerVoicesAdapter);
-     *                 }
-     *             }
+     *   super.onActivityResult(requestCode, resultCode, data);
+     *   when (requestCode) {
+     *     REQUEST_ACTION_CHECK_TTS_DATA -> {
+     *       when (resultCode) {
+     *         TextToSpeech.Engine.CHECK_VOICE_DATA_PASS -> {
+     *           val availableVoices = data.getStringArrayListExtra(TextToSpeech.Engine.EXTRA_AVAILABLE_VOICES);
+     *           FooLog.d(TAG, "onActivityResult: availableVoices=" + availableVoices);
+     *           val spinnerVoicesAdapter = ArrayAdapter(this, R.layout.simple_spinner_dropdown_item, availableVoices);
+     *           mSpinnerVoices.setAdapter(spinnerVoicesAdapter);
      *         }
+     *       }
      *     }
+     *   }
      * }
      * </pre>
      *

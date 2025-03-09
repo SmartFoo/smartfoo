@@ -38,10 +38,12 @@ class FooTextToSpeech private constructor() {
         const val DEFAULT_VOICE_PITCH = 1.0f
         const val DEFAULT_VOICE_VOLUME = 1.0f
 
+        @JvmStatic
         val instance: FooTextToSpeech by lazy {
             FooTextToSpeech()
         }
 
+        @JvmStatic
         fun statusToString(status: Int): String {
             return when (status) {
                 TextToSpeech.SUCCESS -> "SUCCESS($status)"
