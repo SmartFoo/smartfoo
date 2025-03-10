@@ -1,8 +1,10 @@
 package com.smartfoo.android.core.network;
 
+import android.Manifest;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
 import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
@@ -50,6 +52,7 @@ public class FooDataConnectionManager
     private boolean   mIsStarted;
     private HookState mLastCellularHookState;
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     public FooDataConnectionManager(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
@@ -57,6 +60,7 @@ public class FooDataConnectionManager
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
+            @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
             @Override
             public void onFirstAttach()
             {
@@ -102,12 +106,14 @@ public class FooDataConnectionManager
         mCellularStateListener = new FooCellularStateListener(context);
         mCellularHookStateCallbacks = new FooCellularHookStateCallbacks()
         {
+            @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
             @Override
             public void onCellularOffHook()
             {
                 FooDataConnectionManager.this.onCellularOffHook();
             }
 
+            @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
             @Override
             public void onCellularOnHook()
             {
@@ -132,6 +138,7 @@ public class FooDataConnectionManager
         };
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @Override
     public String toString()
     {
@@ -163,6 +170,7 @@ public class FooDataConnectionManager
      * @return the live state of the data connection; either {@link ConnectionState#OK},
      * {@link ConnectionState#PhoneOffHook}, or {@link ConnectionState#NetworkDisconnected}
      */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @NonNull
     public ConnectionState getConnectionState()
     {
@@ -183,12 +191,14 @@ public class FooDataConnectionManager
         }
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()
     {
         return mDataConnectionListener.getDataConnectionInfo();
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     private void onCellularOnHook()
     {
         FooLog.d(TAG, "onCellularOnHook()");
@@ -205,6 +215,7 @@ public class FooDataConnectionManager
         }
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     private void onCellularOffHook()
     {
         FooLog.d(TAG, "onCellularOffHook()");

@@ -1,13 +1,16 @@
 package com.smartfoo.android.audiofocusthief;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
 
 import com.smartfoo.android.audiofocusthief.databinding.ActivityMainBinding;
 import com.smartfoo.android.core.logging.FooLog;
@@ -20,6 +23,8 @@ public class MainActivity
         extends AppCompatActivity
 {
     private static final String TAG = FooLog.TAG(MainActivity.class);
+
+    private static final int REQUEST_PERMISSION_POST_NOTIFICATIONS = 100;
 
     private final FooAudioFocusListenerCallbacks mAudioFocusListenerCallbacks = new FooAudioFocusListenerCallbacks()
     {
@@ -36,18 +41,10 @@ public class MainActivity
         }
     };
 
-    private final OnCheckedChangeListener mOnCheckedChangeListener = new OnCheckedChangeListener()
-    {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
-        {
-            MainActivity.this.onCheckedChanged(buttonView, isChecked);
-        }
-    };
+    private final OnCheckedChangeListener mOnCheckedChangeListener = MainActivity.this::onCheckedChanged;
 
     private MainApplication mMainApplication;
 
-    private ActivityMainBinding binding;
     private SwitchCompat mSwitchNotification;
     private SwitchCompat mSwitchAudioFocus;
     private SwitchCompat mSwitchAudioFocusThief;
@@ -68,15 +65,15 @@ public class MainActivity
 
         mMainApplication = (MainApplication) getApplication();
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        mSwitchNotification = findViewById(R.id.switchBackgroundService);
+        mSwitchNotification = binding.appBarMain.activityMainContent.switchBackgroundService;
         mSwitchNotification.setOnCheckedChangeListener(mOnCheckedChangeListener);
-        mSwitchAudioFocus = findViewById(R.id.switchAudioFocus);
+        mSwitchAudioFocus = binding.appBarMain.activityMainContent.switchAudioFocus;
         mSwitchAudioFocus.setOnCheckedChangeListener(mOnCheckedChangeListener);
-        mSwitchAudioFocusThief = findViewById(R.id.switchAudioFocusThief);
+        mSwitchAudioFocusThief = binding.appBarMain.activityMainContent.switchAudioFocusThief;
         mSwitchAudioFocusThief.setOnCheckedChangeListener(mOnCheckedChangeListener);
     }
 
@@ -106,12 +103,33 @@ public class MainActivity
         FooLog.e(TAG, "-onPause()");
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_PERMISSION_POST_NOTIFICATIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                backgroundServiceNotificationOn();
+            } else {
+                Toast.makeText(this, "Permission is required to enable notifications", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    private void backgroundServiceNotificationOn() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQUEST_PERMISSION_POST_NOTIFICATIONS);
+            return;
+        }
+        mMainApplication.notificationOn();
+    }
+
     private void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
     {
         int id = buttonView.getId();
         if (id == R.id.switchBackgroundService) {
             if (isChecked) {
-                mMainApplication.notificationOn();
+                backgroundServiceNotificationOn();
             } else {
                 mMainApplication.notificationOff();
             }
@@ -153,6 +171,7 @@ public class MainActivity
         setChecked(mSwitchAudioFocus, true);
     }
 
+    /** @noinspection unused*/
     private boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +

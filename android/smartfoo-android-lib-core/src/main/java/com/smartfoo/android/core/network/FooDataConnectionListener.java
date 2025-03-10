@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.network;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.net.wifi.WifiManager;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
@@ -279,6 +281,7 @@ public class FooDataConnectionListener
 
     private FooDataConnectionListenerCallbacks mCallbacks;
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     public FooDataConnectionListener(@NonNull Context context)
     {
         mContext = FooRun.toNonNull(context, "context");
@@ -313,6 +316,7 @@ public class FooDataConnectionListener
         }
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()
     {
@@ -333,6 +337,7 @@ public class FooDataConnectionListener
         }
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     public void start(@NonNull FooDataConnectionListenerCallbacks callbacks)
     {
         FooLog.v(TAG, "+start(...)");
@@ -390,6 +395,7 @@ public class FooDataConnectionListener
         /**
          * Necessarily complex due to issues discussed in: http://stackoverflow.com/q/5276032/252308
          */
+        @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
         public void onReceive(Context context, Intent intent)
         {
             String action = intent.getAction();

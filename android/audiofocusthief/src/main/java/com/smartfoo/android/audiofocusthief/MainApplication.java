@@ -1,8 +1,12 @@
 package com.smartfoo.android.audiofocusthief;
 
+import android.Manifest;
 import android.app.Application;
+import android.app.NotificationManager;
 import android.content.pm.ServiceInfo;
 import android.media.AudioManager;
+
+import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.logging.FooLog;
@@ -58,6 +62,7 @@ public class MainApplication
         return mNotification != null;
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     public boolean notificationOn()
     {
         if (mNotification != null)
@@ -68,7 +73,7 @@ public class MainApplication
         FooNotification.ChannelInfo CHANNEL_INFO = new FooNotification.ChannelInfo(
                 "FOREGROUND_SERVICE_CHANNEL",
                 "Foreground Service Channel",
-                android.app.NotificationManager.IMPORTANCE_DEFAULT,
+                NotificationManager.IMPORTANCE_DEFAULT,
                 "Non-dismissible notifications for session status");
 
         FooNotification.createNotificationChannel(this, CHANNEL_INFO);

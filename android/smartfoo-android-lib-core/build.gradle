@@ -2,6 +2,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 archivesBaseName = 'smartfoo-android-lib-core'
@@ -13,11 +14,12 @@ def siteUrl = 'https://github.com/SmartFoo/smartfoo'
 def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
 
 dependencies {
-    implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
-    implementation libs.google.android.material
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.compose.ui
     implementation libs.androidx.recyclerview
-    implementation libs.androidx.coordinatorlayout
+    implementation libs.google.android.material
+
     testImplementation libs.junit
     androidTestImplementation libs.androidx.test.ext.junit
     androidTestImplementation libs.androidx.test.espresso.core

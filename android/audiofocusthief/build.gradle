@@ -34,12 +34,11 @@ android {
 
 dependencies {
     implementation libs.androidx.appcompat
-    implementation libs.androidx.constraintlayout
     implementation libs.google.android.material
 
-    androidTestImplementation libs.androidx.test.ext.junit
     testImplementation libs.junit
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.espresso.core
 
-    println 'dependencies: ' + archivesBaseName + ' using local project(s)'
     implementation project(':smartfoo-android-lib-core')
 }
