@@ -10,16 +10,18 @@ jobs:
   build:
     name: Build Android
     runs-on: ubuntu-latest
+    env:
+      JAVA_VERSION: 21
     defaults:
       run:
         shell: bash
         working-directory: ./android
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: ${{ env.JAVA_VERSION }}
         distribution: 'jetbrains'
         cache: gradle
     - run: chmod +x gradlew
