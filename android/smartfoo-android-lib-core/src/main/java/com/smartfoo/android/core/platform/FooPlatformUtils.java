@@ -24,7 +24,6 @@ import android.text.Spanned;
 import android.view.Gravity;
 import android.view.TouchDelegate;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,7 +36,7 @@ import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.R;
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 import com.smartfoo.android.core.logging.FooLog;
-import com.smartfoo.android.core.notification.FooPermissionsChecker;
+import com.smartfoo.android.core.permissions.FooPermissionsChecker;
 
 import java.lang.reflect.Field;
 import java.util.Iterator;

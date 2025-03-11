@@ -1,9 +1,10 @@
-package com.smartfoo.android.core.notification;
+package com.smartfoo.android.core.permissions;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import androidx.core.content.ContextCompat;
@@ -103,6 +104,11 @@ public class FooPermissionsChecker
         return checkPermissions(new String[] { permissionRequested });
     }
 
+    public static boolean isPermissionGranted(@NonNull Context context, @NonNull String permission)
+    {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
     /**
      * @param permissionsRequested One of {@link android.Manifest.permission}.*; ignored if null/empty
      * @return never null
@@ -119,7 +125,7 @@ public class FooPermissionsChecker
 
             for (String permissionRequested : permissionsRequested)
             {
-                if (ContextCompat.checkSelfPermission(context, permissionRequested) == PackageManager.PERMISSION_DENIED)
+                if (!isPermissionGranted(context, permissionRequested))
                 {
                     permissionsDenied.add(permissionRequested);
                 }
