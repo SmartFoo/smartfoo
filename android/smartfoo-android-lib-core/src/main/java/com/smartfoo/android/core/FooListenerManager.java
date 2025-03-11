@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/** @noinspection unused*/
 public class FooListenerManager<T>
 {
     private static final String TAG = FooLog.TAG(FooListenerManager.class);
@@ -38,6 +39,7 @@ public class FooListenerManager<T>
         mListenersToRemove = new LinkedHashSet<>();
     }
 
+    @NonNull
     @Override
     public String toString()
     {

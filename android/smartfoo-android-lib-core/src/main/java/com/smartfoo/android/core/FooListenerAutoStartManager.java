@@ -3,14 +3,11 @@ package com.smartfoo.android.core;
 import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
-import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
 public class FooListenerAutoStartManager<T>
         extends FooListenerManager<T>
 {
-    private static final String TAG = FooLog.TAG(FooListenerAutoStartManager.class);
-
     public interface FooListenerAutoStartManagerCallbacks
     {
         void onFirstAttach();
