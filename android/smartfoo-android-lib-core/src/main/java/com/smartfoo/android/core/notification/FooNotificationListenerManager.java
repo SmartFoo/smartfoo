@@ -108,6 +108,7 @@ public class FooNotificationListenerManager
                 ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
             }
             intent = new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         return intent;
     }
