@@ -34,7 +34,7 @@ class FooTextToSpeech private constructor() {
         var VERBOSE_LOG_UTTERANCE_PROGRESS = false
         var VERBOSE_LOG_AUDIO_FOCUS = false
 
-        const val DEFAULT_VOICE_SPEED = 2.0f
+        const val DEFAULT_VOICE_SPEED = 1.35f
         const val DEFAULT_VOICE_PITCH = 1.0f
         const val DEFAULT_VOICE_VOLUME = 1.0f
 
@@ -367,10 +367,10 @@ class FooTextToSpeech private constructor() {
                 FooLog.v(TAG, "runAfterSpeak: mUtteranceCallbacks.size() == 0; audioFocusStop()")
                 mAudioFocusListener.audioFocusStop(mAudioFocusListenerCallbacks)
             } else {
-                FooLog.v(TAG, "runAfterSpeak: mUtteranceCallbacks.size()($size) > 0; ignoring")
+                FooLog.v(TAG, "runAfterSpeak: mUtteranceCallbacks.size()($size) > 0; ignoring (not calling `audioFocusStop()`)")
             }
         }
-        FooLog.v(TAG, "+runAfterSpeak()")
+        FooLog.v(TAG, "-runAfterSpeak()")
     }
 
     private fun onError(utteranceId: String, errorCode: Int) {
