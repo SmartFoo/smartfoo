@@ -144,12 +144,16 @@ public class FooNotificationListenerManager
         void onNotificationRemoved(@NonNull StatusBarNotification sbn);
     }
 
+    private static FooNotificationListenerManager sInstance;
+
     public static FooNotificationListenerManager getInstance()
     {
+        if (sInstance == null)
+        {
+            sInstance = new FooNotificationListenerManager();
+        }
         return sInstance;
     }
-
-    private static FooNotificationListenerManager sInstance = new FooNotificationListenerManager();
 
     private final Object                                                      mSyncLock;
     /**
