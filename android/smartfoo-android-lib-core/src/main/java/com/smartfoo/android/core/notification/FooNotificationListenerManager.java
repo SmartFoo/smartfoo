@@ -158,6 +158,9 @@ public class FooNotificationListenerManager
     private static FooNotificationListenerManager sInstance = new FooNotificationListenerManager();
 
     private final Object                                                      mSyncLock;
+    /**
+     * NOTE: **Purposefully not using FooListenerAutoStartManager due to incompatible logic in {@link #attach(Context, FooNotificationListenerManagerCallbacks)}
+     */
     private final FooListenerManager<FooNotificationListenerManagerCallbacks> mListenerManager;
     private final FooHandler                                                  mHandler;
 
@@ -202,7 +205,7 @@ public class FooNotificationListenerManager
         mListenerManager.attach(callbacks);
 
         //
-        // Purposefully not using FooListenerAutoStartManager due to the following incompatible logic...
+        // NOTE: **Purposefully not using FooListenerAutoStartManager due to the following incompatible logic**...
         //
         if (isNotificationAccessSettingConfirmedEnabled(context))
         {
