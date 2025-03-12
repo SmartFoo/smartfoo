@@ -227,7 +227,7 @@ public class FooNotificationListenerManager
 
         mListenerManager.detach(callbacks);
 
-        if (mListenerManager.size() == 0)
+        if (mListenerManager.isEmpty())
         {
             notificationListenerConnectedTimeoutStop();
         }
@@ -241,6 +241,7 @@ public class FooNotificationListenerManager
         }
     }
 
+    /** @noinspection unused*/
     public void initializeActiveNotifications()
     {
         initializeActiveNotifications(getActiveNotifications());
