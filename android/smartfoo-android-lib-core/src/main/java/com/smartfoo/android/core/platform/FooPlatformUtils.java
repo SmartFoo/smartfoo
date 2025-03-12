@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+/** @noinspection unused*/
 public class FooPlatformUtils
 {
     private static final String TAG = FooLog.TAG(FooPlatformUtils.class);
@@ -225,6 +226,21 @@ public class FooPlatformUtils
         return applicationLabel.toString();
     }
 
+    /**
+     * As of Android 11 (API 30) requires the following in AndroidManifest.xml:
+     * <pre>
+     * &lt;uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+     *         tools:ignore="QueryAllPackagesPermission" /&gt;
+     * </pre>
+     * See:
+     * <ul>
+     * <li>
+     *     <a href="https://medium.com/androiddevelopers/package-visibility-in-android-11-cc857f221cd9">Package visibility in Android 11</a>
+     *     "In rare cases, your app might need to query or interact with all installed apps on a device, independent of the components they contain. To allow your app to see all other installed apps, Android 11 introduces the QUERY_ALL_PACKAGES permission. In an upcoming Google Play policy update, look for guidelines for apps that need the QUERY_ALL_PACKAGES permission."
+     * </li>
+     * <li><a href="https://developer.android.com/training/package-visibility">Package visibility filtering on Android</a></li>
+     * </ul>
+     */
     public static ApplicationInfo getApplicationInfo(@NonNull Context context, String packageName)
     {
         try
