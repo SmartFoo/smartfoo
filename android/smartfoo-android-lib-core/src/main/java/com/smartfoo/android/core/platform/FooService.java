@@ -1,5 +1,6 @@
 package com.smartfoo.android.core.platform;
 
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -25,5 +26,17 @@ public class FooService
         boolean started = (componentName != null);
 
         return started;
+    }
+
+    @NonNull
+    public static String startToString(int start)
+    {
+        return switch (start) {
+            case Service.START_STICKY_COMPATIBILITY -> "START_STICKY_COMPATIBILITY";
+            case Service.START_STICKY -> "START_STICKY";
+            case Service.START_NOT_STICKY -> "START_NOT_STICKY";
+            case Service.START_REDELIVER_INTENT -> "START_REDELIVER_INTENT";
+            default -> "UNKNOWN";
+        } + '(' + start + ')';
     }
 }
