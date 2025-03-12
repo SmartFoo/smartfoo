@@ -5,11 +5,7 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.media.RemoteController;
-import android.media.RemoteController.MetadataEditor;
-import android.os.Binder;
 import android.os.Build.VERSION;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
@@ -19,11 +15,8 @@ import androidx.annotation.RequiresApi;
 
 import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
-import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooHandler;
-import com.smartfoo.android.core.platform.FooPlatformUtils;
-import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
 @SuppressLint("ObsoleteSdkInt")
 @RequiresApi(18)
@@ -412,36 +405,16 @@ public class FooNotificationListenerManager
         }
     }
 
+    /** @noinspection CommentedOutCode*/
     @RequiresApi(18)
     public static class FooNotificationListener
             extends NotificationListenerService
-            implements RemoteController.OnClientUpdateListener
+            //implements RemoteController.OnClientUpdateListener
     {
         private static final String TAG = FooLog.TAG(FooNotificationListener.class);
 
-        public static final String ACTION_BIND_REMOTE_CONTROLLER =
-                FooReflectionUtils.getClassName(FooNotificationListener.class) +
-                ".ACTION_BIND_REMOTE_CONTROLLER";
-
-        public class RemoteControllerBinder
-                extends Binder
-        {
-            public FooNotificationListener getService()
-            {
-                return FooNotificationListener.this;
-            }
-        }
-
         private long                           mOnListenerConnectedStartMillis;
         private FooNotificationListenerManager mNotificationListenerManager;
-        private RemoteController               mRemoteController;
-
-        private final IBinder mRemoteControllerBinder = new RemoteControllerBinder();
-
-        public RemoteController getRemoteController()
-        {
-            return mRemoteController;
-        }
 
         @Override
         public void onCreate()
@@ -451,24 +424,12 @@ public class FooNotificationListenerManager
 
             mNotificationListenerManager = FooNotificationListenerManager.getInstance();
 
+            /*
             Context applicationContext = getApplicationContext();
-
             mRemoteController = new RemoteController(applicationContext, this);
+            */
 
             FooLog.v(TAG, "-onCreate()");
-        }
-
-        @Override
-        public IBinder onBind(Intent intent)
-        {
-            FooLog.v(TAG, "onBind(intent=" + FooPlatformUtils.toString(intent) + ')');
-
-            if (ACTION_BIND_REMOTE_CONTROLLER.equals(intent.getAction()))
-            {
-                return mRemoteControllerBinder;
-            }
-
-            return super.onBind(intent);
         }
 
         @Override
@@ -537,6 +498,47 @@ public class FooNotificationListenerManager
             mNotificationListenerManager.onNotificationListenerNotConnected(NotConnectedReason.Disconnected, elapsedMillis);
         }
 
+        /*
+
+        //
+        // RemoteController
+        //
+
+        public static final String ACTION_BIND_REMOTE_CONTROLLER =
+                FooReflectionUtils.getClassName(FooNotificationListener.class) +
+                ".ACTION_BIND_REMOTE_CONTROLLER";
+
+        public class RemoteControllerBinder
+                extends Binder
+        {
+            public FooNotificationListener getService()
+            {
+                return FooNotificationListener.this;
+            }
+        }
+
+        private RemoteController mRemoteController;
+
+        private final IBinder mRemoteControllerBinder = new RemoteControllerBinder();
+
+        public RemoteController getRemoteController()
+        {
+            return mRemoteController;
+        }
+
+        @Override
+        public IBinder onBind(Intent intent)
+        {
+            FooLog.v(TAG, "onBind(intent=" + FooPlatformUtils.toString(intent) + ')');
+
+            if (ACTION_BIND_REMOTE_CONTROLLER.equals(intent.getAction()))
+            {
+                return mRemoteControllerBinder;
+            }
+
+            return super.onBind(intent);
+        }
+
         //
         // RemoteController.OnClientUpdateListener
         //
@@ -570,5 +572,6 @@ public class FooNotificationListenerManager
         {
             FooLog.v(TAG, "onClientMetadataUpdate(...)");
         }
+        */
     }
 }
