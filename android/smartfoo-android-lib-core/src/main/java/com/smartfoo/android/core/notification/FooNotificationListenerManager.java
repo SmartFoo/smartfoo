@@ -1,7 +1,6 @@
 package com.smartfoo.android.core.notification;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -16,6 +15,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.FooRun;
@@ -25,7 +25,8 @@ import com.smartfoo.android.core.platform.FooHandler;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 import com.smartfoo.android.core.reflection.FooReflectionUtils;
 
-@TargetApi(18)
+@SuppressLint("ObsoleteSdkInt")
+@RequiresApi(18)
 public class FooNotificationListenerManager
 {
     private static final String TAG = FooLog.TAG(FooNotificationListenerManager.class);
@@ -411,7 +412,7 @@ public class FooNotificationListenerManager
         }
     }
 
-    @TargetApi(18)
+    @RequiresApi(18)
     public static class FooNotificationListener
             extends NotificationListenerService
             implements RemoteController.OnClientUpdateListener
