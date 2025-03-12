@@ -2,6 +2,7 @@ package com.smartfoo.android.core.notification;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -47,49 +48,47 @@ public class FooNotificationListenerManager
     }
 
     /**
-     * Per hidden field {@link android.provider.Settings.Secure android.provider.Settings.Secure.ENABLED_NOTIFICATION_LISTENERS}
+     * Per hidden field {@link android.provider.Settings.Secure} ENABLED_NOTIFICATION_LISTENERS
      */
-    private static final String ENABLED_NOTIFICATION_LISTENERS = FooReflectionUtils.getFieldValueString(
-            android.provider.Settings.Secure.class,
-            "ENABLED_NOTIFICATION_LISTENERS");
+    private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
 
-    public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context)
+    public static boolean isNotificationAccessSettingConfirmedEnabled(@NonNull Context context)
     {
-        return isNotificationAccessSettingConfirmedNotEnabled(context, FooNotificationListener.class);
+        return isNotificationAccessSettingConfirmedEnabled(context, FooNotificationListener.class);
     }
 
-    public static boolean isNotificationAccessSettingConfirmedNotEnabled(@NonNull Context context,
-                                                                         @NonNull Class<? extends NotificationListenerService> notificationListenerServiceClass)
+    public static boolean isNotificationAccessSettingConfirmedEnabled(
+            @NonNull Context context,
+            @NonNull Class<? extends NotificationListenerService> notificationListenerServiceClass)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         FooRun.throwIllegalArgumentExceptionIfNull(notificationListenerServiceClass, "notificationListenerServiceClass");
 
         if (supportsNotificationListenerSettings())
         {
-            String packageName = context.getPackageName();
-            String notificationListenerServiceClassName = notificationListenerServiceClass.getName();
-            String packageNameNotificationListenerServiceClassName =
-                    packageName + '/' + notificationListenerServiceClassName;
+            ComponentName notificationListenerServiceLookingFor = new ComponentName(context, notificationListenerServiceClass);
+            FooLog.d(TAG, "isNotificationAccessSettingConfirmedEnabled: notificationListenerServiceLookingFor=" + notificationListenerServiceLookingFor);
 
             ContentResolver contentResolver = context.getContentResolver();
-
             String notificationListenersString = Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS);
             if (notificationListenersString != null)
             {
                 String[] notificationListeners = notificationListenersString.split(":");
-                for (String notificationListener : notificationListeners)
+                for (int i = 0; i < notificationListeners.length; i++)
                 {
-                    FooLog.v(TAG, "isNotificationAccessSettingConfirmedNotEnabled: notificationListener == " +
-                                  FooString.quote(notificationListener));
-                    if (notificationListener.equals(packageNameNotificationListenerServiceClassName))
+                    ComponentName notificationListener = ComponentName.unflattenFromString(notificationListeners[i]);
+                    FooLog.d(TAG, "isNotificationAccessSettingConfirmedEnabled: notificationListeners[" + i + "]=" + notificationListener);
+                    if (notificationListenerServiceLookingFor.equals(notificationListener))
                     {
-                        return false;
+                        FooLog.i(TAG, "isNotificationAccessSettingConfirmedEnabled: found match; return true");
+                        return true;
                     }
                 }
             }
         }
 
-        return true;
+        FooLog.w(TAG, "isNotificationAccessSettingConfirmedEnabled: found NO match; return false");
+        return false;
     }
 
     @SuppressLint("InlinedApi")
@@ -177,11 +176,7 @@ public class FooNotificationListenerManager
         //
         // Purposefully not using FooListenerAutoStartManager due to the following incompatible logic...
         //
-        if (isNotificationAccessSettingConfirmedNotEnabled(context))
-        {
-            callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled, 0);
-        }
-        else
+        if (isNotificationAccessSettingConfirmedEnabled(context))
         {
             if (mListenerManager.size() == 1)
             {
@@ -190,6 +185,10 @@ public class FooNotificationListenerManager
                     notificationListenerConnectedTimeoutStart(NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS);
                 }
             }
+        }
+        else
+        {
+            callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled, 0);
         }
     }
 
