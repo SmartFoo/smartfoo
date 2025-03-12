@@ -31,10 +31,20 @@ public class FooNotificationListenerManager
     private static final String TAG = FooLog.TAG(FooNotificationListenerManager.class);
 
     /**
-     * This has been observed to take &gt;500ms when unlocking after a fresh reboot.
-     * TODO:(pv) Consider making this two values, one before first unlock, one after first unlock
+     * <p>Needs to be reasonably longer than the app startup time.</p>
+     * <p>NOTE1 that the app startup time can be a few seconds when debugging.</p>
+     * <p>NOTE2 that this will time out if paused too long at a debug breakpoint while launching.</p>
      */
-    public static final int NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS = 1000;
+    public static class NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS
+    {
+        public static final int NORMAL = 1500;
+        public static final int SLOW = 6000;
+
+        public static int getRecommendedTimeout(boolean slow)
+        {
+            return slow ? SLOW : NORMAL;
+        }
+    }
 
     /**
      * Usually {@link VERSION#SDK_INT VERSION.SDK_INT}, but may be used to force a specific OS Version # <b>FOR TESTING
@@ -153,11 +163,29 @@ public class FooNotificationListenerManager
 
     private FooNotificationListener mNotificationListener;
 
+    private long mNotificationListenerConnectedTimeoutMillis = NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS.NORMAL;
+
     private FooNotificationListenerManager()
     {
         mSyncLock = new Object();
         mListenerManager = new FooListenerManager<>(this);
         mHandler = new FooHandler();
+    }
+
+    /**
+     * <p><b>Set to slow mode for debug builds.</b></p>
+     * Sets timeout based on {@link NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS#getRecommendedTimeout(boolean)}<br>
+     * To set a more precise timeout, use {@link #setTimeout(long)}
+     */
+    public void setSlowMode(boolean value)
+    {
+        long timeoutMillis = NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout(value);
+        setTimeout(timeoutMillis);
+    }
+
+    public void setTimeout(long timeoutMillis)
+    {
+        mNotificationListenerConnectedTimeoutMillis = timeoutMillis;
     }
 
     public boolean isNotificationListenerConnected()
@@ -182,7 +210,7 @@ public class FooNotificationListenerManager
             {
                 if (mNotificationListenerBindTimeoutStartMillis == -1)
                 {
-                    notificationListenerConnectedTimeoutStart(NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS);
+                    notificationListenerConnectedTimeoutStart(mNotificationListenerConnectedTimeoutMillis);
                 }
             }
         }
