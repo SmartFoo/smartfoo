@@ -598,7 +598,7 @@ public class FooPlatformUtils
      *
      * @param context context
      */
-    public static void showDevelopmentSettings(Context context)
+    public static void showDevelopmentSettings(@NonNull Context context)
     {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
         // DevelopmentSettings appears to not have any arguments. :(
@@ -606,7 +606,7 @@ public class FooPlatformUtils
         context.startActivity(intent);
     }
 
-    public static void showGooglePlay(Context context, String packageName)
+    public static void showGooglePlay(@NonNull Context context, String packageName)
     {
         try
         {
