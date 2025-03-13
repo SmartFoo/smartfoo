@@ -2,7 +2,6 @@ package com.smartfoo.android.core.texttospeech
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import com.smartfoo.android.core.FooRun
 import com.smartfoo.android.core.FooString
 import com.smartfoo.android.core.collections.FooCollections
 import java.util.LinkedList
@@ -60,28 +59,32 @@ class FooTextToSpeechBuilder {
 
     private var mContext: Context? = null
 
-    constructor() {
-    }
+    constructor()
 
-    constructor(context: Context) {
-        mContext = context
-    }
-
-    constructor(text: String?) {
-        appendSpeech(text)
-    }
-
-    constructor(context: Context?, text: String?) {
+    @JvmOverloads
+    constructor(
+        context: Context,
+        text: String? = null) {
         mContext = context
         appendSpeech(text)
     }
 
-    constructor(context: Context, textResId: Int, vararg formatArgs: Any?) {
+    constructor(
+        text: String?) {
+        appendSpeech(text)
+    }
+
+    constructor(
+        context: Context,
+        textResId: Int,
+        vararg formatArgs: Any?) {
         mContext = context
         appendSpeech(textResId, *formatArgs)
     }
 
-    constructor(builder: FooTextToSpeechBuilder) {
+    constructor(
+        builder: FooTextToSpeechBuilder
+    ) {
         append(builder)
     }
 
@@ -108,11 +111,14 @@ class FooTextToSpeechBuilder {
         return FooCollections.hashCode(mParts)
     }
 
+    @Suppress("unused")
     val isEmpty: Boolean
         get() = mParts.isEmpty()
+
     val numberOfParts: Int
         get() = mParts.size
 
+    @Suppress("unused")
     fun appendSpeech(context: Context, textResId: Int, vararg formatArgs: Any?): FooTextToSpeechBuilder {
         mContext = context
         return appendSpeech(textResId, formatArgs)
@@ -163,7 +169,6 @@ class FooTextToSpeechBuilder {
         return this
     }
 
-    //package
     fun build(): List<FooTextToSpeechPart> {
         val parts: List<FooTextToSpeechPart> = LinkedList(mParts)
         mParts.clear()

@@ -7,7 +7,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import com.smartfoo.android.core.FooListenerManager
-import com.smartfoo.android.core.FooRun
 import com.smartfoo.android.core.FooString
 import com.smartfoo.android.core.logging.FooLog
 import com.smartfoo.android.core.media.FooAudioFocusListener
@@ -170,7 +169,7 @@ class FooTextToSpeech private constructor() {
                 changed = !FooString.equals(oldValue, mVoiceName)
                 mTextToSpeech!!.setVoice(foundVoice)
             }
-        } // synclock
+        } // mSyncLock
         return changed
     }
 
@@ -242,7 +241,7 @@ class FooTextToSpeech private constructor() {
                 mTextToSpeech = null
             }
             mIsInitialized = false
-        } // synclock
+        } // mSyncLock
     }
 
     @JvmOverloads
@@ -250,7 +249,6 @@ class FooTextToSpeech private constructor() {
         applicationContext: Context,
         callbacks: FooTextToSpeechCallbacks? = null
     ): FooTextToSpeech {
-        FooRun.throwIllegalArgumentExceptionIfNull(applicationContext, "applicationContext")
         synchronized(mSyncLock) {
             if (mApplicationContext == null) {
                 mApplicationContext = applicationContext
@@ -275,7 +273,9 @@ class FooTextToSpeech private constructor() {
                         this@FooTextToSpeech.onDone(utteranceId)
                     }
 
-                    @Deprecated("Deprecated in Java")
+                    @Deprecated("use {@link #onError(utteranceId, errorCode)}",
+                        ReplaceWith("onError(utteranceId, TextToSpeech.ERROR)",
+                        "android.speech.tts.TextToSpeech"))
                     override fun onError(utteranceId: String) {
                         onError(utteranceId, TextToSpeech.ERROR)
                     }
@@ -286,7 +286,7 @@ class FooTextToSpeech private constructor() {
                 })
             }
             return this
-        } // synclock
+        } // mSyncLock
     }
 
     private fun onTextToSpeechInitialized(status: Int) {
@@ -318,7 +318,7 @@ class FooTextToSpeech private constructor() {
                     texts.remove()
                     speak(false, utteranceInfo.mText, utteranceInfo.mRunAfter)
                 }
-            } // synclock
+            } // mSyncLock
         } finally {
             FooLog.v(TAG, "-onTextToSpeechInitialized(status=${statusToString(status)})")
         }

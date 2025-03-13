@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.speech.tts.TextToSpeech
 import android.text.TextUtils
-import com.smartfoo.android.core.FooRun
 import com.smartfoo.android.core.logging.FooLog
 import com.smartfoo.android.core.platform.FooPlatformUtils
 import java.util.Collections
@@ -56,7 +55,6 @@ object FooTextToSpeechHelper {
      */
     @JvmStatic
     fun requestTextToSpeechData(activity: Activity, requestCode: Int) {
-        FooRun.throwIllegalArgumentExceptionIfNull(activity, "activity")
         if (activity.isFinishing || activity.isDestroyed) {
             return
         }
