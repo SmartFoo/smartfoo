@@ -77,7 +77,7 @@
         </service>
 
         <service
-            android:name="com.smartfoo.android.core.notification.FooNotificationListenerManager$FooNotificationListener"
+            android:name="com.smartfoo.android.core.notification.FooNotificationListenerManager$FooNotificationListenerService"
             android:enabled="true"
             android:exported="true"
             android:label="@string/app_name"

@@ -29,7 +29,7 @@ public class FooNotificationListenerManager
      * <p>NOTE1 that the app startup time can be a few seconds when debugging.</p>
      * <p>NOTE2 that this will time out if paused too long at a debug breakpoint while launching.</p>
      */
-    public static class NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS
+    public static class NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS
     {
         public static final int NORMAL = 1500;
         public static final int SLOW = 6000;
@@ -58,7 +58,7 @@ public class FooNotificationListenerManager
 
     public static boolean isNotificationAccessSettingConfirmedEnabled(@NonNull Context context)
     {
-        return isNotificationAccessSettingConfirmedEnabled(context, FooNotificationListener.class);
+        return isNotificationAccessSettingConfirmedEnabled(context, FooNotificationListenerService.class);
     }
 
     public static boolean isNotificationAccessSettingConfirmedEnabled(
@@ -135,9 +135,9 @@ public class FooNotificationListenerManager
          * @param activeNotifications Active StatusBar Notifications
          * @return true to prevent {@link #initializeActiveNotifications()} from being automatically called
          */
-        boolean onNotificationListenerConnected(@NonNull StatusBarNotification[] activeNotifications);
+        boolean onNotificationListenerServiceConnected(@NonNull StatusBarNotification[] activeNotifications);
 
-        void onNotificationListenerNotConnected(@NonNull NotConnectedReason reason, long elapsedMillis);
+        void onNotificationListenerServiceNotConnected(@NonNull NotConnectedReason reason, long elapsedMillis);
 
         void onNotificationPosted(@NonNull StatusBarNotification sbn);
 
@@ -162,9 +162,10 @@ public class FooNotificationListenerManager
     private final FooListenerManager<FooNotificationListenerManagerCallbacks> mListenerManager;
     private final FooHandler                                                  mHandler;
 
-    private FooNotificationListener mNotificationListener;
+    private FooNotificationListenerService mNotificationListenerService;
 
-    private long mNotificationListenerConnectedTimeoutMillis = NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS.NORMAL;
+    private long mNotificationListenerServiceConnectedTimeoutMillis = NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.NORMAL;
+    private long mNotificationListenerServiceConnectedTimeoutStartMillis = -1;
 
     private FooNotificationListenerManager()
     {
@@ -175,23 +176,23 @@ public class FooNotificationListenerManager
 
     /**
      * <p><b>Set to slow mode for debug builds.</b></p>
-     * Sets timeout based on {@link NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS#getRecommendedTimeout(boolean)}<br>
+     * Sets timeout based on {@link NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS#getRecommendedTimeout(boolean)}<br>
      * To set a more precise timeout, use {@link #setTimeout(long)}
      */
     public void setSlowMode(boolean value)
     {
-        long timeoutMillis = NOTIFICATION_LISTENER_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout(value);
+        long timeoutMillis = NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout(value);
         setTimeout(timeoutMillis);
     }
 
     public void setTimeout(long timeoutMillis)
     {
-        mNotificationListenerConnectedTimeoutMillis = timeoutMillis;
+        mNotificationListenerServiceConnectedTimeoutMillis = timeoutMillis;
     }
 
-    public boolean isNotificationListenerConnected()
+    public boolean isNotificationListenerServiceConnected()
     {
-        return mNotificationListener != null;
+        return mNotificationListenerService != null;
     }
 
     public void attach(@NonNull Context context,
@@ -209,15 +210,15 @@ public class FooNotificationListenerManager
         {
             if (mListenerManager.size() == 1)
             {
-                if (mNotificationListenerBindTimeoutStartMillis == -1)
+                if (mNotificationListenerServiceConnectedTimeoutStartMillis == -1)
                 {
-                    notificationListenerConnectedTimeoutStart(mNotificationListenerConnectedTimeoutMillis);
+                    notificationListenerServiceConnectedTimeoutStart(mNotificationListenerServiceConnectedTimeoutMillis);
                 }
             }
         }
         else
         {
-            callbacks.onNotificationListenerNotConnected(NotConnectedReason.ConfirmedNotEnabled, 0);
+            callbacks.onNotificationListenerServiceNotConnected(NotConnectedReason.ConfirmedNotEnabled, 0);
         }
     }
 
@@ -229,7 +230,7 @@ public class FooNotificationListenerManager
 
         if (mListenerManager.isEmpty())
         {
-            notificationListenerConnectedTimeoutStop();
+            notificationListenerServiceConnectedTimeoutStop();
         }
     }
 
@@ -237,7 +238,7 @@ public class FooNotificationListenerManager
     {
         synchronized (mSyncLock)
         {
-            return mNotificationListener != null ? mNotificationListener.getActiveNotifications() : null;
+            return mNotificationListenerService != null ? mNotificationListenerService.getActiveNotifications() : null;
         }
     }
 
@@ -256,87 +257,121 @@ public class FooNotificationListenerManager
 
         synchronized (mSyncLock)
         {
-            if (mNotificationListener == null)
+            if (mNotificationListenerService == null)
             {
                 return;
             }
 
             for (StatusBarNotification sbn : activeNotifications)
             {
-                onNotificationPosted(mNotificationListener, sbn);
+                onNotificationPosted(mNotificationListenerService, sbn);
             }
         }
     }
 
     /**
-     * HACK required to detect non-binding when re-installing app even if notification access says/shows it is enabled:
-     * http://stackoverflow.com/a/37081128/252308
      * <p>
-     * Even if Notification Access is enabled, the Application always starts first, before FooNotificationListener has
-     * any chance to bind.
-     * After the Application start, if FooNotificationListener binds then it will call onNotificationListenerBound().
-     * On first run it will not bind because the user has not enabled the settings.
-     * Normally we would just directly call FooNotificationListener.isNotificationAccessSettingEnabled(Context
-     * context).
-     * Unfortunately, sometimes NotificationAccess is configured to be enabled, but FooNotificationListener never
-     * binds.
-     * This almost always happens when re-installing the app between development builds.
-     * NOTE:(pv) It is unknown if this is also an issue when the app does production updates through Google Play.
-     * Since we cannot reliably test for isNotificationAccessSettingEnabled, the next best thing is to timeout if
-     * FooNotificationListener does not bind within a small amount of time (we are using 100ms).
-     * If FooNotificationListener does not bind and call onNotificationListenerBound() within 250ms then we need to
-     * prompt the user to enable Notification Access.
-     *
-     * @param timeoutMillis
+     * HACK required to detect any {@link NotificationListenerService} <b>NOT</b> calling
+     * {@link NotificationListenerService#onListenerConnected()} <b>**after updating/re-installing app
+     * <i>EVEN IF NOTIFICATION ACCESS SAYS/SHOWS IT IS ENABLED!</i>**</b>:<br>
+     * <a href="http://stackoverflow.com/a/37081128/252308">http://stackoverflow.com/a/37081128/252308</a><br>
+     * Comment is from 2016; page has some updates since.
+     * </p>
+     * <p>
+     * <b>Background:</b><br>
+     * After an Application [that requires `BIND_NOTIFICATION_LISTENER_SERVICE` permission] is
+     * installed, the user needs to configure it to have Notification Access.<br>
+     * A user would rarely know to do this on their own, so usually the newly installed app would
+     * test that it does not have Notification Access and prompt the user to enable it.<br>
+     * When enabled, the OS will start the app's NotificationListenerService.<br>
+     * When disabled, the OS will stop the app's NotificationListenerService.
+     * </p>
+     * <p>
+     * In a perfect world this may seem all well and good, but Android messed up the implementation
+     * <b>making it harder for a developer to develop the code</b> (and indirectly making things
+     * worse for the user).
+     * </p>
+     * <p>
+     * A developer regularly tests their code changes by pushing app updates to the device.
+     * </p>
+     * <p>
+     * The problem is that when a developer updates their app <b>the OS kills the app's
+     * NotificationListenerService <i>BUT DOES NOT RE-START IT!</i></b>
+     * </p>
+     * <p>
+     * When the developer launches their updated app, the OS did NOT restart the app's
+     * NotificationListenerService and the app will not function as expected.
+     * </p>
+     * <p>
+     * In order to get the app's NotificationListenerService working again <b>the developer has to
+     * remember to "turn it off back back on again"...<i>every single time they update their code!</i></b>
+     * :/
+     * </p>
+     * <p>
+     * <b>WORKAROUND:</b>
+     * <ol>
+     *   <li>Launch Device Settings -> ... -> Notification Access</li>
+     *   <li>Disable Notification Access</li>
+     *   <li>Enable Notification Access</li>
+     * </ol>
+     * </p>
+     * <p>
+     * <i>(NOTE: It is currently unknown if this problem is limited only to app updates during
+     * development, or if it also affects user app updates through Google Play.)</i>
+     * </p>
+     * <p>
+     * Testing for isNotificationAccessSettingEnabled will only tell us if the app has Notification
+     * Access enabled; it will not tell the app if its NotificationListenerService is connected.<br>
+     * The code could test for running services, but testing for a running service does not
+     * guarantee that NotificationListenerService onListenerConnected has been called.<br>
+     * The best option unfortunately seems to be to timeout if NotificationListenerService
+     * onListenerConnected is not called within a small amount of time (recommend <1.5s).<br>
+     * If FooNotificationListenerManager does not call onNotificationListenerServiceBound() within
+     * that time then the app should prompt the [developer] user to disable and re-enable
+     * Notification Access.
+     * </p>
      */
-    private void notificationListenerConnectedTimeoutStart(long timeoutMillis)
+    private void notificationListenerServiceConnectedTimeoutStart(long timeoutMillis)
     {
-        FooLog.v(TAG, "+notificationListenerConnectedTimeoutStart(timeoutMillis=" + timeoutMillis + ')');
-        if (mNotificationListenerBindTimeoutStartMillis != -1)
+        FooLog.v(TAG, "+notificationListenerServiceConnectedTimeoutStart(timeoutMillis=" + timeoutMillis + ')');
+        if (mNotificationListenerServiceConnectedTimeoutStartMillis != -1)
         {
-            notificationListenerConnectedTimeoutStop();
+            notificationListenerServiceConnectedTimeoutStop();
         }
-        mNotificationListenerBindTimeoutStartMillis = System.currentTimeMillis();
-        mHandler.postDelayed(mNotificationListenerBindTimeout, timeoutMillis);
-        FooLog.v(TAG, "-notificationListenerConnectedTimeoutStart(timeoutMillis=" + timeoutMillis + ')');
+        mNotificationListenerServiceConnectedTimeoutStartMillis = System.currentTimeMillis();
+        mHandler.postDelayed(mNotificationListenerServiceConnectedTimeoutRunnable, timeoutMillis);
+        FooLog.v(TAG, "-notificationListenerServiceConnectedTimeoutStart(timeoutMillis=" + timeoutMillis + ')');
     }
 
-    private void notificationListenerConnectedTimeoutStop()
+    private void notificationListenerServiceConnectedTimeoutStop()
     {
-        FooLog.v(TAG, "+notificationListenerConnectedTimeoutStop()");
-        mNotificationListenerBindTimeoutStartMillis = -1;
-        mHandler.removeCallbacks(mNotificationListenerBindTimeout);
-        FooLog.v(TAG, "-notificationListenerConnectedTimeoutStop()");
+        FooLog.v(TAG, "+notificationListenerServiceConnectedTimeoutStop()");
+        mNotificationListenerServiceConnectedTimeoutStartMillis = -1;
+        mHandler.removeCallbacks(mNotificationListenerServiceConnectedTimeoutRunnable);
+        FooLog.v(TAG, "-notificationListenerServiceConnectedTimeoutStop()");
     }
 
-    private long mNotificationListenerBindTimeoutStartMillis = -1;
-
-    private final Runnable mNotificationListenerBindTimeout = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            FooLog.v(TAG, "+mNotificationListenerBindTimeout.run()");
-            long elapsedMillis = System.currentTimeMillis() - mNotificationListenerBindTimeoutStartMillis;
-            onNotificationListenerNotConnected(NotConnectedReason.ConnectedTimeout, elapsedMillis);
-            FooLog.v(TAG, "-mNotificationListenerBindTimeout.run()");
-        }
+    private final Runnable mNotificationListenerServiceConnectedTimeoutRunnable = () -> {
+        FooLog.v(TAG, "+mNotificationListenerServiceConnectedTimeoutRunnable.run()");
+        long elapsedMillis = System.currentTimeMillis() - mNotificationListenerServiceConnectedTimeoutStartMillis;
+        onNotificationListenerNotConnected(NotConnectedReason.ConnectedTimeout, elapsedMillis);
+        FooLog.v(TAG, "-mNotificationListenerServiceConnectedTimeoutRunnable.run()");
     };
 
     private void onNotificationListenerConnected(
-            @NonNull FooNotificationListener notificationListener,
+            @NonNull FooNotificationListenerService notificationListenerService,
             @NonNull StatusBarNotification[] activeNotifications)
     {
         synchronized (mSyncLock)
         {
-            notificationListenerConnectedTimeoutStop();
+            notificationListenerServiceConnectedTimeoutStop();
 
-            mNotificationListener = notificationListener;
+            mNotificationListenerService = notificationListenerService;
 
             boolean initializeActiveNotifications = true;
             for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
             {
-                initializeActiveNotifications &= !callbacks.onNotificationListenerConnected(activeNotifications);
+                initializeActiveNotifications &= !callbacks.onNotificationListenerServiceConnected(activeNotifications);
             }
             mListenerManager.endTraversing();
 
@@ -354,18 +389,18 @@ public class FooNotificationListenerManager
         FooLog.v(TAG, "+onNotificationListenerNotConnected(reason=" + reason + ')');
         synchronized (mSyncLock)
         {
-            notificationListenerConnectedTimeoutStop();
+            notificationListenerServiceConnectedTimeoutStop();
 
-            if (reason == NotConnectedReason.ConnectedTimeout && mNotificationListener != null)
+            if (reason == NotConnectedReason.ConnectedTimeout && mNotificationListenerService != null)
             {
                 return;
             }
 
-            mNotificationListener = null;
+            mNotificationListenerService = null;
 
             for (FooNotificationListenerManagerCallbacks callbacks : mListenerManager.beginTraversing())
             {
-                callbacks.onNotificationListenerNotConnected(reason, elapsedMillis);
+                callbacks.onNotificationListenerServiceNotConnected(reason, elapsedMillis);
             }
             mListenerManager.endTraversing();
         }
@@ -373,12 +408,12 @@ public class FooNotificationListenerManager
     }
 
     private void onNotificationPosted(
-            @NonNull FooNotificationListener notificationListener,
+            @NonNull FooNotificationListenerService notificationListenerService,
             @NonNull StatusBarNotification sbn)
     {
         synchronized (mSyncLock)
         {
-            if (mNotificationListener != notificationListener)
+            if (mNotificationListenerService != notificationListenerService)
             {
                 return;
             }
@@ -392,12 +427,12 @@ public class FooNotificationListenerManager
     }
 
     private void onNotificationRemoved(
-            @NonNull FooNotificationListener notificationListener,
+            @NonNull FooNotificationListenerService notificationListenerService,
             @NonNull StatusBarNotification sbn)
     {
         synchronized (mSyncLock)
         {
-            if (mNotificationListener != notificationListener)
+            if (mNotificationListenerService != notificationListenerService)
             {
                 return;
             }
@@ -412,11 +447,11 @@ public class FooNotificationListenerManager
 
     /** @noinspection CommentedOutCode*/
     @RequiresApi(18)
-    public static class FooNotificationListener
+    public static class FooNotificationListenerService
             extends NotificationListenerService
             //implements RemoteController.OnClientUpdateListener
     {
-        private static final String TAG = FooLog.TAG(FooNotificationListener.class);
+        private static final String TAG = FooLog.TAG(FooNotificationListenerService.class);
 
         private long                           mOnListenerConnectedStartMillis;
         private FooNotificationListenerManager mNotificationListenerManager;
