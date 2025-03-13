@@ -123,8 +123,8 @@ class FooTextToSpeechBuilder {
         return appendSpeech(context.getString(textResId, *formatArgs) as String?)
     }
 
-    fun appendSpeech(text: CharSequence): FooTextToSpeechBuilder {
-        return appendSpeech(text.toString() as String?)
+    fun appendSpeech(text: CharSequence?): FooTextToSpeechBuilder {
+        return appendSpeech(text.toString())
     }
 
     fun appendSpeech(text: String?): FooTextToSpeechBuilder {
@@ -143,6 +143,7 @@ class FooTextToSpeechBuilder {
         return appendSilence(SILENCE_PARAGRAPH_BREAK_MILLIS)
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun appendSilence(durationInMs: Int): FooTextToSpeechBuilder {
         return append(FooTextToSpeechPartSilence(durationInMs))
     }
