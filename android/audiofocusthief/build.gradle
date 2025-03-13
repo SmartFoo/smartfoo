@@ -2,6 +2,17 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.google.android.material
+
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.espresso.core
+
+    implementation project(':smartfoo-android-lib-core')
+}
+
 android {
     namespace 'com.smartfoo.android.audiofocusthief'
     compileSdk 35
@@ -30,15 +41,4 @@ android {
         viewBinding = true
         buildConfig = true
     }
-}
-
-dependencies {
-    implementation libs.androidx.appcompat
-    implementation libs.google.android.material
-
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.test.ext.junit
-    androidTestImplementation libs.androidx.test.espresso.core
-
-    implementation project(':smartfoo-android-lib-core')
 }
