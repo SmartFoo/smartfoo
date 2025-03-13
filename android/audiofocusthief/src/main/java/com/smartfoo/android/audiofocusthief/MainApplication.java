@@ -14,6 +14,7 @@ import com.smartfoo.android.core.media.FooAudioFocusListener;
 import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
 import com.smartfoo.android.core.media.FooAudioUtils;
 import com.smartfoo.android.core.notification.FooNotification;
+import com.smartfoo.android.core.notification.FooNotification.Companion.ChannelInfo;
 import com.smartfoo.android.core.notification.FooNotificationBuilder;
 
 public class MainApplication
@@ -70,7 +71,7 @@ public class MainApplication
             return false;
         }
 
-        FooNotification.ChannelInfo CHANNEL_INFO = new FooNotification.ChannelInfo(
+        ChannelInfo CHANNEL_INFO = new ChannelInfo(
                 "FOREGROUND_SERVICE_CHANNEL",
                 "Foreground Service Channel",
                 NotificationManager.IMPORTANCE_DEFAULT,
