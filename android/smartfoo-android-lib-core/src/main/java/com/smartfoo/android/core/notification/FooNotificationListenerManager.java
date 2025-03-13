@@ -11,6 +11,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.smartfoo.android.core.FooListenerManager;
@@ -95,8 +96,11 @@ public class FooNotificationListenerManager
         return false;
     }
 
+    /**
+     * @return null if {@link #supportsNotificationListenerSettings()} == false
+     */
     @SuppressLint("InlinedApi")
-    public static Intent getIntentNotificationListenerSettings()
+    public static @Nullable Intent getIntentNotificationListenerSettings()
     {
         Intent intent = null;
         if (supportsNotificationListenerSettings())
