@@ -14,17 +14,17 @@ dependencies {
 }
 
 android {
-    namespace 'com.smartfoo.android.audiofocusthief'
-    compileSdk 35
+    namespace = 'com.smartfoo.android.audiofocusthief'
+    compileSdk = 35
 
     defaultConfig {
-        applicationId "com.smartfoo.android.audiofocusthief"
-        minSdk 34
-        targetSdk 35
-        versionCode 1
-        versionName "1.0"
+        applicationId = "com.smartfoo.android.audiofocusthief"
+        minSdk = 34
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
 
     }
     buildTypes {

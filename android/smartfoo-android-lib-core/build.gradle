@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-archivesBaseName = 'smartfoo-android-lib-core'
+base.archivesName = 'smartfoo-android-lib-core'
 description = 'SmartFoo Core Library for Android'
 group = 'com.smartfoo'
 version = '0.1.23'
@@ -26,49 +26,49 @@ dependencies {
 }
 
 android {
-    namespace 'com.smartfoo.android.core'
-    compileSdk 35
+    namespace = 'com.smartfoo.android.core'
+    compileSdk = 35
 
     defaultConfig {
-        minSdk 34
-        targetSdk 35
+        minSdk = 34
+        targetSdk = 35
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled = false
+            shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled = false
+            shrinkResources = false
 
             // NOTE: Setting this to true can mess up debugging by hiding method parameters (especially anonymous methods)
             // If you are seeing weird missing variables when debugging, set this to false.
             // DO NOT CHECK THIS IN AS 'false'!
-            enableUnitTestCoverage true
-            enableAndroidTestCoverage true
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
         jvmTarget = '21'
     }
     buildFeatures {
-        buildConfig true
+        buildConfig = true
     }
 
     /*
     if (getIsLocalDevelopmentBuild()) {
-        defaultPublishConfig 'debug'
+        defaultPublishConfig = 'debug'
     }
     */
 }

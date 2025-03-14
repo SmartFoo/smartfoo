@@ -18,32 +18,32 @@ dependencies {
 }
 
 android {
-    namespace 'com.smartfoo.android.testapp'
-    compileSdk 35
+    namespace = 'com.smartfoo.android.testapp'
+    compileSdk = 35
 
     defaultConfig {
-        applicationId "com.smartfoo.android.testapp"
-        minSdk 34
-        targetSdk 35
+        applicationId = "com.smartfoo.android.testapp"
+        minSdk = 34
+        targetSdk = 35
 
-        versionCode 1
-        versionName "1.0"
+        versionCode = 1
+        versionName = "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
-            useSupportLibrary true
+            useSupportLibrary = true
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     /*
     kotlinOptions {
@@ -51,6 +51,6 @@ android {
     }
     */
     buildFeatures {
-        viewBinding true
+        viewBinding = true
     }
 }
