@@ -20,6 +20,10 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4
+      env:
+        # Increase GitHub rate limits, per:
+        # https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#jetbrains
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'jetbrains'

@@ -1,55 +1,50 @@
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 }
 
-base.archivesName = 'smartfoo-android-lib-core'
-description = 'SmartFoo Core Library for Android'
-group = 'com.smartfoo'
-version = '0.1.23'
+base.archivesName = "smartfoo-android-lib-core"
+description = "SmartFoo Core Library for Android"
+group = "com.smartfoo"
+version = "0.1.23"
 
-def siteUrl = 'https://github.com/SmartFoo/smartfoo'
-def gitUrl = 'https://github.com/SmartFoo/smartfoo.git'
+//def siteUrl = "https://github.com/SmartFoo/smartfoo"
+//def gitUrl = "https://github.com/SmartFoo/smartfoo.git"
 
 dependencies {
-    implementation libs.androidx.appcompat
-    implementation platform(libs.androidx.compose.bom)
-    implementation libs.androidx.compose.material
-    implementation libs.androidx.recyclerview
-    implementation libs.google.android.material
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.google.android.material)
 
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.test.ext.junit
-    androidTestImplementation libs.androidx.test.espresso.core
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }
 
 android {
-    namespace = 'com.smartfoo.android.core'
+    namespace = "com.smartfoo.android.core"
     compileSdk = 35
 
     defaultConfig {
         minSdk = 34
-        targetSdk = 35
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
-            minifyEnabled = false
-            shrinkResources = false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
-            minifyEnabled = false
-            shrinkResources = false
+            isMinifyEnabled = false
+            isShrinkResources = false
 
             // NOTE: Setting this to true can mess up debugging by hiding method parameters (especially anonymous methods)
             // If you are seeing weird missing variables when debugging, set this to false.
-            // DO NOT CHECK THIS IN AS 'false'!
+            // DO NOT CHECK THIS IN AS "false"!
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
         }
@@ -60,7 +55,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = '21'
+        jvmTarget = "21"
     }
     buildFeatures {
         buildConfig = true
@@ -68,27 +63,27 @@ android {
 
     /*
     if (getIsLocalDevelopmentBuild()) {
-        defaultPublishConfig = 'debug'
+        defaultPublishConfig = "debug"
     }
     */
 }
 
 /*
 bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
+    user = System.getenv("BINTRAY_USER")
+    key = System.getenv("BINTRAY_KEY")
 
-    configurations = ['archives']
+    configurations = ["archives"]
 
     publish = true
 
     pkg {
-        repo = 'maven'
+        repo = "maven"
         name = archivesBaseName
-        userOrg = 'smartfoo'
+        userOrg = "smartfoo"
         websiteUrl = siteUrl
         vcsUrl = gitUrl
-        licenses = ['MIT']
+        licenses = ["MIT"]
     }
 }
 
@@ -96,7 +91,7 @@ install {
     repositories.mavenInstaller {
         pom {
             project {
-                packaging 'aar'
+                packaging "aar"
 
                 // Add your description here
                 name description
@@ -105,15 +100,15 @@ install {
                 // Set your license
                 licenses {
                     license {
-                        name 'The MIT License (MIT)'
-                        url 'https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE'
+                        name "The MIT License (MIT)"
+                        url "https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE"
                     }
                 }
                 developers {
                     developer {
-                        id 'paulpv'
-                        name 'Paul Peavyhouse'
-                        email 'pv@swooby.com'
+                        id "paulpv"
+                        name "Paul Peavyhouse"
+                        email "pv@swooby.com"
                     }
                 }
                 scm {
@@ -129,7 +124,7 @@ install {
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
+    classifier = "sources"
 }
 
 task javadoc(type: Javadoc) {
@@ -145,7 +140,7 @@ afterEvaluate {
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    classifier = "javadoc"
     from javadoc.destinationDir
 }
 

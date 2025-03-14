@@ -3,18 +3,18 @@ plugins {
 }
 
 dependencies {
-    implementation libs.androidx.appcompat
-    implementation libs.google.android.material
+    implementation(libs.androidx.appcompat)
+    implementation(libs.google.android.material)
 
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.test.ext.junit
-    androidTestImplementation libs.androidx.test.espresso.core
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 
-    implementation project(':smartfoo-android-lib-core')
+    implementation(project(":smartfoo-android-lib-core"))
 }
 
 android {
-    namespace = 'com.smartfoo.android.audiofocusthief'
+    namespace = "com.smartfoo.android.audiofocusthief"
     compileSdk = 35
 
     defaultConfig {
@@ -29,8 +29,8 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {

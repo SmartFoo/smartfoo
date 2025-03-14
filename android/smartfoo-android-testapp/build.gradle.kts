@@ -1,24 +1,21 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 }
 
 dependencies {
-    implementation libs.androidx.appcompat
-    implementation platform(libs.androidx.compose.bom)
-    implementation libs.androidx.compose.material
-    implementation libs.google.android.material
+    implementation(libs.androidx.appcompat)
+    implementation(libs.google.android.material)
 
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.test.ext.junit
-    androidTestImplementation libs.androidx.test.espresso.core
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 
-    implementation project(':smartfoo-android-lib-core')
+    implementation(project(":smartfoo-android-lib-core"))
 }
 
 android {
-    namespace = 'com.smartfoo.android.testapp'
+    namespace = "com.smartfoo.android.testapp"
     compileSdk = 35
 
     defaultConfig {
@@ -37,8 +34,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled = false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -47,7 +44,7 @@ android {
     }
     /*
     kotlinOptions {
-        jvmTarget = '21'
+        jvmTarget = "21"
     }
     */
     buildFeatures {

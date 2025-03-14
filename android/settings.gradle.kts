@@ -14,8 +14,8 @@ dependencyResolutionManagement {
     }
 }
 
-include ':smartfoo-android-lib-core'
-include ':smartfoo-android-testapp'
-include ':audiofocusthief'
+include(":smartfoo-android-lib-core")
+include(":smartfoo-android-testapp")
+include(":audiofocusthief")
 
-rootProject.name = 'smartfoo-android'
+rootProject.name = "smartfoo-android"
