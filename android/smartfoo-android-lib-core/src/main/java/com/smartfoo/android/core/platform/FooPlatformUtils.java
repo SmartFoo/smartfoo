@@ -5,7 +5,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Application;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -18,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.service.quicksettings.TileService;
 import android.telephony.TelephonyManager;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -572,11 +575,35 @@ public class FooPlatformUtils
         return sb.toString();
     }
 
+    public static void startActivity(@NonNull Context context, @NonNull Intent intent)
+    {
+        startActivity(context, intent, null);
+    }
+
+    public static void startActivity(@NonNull Context context, @NonNull Intent intent, Bundle bundle)
+    {
+        if (context instanceof Application)
+        {
+            // TODO Use Application.ActivityLifecycleCallbacks (like in AlfredAI) to actually test for background or not
+            /*
+            // Background startActivity requires FLAG_ACTIVITY_NEW_TASK
+            if ((intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) == 0)
+            {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            }
+            */
+        }
+        context.startActivity(intent, bundle);
+    }
+
     /**
      * <p>
      * I originally just wanted to be able to change the System Development Debug Layout property.
      * I thought that I could duplicate what com.android.settings.DevelopmentSettings does:
-     * https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java#L941
+     * https://cs.android.com/android/platform/superproject/+/android-7.1.2_r39:packages/apps/Settings/src/com/android/settings/DevelopmentSettings.java
+     * Currently (2025/03) that code has moved to under:
+     * https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/Settings/src/com/android/settings/development/
+     *
      * ie: Use Reflection to set the SystemProperty and then pokeSystemProperties
      * </p>
      * <p>
@@ -601,9 +628,65 @@ public class FooPlatformUtils
     public static void showDevelopmentSettings(@NonNull Context context)
     {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         // DevelopmentSettings appears to not have any arguments. :(
         // https://github.com/android/platform_packages_apps_settings/blob/master/src/com/android/settings/DevelopmentSettings.java
-        context.startActivity(intent);
+        startActivity(context, intent);
+    }
+
+    /**
+     * https://stackoverflow.com/a/74859391/252308
+     *
+     * https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/Settings/src/com/android/settings/development/AdbWirelessDialog.java
+     * https://cs.android.com/android/platform/superproject/+/android-14.0.0_r61:packages/apps/Settings/src/com/android/settings/development/AdbWirelessDialog.java
+     * https://cs.android.com/android/platform/superproject/+/android-14.0.0_r61:packages/apps/Settings/src/com/android/settings/development/AdbWirelessDialogController.java
+     *
+     * @param context
+     */
+    public static void showAdbWirelessSettings(@NonNull Context context)
+    {
+        /*
+
+        Hints of how Android Settings -> Development Settings does something similar:
+        https://cs.android.com/android/platform/superproject/+/android-15.0.0_r23:packages/apps/Settings/AndroidManifest.xml?q=DevelopmentSettingsActivity
+
+        ```
+        <activity
+            android:name="Settings$DevelopmentSettingsActivity"
+            android:label="@string/development_settings_title"
+            android:icon="@drawable/ic_settings_development"
+            android:exported="true">
+            <intent-filter android:priority="1">
+                <action android:name="android.settings.APPLICATION_DEVELOPMENT_SETTINGS" />
+                <action android:name="com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS" />
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                       android:value="com.android.settings.development.DevelopmentSettingsDashboardFragment" />
+            <meta-data android:name="com.android.settings.HIGHLIGHT_MENU_KEY"
+                       android:value="@string/menu_key_system"/>
+            <meta-data android:name="com.android.settings.PRIMARY_PROFILE_CONTROLLED"
+                       android:value="true" />
+        </activity>
+        ```
+
+        `Settings$DevelopmentSettingsActivity` is a stub activity that
+        https://cs.android.com/android/platform/superproject/+/android-15.0.0_r23:packages/apps/Settings/src/com/android/settings/Settings.java
+        reads the meta-data to redirect to DevelopmentSettingsDashboardFragment:
+        https://cs.android.com/android/platform/superproject/+/android-15.0.0_r23:packages/apps/Settings/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
+
+        */
+
+        String pkg = "com.android.settings";
+        String cls = "com.android.settings.development.qstile.DevelopmentTiles$WirelessDebugging";
+        ComponentName componentName = new ComponentName(pkg, cls);
+
+        // "android.service.quicksettings.action.QS_TILE_PREFERENCES"
+        Intent intent = new Intent(TileService.ACTION_QS_TILE_PREFERENCES);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(Intent.EXTRA_COMPONENT_NAME, componentName);
+        startActivity(context, intent);
     }
 
     public static void showGooglePlay(@NonNull Context context, String packageName)
@@ -611,12 +694,12 @@ public class FooPlatformUtils
         try
         {
             Uri uri = Uri.parse("market://details?id=" + packageName);
-            context.startActivity(new Intent(Intent.ACTION_VIEW, uri));
+            startActivity(context, new Intent(Intent.ACTION_VIEW, uri));
         }
         catch (ActivityNotFoundException e)
         {
             Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=" + packageName);
-            context.startActivity(new Intent(Intent.ACTION_VIEW, uri));
+            startActivity(context, new Intent(Intent.ACTION_VIEW, uri));
         }
     }
 
@@ -624,7 +707,7 @@ public class FooPlatformUtils
     {
         Uri uri = Uri.parse("package:" + packageName);
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
-        context.startActivity(intent);
+        startActivity(context, intent);
     }
 
     public static void showAppSettings(Context context)
@@ -638,7 +721,7 @@ public class FooPlatformUtils
         ResolveInfo resolveInfo = context.getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo != null)
         {
-            context.startActivity(intent);
+            startActivity(context, intent);
         }
     }
 

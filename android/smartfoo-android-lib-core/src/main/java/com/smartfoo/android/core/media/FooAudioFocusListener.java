@@ -46,7 +46,13 @@ public class FooAudioFocusListener
     {
         FooRun.throwIllegalArgumentExceptionIfNull(audioManager, "audioManager");
         FooRun.throwIllegalArgumentExceptionIfNull(listener, "listener");
+
+        // 1. Calling this reports the following in logcat
+        // "Use of stream types is deprecated for operations other than volume control"
+        // "See the documentation of requestAudioFocus() for what to use instead with android.media.AudioAttributes to qualify your playback use case"
+        // 2. This seems to be being called a lot while speaking utterances, but maybe that is just normal/expected.
         int result = audioManager.requestAudioFocus(listener, audioStreamType, durationHint);
+
         boolean success = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         if (VERBOSE_LOG_AUDIO_FOCUS)
         {
