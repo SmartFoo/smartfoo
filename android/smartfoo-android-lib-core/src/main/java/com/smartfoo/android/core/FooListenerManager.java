@@ -70,6 +70,14 @@ public class FooListenerManager<T>
         return size() == 0;
     }
 
+    public boolean hasListener(T listener)
+    {
+        synchronized (mListeners)
+        {
+            return mListenersToAdd.contains(listener) || mListeners.contains(listener) || mListenersToRemove.contains(listener);
+        }
+    }
+
     public void attach(T listener)
     {
         if (VERBOSE_LOG)
@@ -84,6 +92,11 @@ public class FooListenerManager<T>
 
         synchronized (mListeners)
         {
+            if (hasListener(listener))
+            {
+                return;
+            }
+
             if (mIsTraversingListeners)
             {
                 mListenersToAdd.add(listener);

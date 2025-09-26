@@ -1,6 +1,7 @@
 package com.smartfoo.android.core.network;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.NetworkInfo;
 import android.telephony.PhoneStateListener;
@@ -12,11 +13,17 @@ import androidx.annotation.RequiresPermission;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
+import com.smartfoo.android.core.permissions.FooPermissionsChecker;
 
 public class FooCellularStateListener
         extends PhoneStateListener
 {
     private static final String TAG = FooLog.TAG(FooCellularStateListener.class);
+
+    public static boolean hasPermission(@NonNull Context context)
+    {
+        return FooPermissionsChecker.isPermissionGranted(context, Manifest.permission.READ_PHONE_STATE);
+    }
 
     public interface FooCellularHookStateCallbacks
     {
@@ -42,6 +49,8 @@ public class FooCellularStateListener
 
     private final Object mSyncLock = new Object();
 
+    private final Context mApplicationContext;
+
     private final TelephonyManager mTelephonyManager;
 
     private boolean mIsStarted;
@@ -54,9 +63,11 @@ public class FooCellularStateListener
     public FooCellularStateListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
-        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        mApplicationContext = context.getApplicationContext();
+        mTelephonyManager = (TelephonyManager) mApplicationContext.getSystemService(Context.TELEPHONY_SERVICE);
     }
 
+    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     private int getCallState()
     {
         return mTelephonyManager.getCallState();
@@ -109,6 +120,7 @@ public class FooCellularStateListener
                     mCallbacksDataConnection = callbacksDataConnection;
 
                     mHookState = HookState.Unknown;
+                    @SuppressLint("MissingPermission")
                     int callState = getCallState();
                     updateHookState(callState);
 
@@ -165,18 +177,14 @@ public class FooCellularStateListener
     }
 
     /**
-     * If started, then {@link HookState#OnHook}, {@link HookState#OffHook}, or {@link HookState#Unknown} in the rare
-     * case that an incoming phone call is ringing when {@link #start(FooCellularHookStateCallbacks,
-     * FooCellularDataConnectionCallbacks)} is called.
-     * <p>
-     * If not started, then will return a false {@link HookState#OnHook} if the phone is offhook and an incoming phone
-     * call is ringing.
-     *
-     * @return {@link HookState}
+     * @return {@link HookState} {@link HookState#OnHook}, {@link HookState#OffHook}, or
+     *         {@link HookState#Unknown} in the rare case that an incoming phone call is ringing when
+     *         {@link #start(FooCellularHookStateCallbacks, FooCellularDataConnectionCallbacks)} is called.
      */
+    @SuppressLint("MissingPermission")
     public HookState getHookState()
     {
-        if (mIsStarted)
+        if (mIsStarted || !hasPermission(mApplicationContext))
         {
             return mHookState;
         }

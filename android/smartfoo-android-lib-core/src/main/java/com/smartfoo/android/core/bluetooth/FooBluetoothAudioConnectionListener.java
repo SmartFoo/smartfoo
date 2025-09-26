@@ -118,7 +118,7 @@ public class FooBluetoothAudioConnectionListener
     {
         private static final String TAG = FooLog.TAG(FooBluetoothAudioConnectionBroadcastReceiver.class);
 
-        class FooBluetoothAudioServiceListener
+        static class FooBluetoothAudioServiceListener
                 implements ServiceListener
         {
             private final BluetoothAdapter                    mBluetoothAdapter;
