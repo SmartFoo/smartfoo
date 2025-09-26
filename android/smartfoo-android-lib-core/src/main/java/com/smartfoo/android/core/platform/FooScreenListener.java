@@ -27,6 +27,8 @@ public class FooScreenListener
 
         void onScreenOn();
 
+        void onUserLocked();
+
         void onUserUnlocked();
     }
 
@@ -63,6 +65,16 @@ public class FooScreenListener
                         for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
                         {
                             callbacks.onScreenOn();
+                        }
+                        mListenerManager.endTraversing();
+                    }
+
+                    @Override
+                    public void onUserLocked()
+                    {
+                        for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onUserLocked();
                         }
                         mListenerManager.endTraversing();
                     }
@@ -170,6 +182,7 @@ public class FooScreenListener
                     intentFilter.addAction(Intent.ACTION_SCREEN_OFF); // API 1
                     intentFilter.addAction(Intent.ACTION_SCREEN_ON); // API 1
                     intentFilter.addAction(Intent.ACTION_USER_PRESENT); // API 1
+                    intentFilter.addAction(Intent.ACTION_USER_LOCKED); // API 24
                     intentFilter.addAction(Intent.ACTION_USER_UNLOCKED); // API 24
                     mContext.registerReceiver(this, intentFilter);
                 }
@@ -215,6 +228,9 @@ public class FooScreenListener
                 }
                 case Intent.ACTION_USER_PRESENT:
                     mCallbacks.onUserUnlocked();
+                    break;
+                case Intent.ACTION_USER_LOCKED:
+                    mCallbacks.onUserLocked();
                     break;
                 case Intent.ACTION_USER_UNLOCKED:
                     mCallbacks.onUserUnlocked();
