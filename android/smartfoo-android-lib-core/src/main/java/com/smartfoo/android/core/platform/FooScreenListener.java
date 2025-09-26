@@ -11,11 +11,14 @@ import android.os.UserManager;
 import android.view.Display;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
 import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
+
+import java.util.concurrent.Executor;
 
 public class FooScreenListener
 {
@@ -26,6 +29,8 @@ public class FooScreenListener
         void onScreenOff();
 
         void onScreenOn();
+
+        void onUserLocked();
 
         void onUserUnlocked();
     }
@@ -39,6 +44,10 @@ public class FooScreenListener
     public FooScreenListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context, mKeyguardManager);
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
@@ -68,6 +77,16 @@ public class FooScreenListener
                     }
 
                     @Override
+                    public void onUserLocked()
+                    {
+                        for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
+                        {
+                            callbacks.onUserLocked();
+                        }
+                        mListenerManager.endTraversing();
+                    }
+
+                    @Override
                     public void onUserUnlocked()
                     {
                         for (FooScreenListenerCallbacks callbacks : mListenerManager.beginTraversing())
@@ -86,10 +105,6 @@ public class FooScreenListener
                 return false;
             }
         });
-        mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
-        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-        mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
     }
 
     public boolean isScreenOn()
@@ -119,18 +134,25 @@ public class FooScreenListener
     {
         private static final String TAG = FooLog.TAG(FooScreenBroadcastReceiver.class);
 
-        private final Context        mContext;
-        private final Object         mSyncLock;
-        private final DisplayManager mDisplayManager;
+        private final Context         mContext;
+        private final Object          mSyncLock;
+        private final DisplayManager  mDisplayManager;
+        private final KeyguardManager mKeyguardManager;
+        private final Executor        mMainExecutor;
 
         private boolean                    mIsStarted;
         private FooScreenListenerCallbacks mCallbacks;
+        private boolean                    mIsUserLocked;
+        private KeyguardManager.DeviceLockedStateListener   mDeviceLockedStateListener;
+        private KeyguardManager.KeyguardLockedStateListener mKeyguardLockedStateListener;
 
-        private FooScreenBroadcastReceiver(@NonNull Context context)
+        private FooScreenBroadcastReceiver(@NonNull Context context, @Nullable KeyguardManager keyguardManager)
         {
             mContext = context;
             mSyncLock = new Object();
             mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+            mKeyguardManager = keyguardManager;
+            mMainExecutor = context.getMainExecutor();
         }
 
         public boolean isScreenOn()
@@ -166,10 +188,17 @@ public class FooScreenListener
 
                     mCallbacks = callbacks;
 
+                    mIsUserLocked = isDeviceOrKeyguardLocked();
+
                     IntentFilter intentFilter = new IntentFilter();
                     intentFilter.addAction(Intent.ACTION_SCREEN_OFF); // API 1
                     intentFilter.addAction(Intent.ACTION_SCREEN_ON); // API 1
+                    intentFilter.addAction(Intent.ACTION_USER_PRESENT); // API 1
+                    intentFilter.addAction(Intent.ACTION_USER_LOCKED); // API 24
+                    intentFilter.addAction(Intent.ACTION_USER_UNLOCKED); // API 24
                     mContext.registerReceiver(this, intentFilter);
+
+                    registerKeyguardStateListenersLocked();
                 }
             }
             FooLog.v(TAG, "-start(...)");
@@ -184,6 +213,7 @@ public class FooScreenListener
                 {
                     mIsStarted = false;
 
+                    unregisterKeyguardStateListenersLocked();
                     mContext.unregisterReceiver(this);
                 }
             }
@@ -202,6 +232,7 @@ public class FooScreenListener
                     {
                         mCallbacks.onScreenOff();
                     }
+                    updateUserLockStateFromKeyguard();
                     break;
                 case Intent.ACTION_SCREEN_ON:
                 {
@@ -209,11 +240,122 @@ public class FooScreenListener
                     {
                         mCallbacks.onScreenOn();
                     }
+                    updateUserLockStateFromKeyguard();
                     break;
                 }
+                case Intent.ACTION_USER_PRESENT:
+                case Intent.ACTION_USER_LOCKED:
                 case Intent.ACTION_USER_UNLOCKED:
-                    mCallbacks.onUserUnlocked();
+                    updateUserLockStateFromKeyguard();
                     break;
+            }
+        }
+
+        private boolean isDeviceLocked()
+        {
+            return mKeyguardManager != null && mKeyguardManager.isDeviceLocked();
+        }
+
+        private boolean isKeyguardLocked()
+        {
+            return mKeyguardManager != null && mKeyguardManager.isKeyguardLocked();
+        }
+
+        private boolean isDeviceOrKeyguardLocked()
+        {
+            return isDeviceLocked() || isKeyguardLocked();
+        }
+
+        private void updateUserLockStateFromKeyguard()
+        {
+            setUserLocked(isDeviceOrKeyguardLocked());
+        }
+
+        private void registerKeyguardStateListenersLocked()
+        {
+            if (mKeyguardManager == null || mMainExecutor == null)
+            {
+                return;
+            }
+
+            if (mDeviceLockedStateListener == null)
+            {
+                mDeviceLockedStateListener = new KeyguardManager.DeviceLockedStateListener()
+                {
+                    @Override
+                    public void onDeviceLockedStateChanged(boolean isLocked)
+                    {
+                        FooLog.v(TAG, "onDeviceLockedStateChanged: isLocked == " + isLocked);
+                        onUserLockStateChanged(isLocked);
+                    }
+                };
+                mKeyguardManager.addDeviceLockedStateListener(mMainExecutor, mDeviceLockedStateListener);
+            }
+
+            if (mKeyguardLockedStateListener == null)
+            {
+                mKeyguardLockedStateListener = new KeyguardManager.KeyguardLockedStateListener()
+                {
+                    @Override
+                    public void onKeyguardLockedStateChanged(boolean isLocked)
+                    {
+                        FooLog.v(TAG, "onKeyguardLockedStateChanged: isLocked == " + isLocked);
+                        onUserLockStateChanged(isLocked);
+                    }
+                };
+                mKeyguardManager.addKeyguardLockedStateListener(mMainExecutor, mKeyguardLockedStateListener);
+            }
+        }
+
+        private void unregisterKeyguardStateListenersLocked()
+        {
+            if (mKeyguardManager == null)
+            {
+                return;
+            }
+
+            if (mDeviceLockedStateListener != null)
+            {
+                mKeyguardManager.removeDeviceLockedStateListener(mDeviceLockedStateListener);
+                mDeviceLockedStateListener = null;
+            }
+
+            if (mKeyguardLockedStateListener != null)
+            {
+                mKeyguardManager.removeKeyguardLockedStateListener(mKeyguardLockedStateListener);
+                mKeyguardLockedStateListener = null;
+            }
+        }
+
+        private void onUserLockStateChanged(boolean isLocked)
+        {
+            setUserLocked(isLocked);
+        }
+
+        private void setUserLocked(boolean isLocked)
+        {
+            FooScreenListenerCallbacks callbacks;
+            boolean notifyLocked;
+
+            synchronized (mSyncLock)
+            {
+                if (!mIsStarted || mCallbacks == null || mIsUserLocked == isLocked)
+                {
+                    return;
+                }
+
+                mIsUserLocked = isLocked;
+                callbacks = mCallbacks;
+                notifyLocked = isLocked;
+            }
+
+            if (notifyLocked)
+            {
+                callbacks.onUserLocked();
+            }
+            else
+            {
+                callbacks.onUserUnlocked();
             }
         }
     }
