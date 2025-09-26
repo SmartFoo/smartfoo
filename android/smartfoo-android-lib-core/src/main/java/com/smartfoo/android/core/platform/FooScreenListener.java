@@ -11,6 +11,7 @@ import android.os.UserManager;
 import android.view.Display;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.smartfoo.android.core.FooListenerAutoStartManager;
 import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStartManagerCallbacks;
@@ -41,6 +42,10 @@ public class FooScreenListener
     public FooScreenListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
+        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context, mKeyguardManager);
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
@@ -98,10 +103,6 @@ public class FooScreenListener
                 return false;
             }
         });
-        mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
-        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        mKeyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
-        mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
     }
 
     public boolean isScreenOn()
@@ -131,18 +132,21 @@ public class FooScreenListener
     {
         private static final String TAG = FooLog.TAG(FooScreenBroadcastReceiver.class);
 
-        private final Context        mContext;
-        private final Object         mSyncLock;
-        private final DisplayManager mDisplayManager;
+        private final Context         mContext;
+        private final Object          mSyncLock;
+        private final DisplayManager  mDisplayManager;
+        private final KeyguardManager mKeyguardManager;
 
         private boolean                    mIsStarted;
         private FooScreenListenerCallbacks mCallbacks;
+        private boolean                    mIsUserLocked;
 
-        private FooScreenBroadcastReceiver(@NonNull Context context)
+        private FooScreenBroadcastReceiver(@NonNull Context context, @Nullable KeyguardManager keyguardManager)
         {
             mContext = context;
             mSyncLock = new Object();
             mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+            mKeyguardManager = keyguardManager;
         }
 
         public boolean isScreenOn()
@@ -177,6 +181,8 @@ public class FooScreenListener
                     mIsStarted = true;
 
                     mCallbacks = callbacks;
+
+                    mIsUserLocked = isKeyguardLocked();
 
                     IntentFilter intentFilter = new IntentFilter();
                     intentFilter.addAction(Intent.ACTION_SCREEN_OFF); // API 1
@@ -217,6 +223,7 @@ public class FooScreenListener
                     {
                         mCallbacks.onScreenOff();
                     }
+                    updateUserLockState();
                     break;
                 case Intent.ACTION_SCREEN_ON:
                 {
@@ -224,17 +231,36 @@ public class FooScreenListener
                     {
                         mCallbacks.onScreenOn();
                     }
+                    updateUserLockState();
                     break;
                 }
                 case Intent.ACTION_USER_PRESENT:
-                    mCallbacks.onUserUnlocked();
-                    break;
                 case Intent.ACTION_USER_LOCKED:
-                    mCallbacks.onUserLocked();
-                    break;
                 case Intent.ACTION_USER_UNLOCKED:
-                    mCallbacks.onUserUnlocked();
+                    updateUserLockState();
                     break;
+            }
+        }
+
+        private boolean isKeyguardLocked()
+        {
+            return mKeyguardManager != null && mKeyguardManager.isKeyguardLocked();
+        }
+
+        private void updateUserLockState()
+        {
+            boolean isLocked = isKeyguardLocked();
+            if (mIsUserLocked != isLocked)
+            {
+                mIsUserLocked = isLocked;
+                if (isLocked)
+                {
+                    mCallbacks.onUserLocked();
+                }
+                else
+                {
+                    mCallbacks.onUserUnlocked();
+                }
             }
         }
     }
