@@ -169,6 +169,8 @@ public class FooScreenListener
                     IntentFilter intentFilter = new IntentFilter();
                     intentFilter.addAction(Intent.ACTION_SCREEN_OFF); // API 1
                     intentFilter.addAction(Intent.ACTION_SCREEN_ON); // API 1
+                    intentFilter.addAction(Intent.ACTION_USER_PRESENT); // API 1
+                    intentFilter.addAction(Intent.ACTION_USER_UNLOCKED); // API 24
                     mContext.registerReceiver(this, intentFilter);
                 }
             }
@@ -211,6 +213,9 @@ public class FooScreenListener
                     }
                     break;
                 }
+                case Intent.ACTION_USER_PRESENT:
+                    mCallbacks.onUserUnlocked();
+                    break;
                 case Intent.ACTION_USER_UNLOCKED:
                     mCallbacks.onUserUnlocked();
                     break;
