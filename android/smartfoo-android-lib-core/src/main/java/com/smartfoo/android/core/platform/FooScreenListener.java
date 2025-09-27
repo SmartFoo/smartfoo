@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.hardware.display.DisplayManager;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.UserManager;
+import android.provider.Settings;
 import android.view.Display;
 
 import androidx.annotation.NonNull;
@@ -148,17 +150,24 @@ public class FooScreenListener
             extends BroadcastReceiver
     {
         private static final String TAG = FooLog.TAG(FooScreenBroadcastReceiver.class);
+        private static final int    SCREEN_BRIGHTNESS_INVALID = -1;
+        // `PowerManager.BRIGHTNESS_DIM` is hidden; use the same value (10) so we treat the
+        // pre-sleep dim state the platform applies before turning displays off as "dim".
+        private static final int    SCREEN_DIM_BRIGHTNESS_MAX = 10;
 
         private final Context                        mContext;
         private final Object                         mSyncLock;
         private final DisplayManager                 mDisplayManager;
         private final Handler                        mHandler;
         private final DisplayManager.DisplayListener mDisplayListener;
+        private final ContentObserver                mScreenBrightnessObserver;
 
         private boolean                    mIsStarted;
         private FooScreenListenerCallbacks mCallbacks;
         private boolean                    mIsScreenOn;
         private boolean                    mIsScreenDim;
+        private int                        mLastKnownScreenBrightness;
+        private boolean                    mIsScreenBrightnessObserverRegistered;
 
         private FooScreenBroadcastReceiver(@NonNull Context context)
         {
@@ -186,6 +195,21 @@ public class FooScreenListener
                     refreshScreenState();
                 }
             };
+            mScreenBrightnessObserver = new ContentObserver(mHandler)
+            {
+                @Override
+                public void onChange(boolean selfChange)
+                {
+                    onScreenBrightnessChanged();
+                }
+
+                @Override
+                public void onChange(boolean selfChange, android.net.Uri uri)
+                {
+                    onScreenBrightnessChanged();
+                }
+            };
+            mLastKnownScreenBrightness = SCREEN_BRIGHTNESS_INVALID;
         }
 
         public boolean isScreenOn()
@@ -204,7 +228,6 @@ public class FooScreenListener
 
         public boolean isScreenDim()
         {
-            boolean isScreenDim = false;
             for (Display display : mDisplayManager.getDisplays())
             {
                 int state = display.getState();
@@ -214,11 +237,12 @@ public class FooScreenListener
                 }
                 if (isDisplayStateDim(state))
                 {
-                    isScreenDim = true;
-                    break;
+                    return true;
                 }
             }
-            return isScreenDim;
+
+            int screenBrightness = getCurrentScreenBrightness();
+            return screenBrightness != SCREEN_BRIGHTNESS_INVALID && screenBrightness <= SCREEN_DIM_BRIGHTNESS_MAX;
         }
 
         public boolean isStarted()
@@ -242,8 +266,10 @@ public class FooScreenListener
 
                     mIsScreenOn = isScreenOn();
                     mIsScreenDim = mIsScreenOn && isScreenDim();
+                    mLastKnownScreenBrightness = getCurrentScreenBrightness();
 
                     mDisplayManager.registerDisplayListener(mDisplayListener, mHandler);
+                    registerScreenBrightnessObserver();
 
                     IntentFilter intentFilter = new IntentFilter();
                     intentFilter.addAction(Intent.ACTION_SCREEN_OFF); // API 1
@@ -266,10 +292,12 @@ public class FooScreenListener
 
                     mContext.unregisterReceiver(this);
                     mDisplayManager.unregisterDisplayListener(mDisplayListener);
+                    unregisterScreenBrightnessObserver();
 
                     mCallbacks = null;
                     mIsScreenOn = false;
                     mIsScreenDim = false;
+                    mLastKnownScreenBrightness = SCREEN_BRIGHTNESS_INVALID;
                 }
             }
             FooLog.v(TAG, "-stop()");
@@ -320,6 +348,7 @@ public class FooScreenListener
                 callbacks = mCallbacks;
 
                 boolean isScreenOn = isScreenOn();
+                int screenBrightness = getCurrentScreenBrightness();
                 if (mIsScreenOn != isScreenOn)
                 {
                     mIsScreenOn = isScreenOn;
@@ -353,7 +382,9 @@ public class FooScreenListener
                 else
                 {
                     mIsScreenDim = false;
+                    screenBrightness = SCREEN_BRIGHTNESS_INVALID;
                 }
+                mLastKnownScreenBrightness = screenBrightness;
             }
 
             if (callbacks == null)
@@ -390,6 +421,57 @@ public class FooScreenListener
                 default:
                     return false;
             }
+        }
+
+        private void onScreenBrightnessChanged()
+        {
+            FooLog.v(TAG, "onScreenBrightnessChanged()");
+
+            int screenBrightness = getCurrentScreenBrightness();
+            synchronized (mSyncLock)
+            {
+                if (!mIsStarted || screenBrightness == mLastKnownScreenBrightness)
+                {
+                    return;
+                }
+            }
+
+            refreshScreenState();
+        }
+
+        private void registerScreenBrightnessObserver()
+        {
+            if (mIsScreenBrightnessObserverRegistered)
+            {
+                return;
+            }
+
+            FooLog.v(TAG, "registerScreenBrightnessObserver()");
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
+                    false,
+                    mScreenBrightnessObserver);
+            mIsScreenBrightnessObserverRegistered = true;
+        }
+
+        private void unregisterScreenBrightnessObserver()
+        {
+            if (!mIsScreenBrightnessObserverRegistered)
+            {
+                return;
+            }
+
+            FooLog.v(TAG, "unregisterScreenBrightnessObserver()");
+            mContext.getContentResolver().unregisterContentObserver(mScreenBrightnessObserver);
+            mIsScreenBrightnessObserverRegistered = false;
+        }
+
+        private int getCurrentScreenBrightness()
+        {
+            return Settings.System.getInt(
+                    mContext.getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS,
+                    SCREEN_BRIGHTNESS_INVALID);
         }
     }
 }
