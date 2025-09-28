@@ -14,9 +14,9 @@ import android.os.Parcelable
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
 import com.smartfoo.android.core.logging.FooLog
 import com.smartfoo.android.core.notification.FooNotificationService.Companion.showNotification
-import androidx.core.net.toUri
 
 /**
  * References:
@@ -33,17 +33,34 @@ class FooNotification(
         private val TAG: String = FooLog.TAG(FooNotification::class.java)
 
         /**
+         * Non-hidden duplicate of [android.app.Notification.FLAG_NO_DISMISS]
+         */
+        const val FLAG_NO_DISMISS = 0x00002000
+
+        @JvmStatic
+        fun hasFlags(notification: Notification?, flags: Int): Boolean {
+            return notification != null && (notification.flags and flags) != 0
+        }
+
+        /**
+         * Similar to [androidx.core.app.NotificationCompat.getOngoing]
+         */
+        @JvmStatic
+        fun getNoDismiss(notification: Notification?): Boolean {
+            return hasFlags(notification, FLAG_NO_DISMISS)
+        }
+
+        /**
          * Non-deprecated duplicate of [android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_NONE].
          */
-        @JvmField
-        var FOREGROUND_SERVICE_TYPE_NONE: Int = 0
+        const val FOREGROUND_SERVICE_TYPE_NONE = 0
 
         fun getNotificationManager(context: Context): NotificationManagerCompat {
             return NotificationManagerCompat.from(context)
         }
 
-        class ChannelInfo(
-            @JvmField val id: String,
+        data class ChannelInfo(
+            val id: String,
             val name: String,
             val importance: Int,
             val description: String
