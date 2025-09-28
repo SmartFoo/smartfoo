@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -48,6 +49,22 @@ class FooNotification(
         @JvmStatic
         fun getNoDismiss(notification: Notification?): Boolean {
             return hasFlags(notification, FLAG_NO_DISMISS)
+        }
+
+        @JvmStatic
+        fun findCallingAppNotification(context: Context, notificationId: Int): Notification? {
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            if (notificationManager != null) {
+                val activeNotifications = notificationManager.activeNotifications
+                if (activeNotifications != null) {
+                    for (statusBarNotification in activeNotifications) {
+                        if (statusBarNotification.id == notificationId) {
+                            return statusBarNotification.notification
+                        }
+                    }
+                }
+            }
+            return null
         }
 
         /**
