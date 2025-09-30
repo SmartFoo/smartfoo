@@ -1,17 +1,28 @@
 package com.smartfoo.android.core.notification
 
 import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationChannelGroup
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.UserHandle
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
+import android.service.notification.NotificationListenerService.Ranking
+import android.service.notification.NotificationListenerService.RankingMap
 import android.service.notification.StatusBarNotification
+import androidx.annotation.GuardedBy
 import androidx.annotation.RequiresApi
+import androidx.annotation.WorkerThread
 import com.smartfoo.android.core.FooListenerManager
+import com.smartfoo.android.core.FooString
 import com.smartfoo.android.core.logging.FooLog
 import com.smartfoo.android.core.platform.FooHandler
+import com.smartfoo.android.core.platform.FooPlatformUtils
 
 @SuppressLint("ObsoleteSdkInt")
 @RequiresApi(18)
@@ -129,7 +140,7 @@ private constructor() {
          * @return true to prevent [initializeActiveNotifications] from being automatically called
          */
         fun onNotificationListenerServiceConnected(
-            activeNotifications: Array<StatusBarNotification>
+            activeNotifications: List<StatusBarNotification>
         ): Boolean
 
         fun onNotificationListenerServiceNotConnected(
@@ -137,9 +148,9 @@ private constructor() {
             elapsedMillis: Long
         )
 
-        fun onNotificationPosted(sbn: StatusBarNotification)
+        fun onNotificationPosted(sbn: StatusBarNotification, rankingMap: RankingMap?)
 
-        fun onNotificationRemoved(sbn: StatusBarNotification)
+        fun onNotificationRemoved(sbn: StatusBarNotification, rankingMap: RankingMap?, reason: Int)
     }
 
     private val mSyncLock = Any()
@@ -151,6 +162,7 @@ private constructor() {
         FooListenerManager<FooNotificationListenerManagerCallbacks>(this)
     private val mHandler = FooHandler()
 
+    @GuardedBy("mSyncLock")
     private var mNotificationListenerService: FooNotificationListenerService? = null
 
     private var mNotificationListenerServiceConnectedTimeoutMillis =
@@ -212,30 +224,241 @@ private constructor() {
         }
     }
 
-    val activeNotifications: Array<StatusBarNotification>?
-        get() {
-            synchronized(mSyncLock) {
-                return if (mNotificationListenerService != null) mNotificationListenerService!!.activeNotifications else null
+    //
+    //region ActiveNotifications
+    //
+
+    /**
+     * Holds an immutable snapshot of active notifications and their ranking.
+     *
+     * Call [snapshot] to populate from a NotificationListenerService, or [reset] to clear.
+     */
+    class ActiveNotificationsSnapshot {
+        /** Snapshot of the [NotificationListenerService] used at the last [snapshot] call; null after [reset]. */
+        var notificationListenerService: FooNotificationListenerService? = null
+            private set
+
+        /** Snapshot of active notifications at the last [snapshot] call; null after [reset]. */
+        var activeNotifications: List<StatusBarNotification>? = null
+            private set
+
+        /** Snapshot of the system RankingMap at the last [snapshot] call; null after [reset]. */
+        var currentRanking: RankingMap? = null
+            private set
+
+
+        private var _activeNotificationsRanked: List<StatusBarNotification>? = null
+
+        /** Ranked view (top → bottom), cached after the first computation per snapshot. */
+        val activeNotificationsRanked: List<StatusBarNotification>?
+            get() {
+                if (_activeNotificationsRanked == null) {
+                    _activeNotificationsRanked = shadeSort(activeNotifications, currentRanking)
+                    @Suppress("ConstantConditionIf")
+                    if (false) {
+                        for (sbn in _activeNotificationsRanked!!) {
+                            FooLog.e(TAG, "activeNotificationsRanked: notification=${toString(sbn, showAllExtras = false)}")
+                        }
+                        FooLog.e(TAG, "activeNotificationsRanked:")
+                    }
+                }
+                return _activeNotificationsRanked
+            }
+
+        /** Clears all state back to defaults (empty notifications, null ranking map). */
+        fun reset() {
+            notificationListenerService = null
+            activeNotifications = null
+            currentRanking = null
+            _activeNotificationsRanked = null
+        }
+
+        /**
+         * Replaces current state with a fresh snapshot from [service].
+         * If [service] is null, behaves like [reset].
+         */
+        @WorkerThread
+        fun snapshot(service: FooNotificationListenerService?): ActiveNotificationsSnapshot {
+            reset()
+            notificationListenerService = service
+            if (service != null) {
+                activeNotifications = service.activeNotifications?.toList()
+                currentRanking = service.currentRanking
+            }
+            return this
+        }
+
+        /**
+         * Top to bottom order of appearance in the Notification Shade.
+         */
+        private enum class UiBucket(val order: Int) {
+            MEDIA(0), CONVERSATION(1), ALERTING(2), SILENT(3)
+        }
+
+        private fun isMediaNotificationCompat(n: Notification): Boolean {
+            val extras = n.extras
+            val hasMediaSession = extras?.containsKey(Notification.EXTRA_MEDIA_SESSION) == true
+            val isTransport = n.category == Notification.CATEGORY_TRANSPORT
+            val template = extras?.getString(Notification.EXTRA_TEMPLATE)
+            // Accept framework or compat styles; the literal string contains '$'
+            val isMediaStyle = template?.endsWith("\$MediaStyle") == true ||
+                    template?.contains("MediaStyle") == true
+            return hasMediaSession || isTransport || isMediaStyle
+        }
+
+        private fun bucketOfWithRank(sbn: StatusBarNotification, r: Ranking): UiBucket {
+            if (isMediaNotificationCompat(sbn.notification)) return UiBucket.MEDIA
+            if (r.isConversation) return UiBucket.CONVERSATION
+            val isSilent = r.isAmbient || r.importance <= NotificationManager.IMPORTANCE_LOW
+            return if (isSilent) UiBucket.SILENT else UiBucket.ALERTING
+        }
+
+        /** Fallback when RankingMap is null: heuristic using flags/category/priority. */
+        private fun bucketOfNoRank(sbn: StatusBarNotification): UiBucket {
+            val n = sbn.notification
+            if (isMediaNotificationCompat(n)) return UiBucket.MEDIA
+            // Heuristic: treat PRIORITY_LOW or below as silent when no ranking is available
+            @Suppress("DEPRECATION")
+            val silent = n.priority <= Notification.PRIORITY_LOW
+            return if (silent) UiBucket.SILENT else UiBucket.ALERTING
+        }
+
+        private fun shadeSort(
+            actives: List<StatusBarNotification>?,
+            rankingMap: RankingMap?
+        ): List<StatusBarNotification> {
+            val list = actives ?: return emptyList()
+            if (list.isEmpty()) return emptyList()
+
+            // Collapse groups: prefer GROUP_SUMMARY when present
+            val summariesByGroup = list
+                .filter { it.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0 }
+                .associateBy { it.notification.group }
+
+            val collapsed = buildList {
+                val seen = HashSet<String>()
+                list.filter { it.notification.group.isNullOrEmpty() }
+                    .forEach { if (seen.add(it.key)) add(it) }
+                list.groupBy { it.notification.group }.forEach { (g, members) ->
+                    if (g.isNullOrEmpty()) return@forEach
+                    val summary = summariesByGroup[g]
+                    if (summary != null) {
+                        if (seen.add(summary.key)) add(summary)
+                    } else {
+                        members.forEach { if (seen.add(it.key)) add(it) }
+                    }
+                }
+            }
+
+            // System order index (may be empty if rankingMap == null)
+            val sysOrder: Map<String, Int> =
+                rankingMap?.orderedKeys?.withIndex()?.associate { it.value to it.index } ?: emptyMap()
+
+            data class K(val bucket: UiBucket, val sys: Int, val tiebreak: Long)
+            val keys = HashMap<String, K>(collapsed.size * 2)
+
+            for (sbn in collapsed) {
+                val n = sbn.notification
+                val sortKey = n.sortKey
+                val tiebreak = if (!sortKey.isNullOrEmpty()) sortKey.hashCode().toLong() else -sbn.postTime
+
+                val (bucket, sysIdx) = if (rankingMap != null) {
+                    val r = Ranking()
+                    val has = rankingMap.getRanking(sbn.key, r)
+                    val b = if (has) bucketOfWithRank(sbn, r) else bucketOfNoRank(sbn)
+                    val idx = sysOrder[sbn.key] ?: Int.MAX_VALUE
+                    b to idx
+                } else {
+                    bucketOfNoRank(sbn) to Int.MAX_VALUE
+                }
+
+                keys[sbn.key] = K(bucket, sysIdx, tiebreak)
+            }
+
+            return collapsed.sortedWith(
+                compareBy<StatusBarNotification> { keys[it.key]!!.bucket }
+                    .thenBy { keys[it.key]!!.sys }
+                    .thenBy { keys[it.key]!!.tiebreak }
+            )
+        }
+
+        companion object {
+            fun toString(ranking: Ranking): String {
+                return "{key=${ranking.key}, rank=${ranking.rank}}"
+            }
+
+            fun toString(sbn: StatusBarNotification, showAllExtras: Boolean = false): String {
+                val notification = sbn.notification
+                val extras = notification.extras
+                val title = extras?.getCharSequence(Notification.EXTRA_TITLE)
+                var text = extras?.getCharSequence(Notification.EXTRA_TEXT)
+                if (text != null) {
+                    text = if (text.length > 33) {
+                        "(${text.length})${FooString.quote(text.substring(0, 32)).replaceAfterLast("\"", "…\"")}"
+                    } else {
+                        FooString.quote(text)
+                    }
+                }
+                val subText = extras?.getCharSequence(Notification.EXTRA_SUB_TEXT)
+
+                val sb = StringBuilder("{ ")
+                if (title != null || text != null || subText != null) {
+                    sb.append("extras={ ")
+                }
+                if (title != null) {
+                    sb.append("${Notification.EXTRA_TITLE}=${FooString.quote(title)}")
+                }
+                if (text != null) {
+                    sb.append(", ${Notification.EXTRA_TEXT}=$text")
+                }
+                if (subText != null) {
+                    sb.append(", ${Notification.EXTRA_SUB_TEXT}=${FooString.quote(subText)}")
+                }
+                if (title != null || text != null || subText != null) {
+                    sb.append(" }, ")
+                }
+                sb.append(
+                    "id=${sbn.id}, key=${FooString.quote(sbn.key)}, packageName=${
+                        FooString.quote(sbn.packageName)
+                    }, notification={ $notification"
+                )
+                if (showAllExtras) {
+                    sb.append(", extras=")
+                    if (extras != null) {
+                        extras.remove(Notification.EXTRA_TITLE)
+                        extras.remove(Notification.EXTRA_TEXT)
+                        extras.remove(Notification.EXTRA_SUB_TEXT)
+                    }
+                    sb.append(FooPlatformUtils.toString(extras))
+                }
+                sb.append(" } }")
+                return sb.toString()
             }
         }
+    }
+
+    private val activeNotificationsSnapshot = ActiveNotificationsSnapshot()
+
+    private fun getActiveNotificationsSnapshot(notificationListenerService: FooNotificationListenerService?): ActiveNotificationsSnapshot {
+        return activeNotificationsSnapshot.snapshot(notificationListenerService)
+    }
 
     fun initializeActiveNotifications() {
-        initializeActiveNotifications(activeNotifications)
+        val notificationListenerService = mNotificationListenerService
+        val activeNotificationsSnapshot = getActiveNotificationsSnapshot(notificationListenerService)
+        initializeActiveNotifications(activeNotificationsSnapshot)
     }
 
-    private fun initializeActiveNotifications(activeNotifications: Array<StatusBarNotification>?) {
-        if (activeNotifications == null) {
-            return
-        }
-        synchronized(mSyncLock) {
-            if (mNotificationListenerService == null) {
-                return
-            }
-            for (sbn in activeNotifications) {
-                onNotificationPosted(mNotificationListenerService!!, sbn)
-            }
+    private fun initializeActiveNotifications(activeNotificationsSnapshot: ActiveNotificationsSnapshot) {
+        for (activeNotification in activeNotificationsSnapshot.activeNotificationsRanked.orEmpty()) {
+            FooLog.v(TAG, "initializeActiveNotifications: activeNotification=$activeNotification")
+            onNotificationPosted(activeNotificationsSnapshot.notificationListenerService!!, activeNotification, activeNotificationsSnapshot.currentRanking)
         }
     }
+
+    //
+    //endregion ActiveNotifications
+    //
 
     /**
      * **_HACK_** required to detect any [NotificationListenerService] **NOT** calling
@@ -325,21 +548,21 @@ private constructor() {
 
     private fun onNotificationListenerConnected(
         notificationListenerService: FooNotificationListenerService,
-        activeNotifications: Array<StatusBarNotification>
     ) {
         synchronized(mSyncLock) {
             notificationListenerServiceConnectedTimeoutStop()
             mNotificationListenerService = notificationListenerService
+            val activeNotificationsSnapshot = getActiveNotificationsSnapshot(notificationListenerService)
             var initializeActiveNotifications = true
             for (callbacks in mListenerManager.beginTraversing()) {
                 initializeActiveNotifications =
                     initializeActiveNotifications and !callbacks.onNotificationListenerServiceConnected(
-                        activeNotifications
+                        activeNotificationsSnapshot.activeNotificationsRanked.orEmpty()
                     )
             }
             mListenerManager.endTraversing()
             if (initializeActiveNotifications) {
-                initializeActiveNotifications(activeNotifications)
+                initializeActiveNotifications(activeNotificationsSnapshot)
             }
         }
     }
@@ -365,14 +588,15 @@ private constructor() {
 
     private fun onNotificationPosted(
         notificationListenerService: FooNotificationListenerService,
-        sbn: StatusBarNotification
+        sbn: StatusBarNotification,
+        rankingMap: RankingMap?
     ) {
         synchronized(mSyncLock) {
             if (mNotificationListenerService !== notificationListenerService) {
                 return
             }
             for (callbacks in mListenerManager.beginTraversing()) {
-                callbacks.onNotificationPosted(sbn)
+                callbacks.onNotificationPosted(sbn, rankingMap)
             }
             mListenerManager.endTraversing()
         }
@@ -380,14 +604,16 @@ private constructor() {
 
     private fun onNotificationRemoved(
         notificationListenerService: FooNotificationListenerService,
-        sbn: StatusBarNotification
+        sbn: StatusBarNotification,
+        rankingMap: RankingMap?,
+        reason: Int
     ) {
         synchronized(mSyncLock) {
             if (mNotificationListenerService !== notificationListenerService) {
                 return
             }
             for (callbacks in mListenerManager.beginTraversing()) {
-                callbacks.onNotificationRemoved(sbn)
+                callbacks.onNotificationRemoved(sbn, rankingMap, reason)
             }
             mListenerManager.endTraversing()
         }
@@ -421,22 +647,13 @@ private constructor() {
 
         override fun onListenerConnected() {
             FooLog.v(TAG, "onListenerConnected()")
-            super.onListenerConnected()
             mOnListenerConnectedStartMillis = System.currentTimeMillis()
-            val activeNotifications = activeNotifications
-            mNotificationListenerManager.onNotificationListenerConnected(
-                this,
-                activeNotifications
-            )
-        }
-
-        override fun onNotificationPosted(sbn: StatusBarNotification) {
-            onNotificationPosted(sbn, null)
+            mNotificationListenerManager.onNotificationListenerConnected(this)
         }
 
         override fun onNotificationPosted(sbn: StatusBarNotification, rankingMap: RankingMap?) {
             FooLog.v(TAG, "onNotificationPosted(...)")
-            mNotificationListenerManager.onNotificationPosted(this, sbn)
+            mNotificationListenerManager.onNotificationPosted(this, sbn, rankingMap)
         }
 
         override fun onNotificationRankingUpdate(rankingMap: RankingMap) {
@@ -449,18 +666,39 @@ private constructor() {
             super.onListenerHintsChanged(hints)
         }
 
+        override fun onSilentStatusBarIconsVisibilityChanged(hideSilentStatusIcons: Boolean) {
+            FooLog.v(TAG, "onSilentStatusBarIconsVisibilityChanged(...)")
+            super.onSilentStatusBarIconsVisibilityChanged(hideSilentStatusIcons)
+        }
+
+        override fun onNotificationChannelModified(
+            pkg: String?,
+            user: UserHandle?,
+            channel: NotificationChannel?,
+            modificationType: Int
+        ) {
+            FooLog.v(TAG, "onNotificationChannelModified(...)")
+            super.onNotificationChannelModified(pkg, user, channel, modificationType)
+        }
+
+        override fun onNotificationChannelGroupModified(
+            pkg: String?,
+            user: UserHandle?,
+            group: NotificationChannelGroup?,
+            modificationType: Int
+        ) {
+            FooLog.v(TAG, "onNotificationChannelGroupModified(...)")
+            super.onNotificationChannelGroupModified(pkg, user, group, modificationType)
+        }
+
         override fun onInterruptionFilterChanged(interruptionFilter: Int) {
             FooLog.v(TAG, "onInterruptionFilterChanged(...)")
             super.onInterruptionFilterChanged(interruptionFilter)
         }
 
-        override fun onNotificationRemoved(sbn: StatusBarNotification) {
-            onNotificationRemoved(sbn, null)
-        }
-
-        override fun onNotificationRemoved(sbn: StatusBarNotification, rankingMap: RankingMap?) {
+        override fun onNotificationRemoved(sbn: StatusBarNotification, rankingMap: RankingMap?, reason: Int) {
             FooLog.v(TAG, "onNotificationRemoved(...)")
-            mNotificationListenerManager.onNotificationRemoved(this, sbn)
+            mNotificationListenerManager.onNotificationRemoved(this, sbn, rankingMap, reason)
         }
 
         override fun onListenerDisconnected() {

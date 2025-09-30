@@ -504,7 +504,7 @@ public class FooPlatformUtils
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append(intent.toString());
+        sb.append(intent);
 
         Bundle bundle = intent.getExtras();
         sb.append(", extras=").append(toString(bundle));
