@@ -81,7 +81,7 @@ public class MainApplication
 
         int FOREGROUND_SERVICE_TYPE = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
 
-        FooNotificationBuilder notificationBuilder = new FooNotificationBuilder(this, CHANNEL_INFO.id)
+        FooNotificationBuilder notificationBuilder = new FooNotificationBuilder(this, CHANNEL_INFO.getId())
                 .setOngoing(true)
                 .setSmallIcon(R.drawable.ic_android_white_24dp)
                 .setContentTitle("Running In The Background")
