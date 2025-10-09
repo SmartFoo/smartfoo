@@ -5,12 +5,8 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
 import android.app.NotificationManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.os.UserHandle
-import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.NotificationListenerService.Ranking
 import android.service.notification.NotificationListenerService.RankingMap
@@ -24,103 +20,13 @@ import com.smartfoo.android.core.logging.FooLog
 import com.smartfoo.android.core.platform.FooHandler
 import com.smartfoo.android.core.platform.FooPlatformUtils
 
+@Suppress("unused")
 @SuppressLint("ObsoleteSdkInt")
 @RequiresApi(18)
 class FooNotificationListenerManager
 private constructor() {
     companion object {
-        private val TAG: String = FooLog.TAG(FooNotificationListenerManager::class.java)
-
-        /**
-         * Needs to be reasonably longer than the app startup time.
-         *
-         * NOTE1 that the app startup time can be a few seconds when debugging.
-         *
-         * NOTE2 that this will time out if paused too long at a debug breakpoint while launching.
-         */
-        @Suppress("ClassName", "MemberVisibilityCanBePrivate")
-        object NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS {
-            const val NORMAL: Int = 1500
-            const val SLOW: Int = 6000
-
-            fun getRecommendedTimeout(slow: Boolean): Int {
-                return if (slow) SLOW else NORMAL
-            }
-        }
-
-        /**
-         * Usually [Build.VERSION.SDK_INT], but may be used to force a specific OS Version #
-         * **FOR TESTING PURPOSES**.
-         */
-        private val VERSION_SDK_INT = Build.VERSION.SDK_INT
-
-        fun supportsNotificationListenerSettings(): Boolean {
-            return VERSION_SDK_INT >= 19
-        }
-
-        /**
-         * Per hidden field [android.provider.Settings.Secure] `ENABLED_NOTIFICATION_LISTENERS`
-         */
-        private const val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
-
-        @JvmOverloads
-        @JvmStatic
-        fun isNotificationAccessSettingConfirmedEnabled(
-            context: Context,
-            notificationListenerServiceClass: Class<out NotificationListenerService> = FooNotificationListenerService::class.java
-        ): Boolean {
-            if (supportsNotificationListenerSettings()) {
-                val notificationListenerServiceLookingFor =
-                    ComponentName(context, notificationListenerServiceClass)
-                FooLog.d(TAG, "isNotificationAccessSettingConfirmedEnabled: notificationListenerServiceLookingFor=$notificationListenerServiceLookingFor")
-
-                val contentResolver = context.contentResolver
-                val notificationListenersString =
-                    Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS)
-                if (notificationListenersString != null) {
-                    val notificationListeners = notificationListenersString.split(":".toRegex())
-                        .dropLastWhile { it.isEmpty() }.toTypedArray()
-                    for (i in notificationListeners.indices) {
-                        val notificationListener = ComponentName.unflattenFromString(
-                            notificationListeners[i]
-                        )
-                        FooLog.d(TAG, "isNotificationAccessSettingConfirmedEnabled: notificationListeners[$i]=$notificationListener")
-                        if (notificationListenerServiceLookingFor == notificationListener) {
-                            FooLog.i(TAG, "isNotificationAccessSettingConfirmedEnabled: found match; return true")
-                            return true
-                        }
-                    }
-                }
-            }
-
-            FooLog.w(TAG, "isNotificationAccessSettingConfirmedEnabled: found NO match; return false")
-            return false
-        }
-
-        @Suppress("LocalVariableName")
-        @JvmStatic
-        @get:SuppressLint("InlinedApi")
-        val intentNotificationListenerSettings: Intent?
-            /**
-             * @return null if [supportsNotificationListenerSettings] == false
-             */
-            get() {
-                var intent: Intent? = null
-                if (supportsNotificationListenerSettings()) {
-                    val ACTION_NOTIFICATION_LISTENER_SETTINGS = if (VERSION_SDK_INT >= 22) {
-                        Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
-                    } else {
-                        "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
-                    }
-                    intent = Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                }
-                return intent
-            }
-
-        @JvmStatic
-        fun startActivityNotificationListenerSettings(context: Context) {
-            context.startActivity(intentNotificationListenerSettings)
-        }
+        private val TAG = FooLog.TAG(FooNotificationListenerManager::class.java)
 
         @JvmStatic
         val instance: FooNotificationListenerManager by lazy {
@@ -158,27 +64,26 @@ private constructor() {
     /**
      * NOTE: **Purposefully not using FooListenerAutoStartManager due to incompatible logic in [attach]
      */
-    private val mListenerManager =
-        FooListenerManager<FooNotificationListenerManagerCallbacks>(this)
+    private val mListenerManager = FooListenerManager<FooNotificationListenerManagerCallbacks>(this)
     private val mHandler = FooHandler()
 
     @GuardedBy("mSyncLock")
     private var mNotificationListenerService: FooNotificationListenerService? = null
 
     private var mNotificationListenerServiceConnectedTimeoutMillis =
-        NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.NORMAL.toLong()
+        FooNotificationListener.NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.NORMAL.toLong()
     private var mNotificationListenerServiceConnectedTimeoutStartMillis: Long = -1
 
     /**
      * **Set to slow mode for debug builds.**
      *
-     * Sets timeout based on [NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout]
+     * Sets timeout based on [FooNotificationListener.NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout]
      *
      * To set a more precise timeout, use [setTimeout]
      */
     fun setSlowMode(value: Boolean) {
         val timeoutMillis =
-            NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout(value)
+            FooNotificationListener.NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout(value)
                 .toLong()
         setTimeout(timeoutMillis)
     }
@@ -200,7 +105,7 @@ private constructor() {
         //
         // NOTE: **Purposefully not using FooListenerAutoStartManager due to the following incompatible logic**...
         //
-        if (isNotificationAccessSettingConfirmedEnabled(context)) {
+        if (FooNotificationListener.hasNotificationListenerAccess(context, FooNotificationListenerService::class.java)) {
             if (mListenerManager.size() == 1) {
                 if (mNotificationListenerServiceConnectedTimeoutStartMillis == -1L) {
                     notificationListenerServiceConnectedTimeoutStart(
@@ -246,31 +151,29 @@ private constructor() {
         var currentRanking: RankingMap? = null
             private set
 
-
-        private var _activeNotificationsRanked: List<StatusBarNotification>? = null
+        private var _activeNotificationsRankedDelegate = lazy { createActiveNotificationsRanked() }
 
         /** Ranked view (top → bottom), cached after the first computation per snapshot. */
-        val activeNotificationsRanked: List<StatusBarNotification>?
-            get() {
-                if (_activeNotificationsRanked == null) {
-                    _activeNotificationsRanked = shadeSort(activeNotifications, currentRanking)
-                    @Suppress("ConstantConditionIf")
-                    if (false) {
-                        for (sbn in _activeNotificationsRanked!!) {
-                            FooLog.e(TAG, "activeNotificationsRanked: notification=${toString(sbn, showAllExtras = false)}")
-                        }
-                        FooLog.e(TAG, "activeNotificationsRanked:")
-                    }
+        val activeNotificationsRanked: List<StatusBarNotification> by _activeNotificationsRankedDelegate
+
+        private fun createActiveNotificationsRanked(): List<StatusBarNotification> {
+            val ranked = shadeSort(activeNotifications, currentRanking)
+            @Suppress("ConstantConditionIf")
+            if (false) {
+                for (sbn in ranked) {
+                    FooLog.e(TAG, "createActiveNotificationsRanked: notification=${toString(sbn, showAllExtras = false)}")
                 }
-                return _activeNotificationsRanked
+                FooLog.e(TAG, "createActiveNotificationsRanked: EOL")
             }
+            return ranked
+        }
 
         /** Clears all state back to defaults (empty notifications, null ranking map). */
         fun reset() {
             notificationListenerService = null
             activeNotifications = null
             currentRanking = null
-            _activeNotificationsRanked = null
+            _activeNotificationsRankedDelegate = lazy { createActiveNotificationsRanked() }
         }
 
         /**
@@ -292,7 +195,10 @@ private constructor() {
          * Top to bottom order of appearance in the Notification Shade.
          */
         private enum class UiBucket(val order: Int) {
-            MEDIA(0), CONVERSATION(1), ALERTING(2), SILENT(3)
+            MEDIA(0),
+            CONVERSATION(1),
+            ALERTING(2),
+            SILENT(3),
         }
 
         private fun isMediaNotificationCompat(n: Notification): Boolean {
@@ -437,6 +343,12 @@ private constructor() {
         }
     }
 
+    val activeNotifications: List<StatusBarNotification>?
+        get() = getActiveNotificationsSnapshot(mNotificationListenerService).activeNotifications
+
+    val activeNotificationsRanked: List<StatusBarNotification>?
+        get() = getActiveNotificationsSnapshot(mNotificationListenerService).activeNotificationsRanked
+
     private val activeNotificationsSnapshot = ActiveNotificationsSnapshot()
 
     private fun getActiveNotificationsSnapshot(notificationListenerService: FooNotificationListenerService?): ActiveNotificationsSnapshot {
@@ -450,7 +362,7 @@ private constructor() {
     }
 
     private fun initializeActiveNotifications(activeNotificationsSnapshot: ActiveNotificationsSnapshot) {
-        for (activeNotification in activeNotificationsSnapshot.activeNotificationsRanked.orEmpty()) {
+        for (activeNotification in activeNotificationsSnapshot.activeNotificationsRanked) {
             FooLog.v(TAG, "initializeActiveNotifications: activeNotification=$activeNotification")
             onNotificationPosted(activeNotificationsSnapshot.notificationListenerService!!, activeNotification, activeNotificationsSnapshot.currentRanking)
         }
@@ -557,7 +469,7 @@ private constructor() {
             for (callbacks in mListenerManager.beginTraversing()) {
                 initializeActiveNotifications =
                     initializeActiveNotifications and !callbacks.onNotificationListenerServiceConnected(
-                        activeNotificationsSnapshot.activeNotificationsRanked.orEmpty()
+                        activeNotificationsSnapshot.activeNotificationsRanked
                     )
             }
             mListenerManager.endTraversing()

@@ -1,7 +1,6 @@
 package com.smartfoo.android.core.annotations;
 
 import com.smartfoo.android.core.FooAssert;
-import com.smartfoo.android.core.FooRun;
 
 import org.junit.Test;
 

@@ -138,8 +138,9 @@ public class FooDataConnectionManager
         };
     }
 
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @Override
+    @NonNull
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     public String toString()
     {
         return "{ getConnectionState()=" + getConnectionState()

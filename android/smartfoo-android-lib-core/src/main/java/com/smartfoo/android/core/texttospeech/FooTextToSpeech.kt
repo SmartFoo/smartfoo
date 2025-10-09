@@ -9,8 +9,8 @@ import android.speech.tts.Voice
 import com.smartfoo.android.core.FooListenerManager
 import com.smartfoo.android.core.FooString
 import com.smartfoo.android.core.logging.FooLog
-import com.smartfoo.android.core.media.FooAudioFocusListener
-import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks
+import com.smartfoo.android.core.media.FooAudioFocusController
+import com.smartfoo.android.core.media.FooAudioFocusController.FooAudioFocusControllerCallbacks
 import com.smartfoo.android.core.media.FooAudioUtils
 import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPart
 import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSpeechPartSilence
@@ -18,11 +18,15 @@ import com.smartfoo.android.core.texttospeech.FooTextToSpeechBuilder.FooTextToSp
 import java.util.LinkedList
 
 /**
+ * NOTE: There should be only one TextToSpeech instance per application.
+ * Callers must use FooTextToSpeech.instance to get the singleton instance.
+ * Then call instance.start(context, callbacks) to initialize the instance.
+ * This call instance.stop() when done.
+ * Optionally call instance.shutdown() when done.
+ *
  * References:
- *
- *  * https://github.com/android/platform_frameworks_base/tree/master/core/java/android/speech/tts
- *  * https://github.com/android/platform_packages_apps_settings/tree/master/src/com/android/settings/tts
- *
+ *  * https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/core/java/android/speech/tts/
+ *  * https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/Settings/src/com/android/settings/tts/
  */
 class FooTextToSpeech private constructor() {
     companion object {
@@ -37,9 +41,17 @@ class FooTextToSpeech private constructor() {
         const val DEFAULT_VOICE_PITCH = 1.0f
         const val DEFAULT_VOICE_VOLUME = 1.0f
 
+        /**
+         * Singleton instance of [FooTextToSpeech]
+         */
         @JvmStatic
         val instance: FooTextToSpeech by lazy {
             FooTextToSpeech()
+        }
+
+        @JvmStatic
+        fun speak(context: Context, text: String): Boolean {
+            return instance.start(context).speak(text)
         }
 
         @JvmStatic
@@ -59,8 +71,8 @@ class FooTextToSpeech private constructor() {
     private inner class UtteranceInfo(val mText: String?, val mRunAfter: Runnable?)
 
     private val mSyncLock: Any
-    private val mAudioFocusListener: FooAudioFocusListener
-    private val mAudioFocusListenerCallbacks: FooAudioFocusListenerCallbacks
+    private val mAudioFocusListener: FooAudioFocusController
+    private val mAudioFocusListenerCallbacks: FooAudioFocusControllerCallbacks
     private val mListeners: FooListenerManager<FooTextToSpeechCallbacks>
     private val mTextToSpeechQueue: MutableList<UtteranceInfo>
     private val mUtteranceCallbacks: MutableMap<String, Runnable>
@@ -79,8 +91,8 @@ class FooTextToSpeech private constructor() {
     init {
         FooLog.v(TAG, "+FooTextToSpeech()")
         mSyncLock = Any()
-        mAudioFocusListener = FooAudioFocusListener.getInstance()
-        mAudioFocusListenerCallbacks = object : FooAudioFocusListenerCallbacks() {
+        mAudioFocusListener = FooAudioFocusController.instance
+        mAudioFocusListenerCallbacks = object : FooAudioFocusControllerCallbacks() {
             override fun onAudioFocusGained(
                 audioFocusStreamType: Int,
                 audioFocusDurationHint: Int
@@ -92,13 +104,11 @@ class FooTextToSpeech private constructor() {
             }
 
             override fun onAudioFocusLost(
-                audioFocusListener: FooAudioFocusListener,
                 audioFocusStreamType: Int,
                 audioFocusDurationHint: Int,
                 focusChange: Int
             ): Boolean {
                 return this@FooTextToSpeech.onAudioFocusLost(
-                    audioFocusListener,
                     audioFocusStreamType,
                     audioFocusDurationHint,
                     focusChange
@@ -128,6 +138,7 @@ class FooTextToSpeech private constructor() {
         get() {
             synchronized(mSyncLock) { return if (mTextToSpeech != null) mTextToSpeech!!.voices else null }
         }
+
     val voiceName: String?
         get() {
             synchronized(mSyncLock) { return mVoiceName }
@@ -402,18 +413,17 @@ class FooTextToSpeech private constructor() {
 
     private fun onAudioFocusGained(audioFocusStreamType: Int, audioFocusDurationHint: Int) {
         if (VERBOSE_LOG_AUDIO_FOCUS) {
-            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusGained(audioFocusStreamType=${FooAudioUtils.audioStreamTypeToString(audioFocusStreamType)}, audioFocusDurationHint=${FooAudioUtils.audioFocusToString(audioFocusDurationHint)})")
+            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusGained(audioFocusStreamType=${FooAudioUtils.audioStreamTypeToString(audioFocusStreamType)}, audioFocusDurationHint=${FooAudioUtils.audioFocusGainLossToString(audioFocusDurationHint)}")
         }
     }
 
     private fun onAudioFocusLost(
-        audioFocusListener: FooAudioFocusListener,
         audioFocusStreamType: Int,
         audioFocusDurationHint: Int,
         focusChange: Int
     ): Boolean {
         if (VERBOSE_LOG_AUDIO_FOCUS) {
-            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusLost(…, audioFocusStreamType=${FooAudioUtils.audioStreamTypeToString(audioFocusStreamType)}, audioFocusDurationHint=${FooAudioUtils.audioFocusToString(audioFocusDurationHint)}, focusChange=${FooAudioUtils.audioFocusToString(focusChange)})")
+            FooLog.e(TAG, "#AUDIOFOCUS_TTS onAudioFocusLost(audioFocusStreamType=${FooAudioUtils.audioStreamTypeToString(audioFocusStreamType)}, audioFocusDurationHint=${FooAudioUtils.audioFocusGainLossToString(audioFocusDurationHint)}, focusChange=${FooAudioUtils.audioFocusGainLossToString(focusChange)})")
         }
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS,

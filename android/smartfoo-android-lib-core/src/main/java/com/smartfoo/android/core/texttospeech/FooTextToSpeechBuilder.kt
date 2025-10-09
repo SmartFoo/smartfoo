@@ -2,8 +2,8 @@ package com.smartfoo.android.core.texttospeech
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import com.smartfoo.android.core.FooString
 import com.smartfoo.android.core.collections.FooCollections
+import com.smartfoo.android.core.FooString
 import java.util.LinkedList
 
 class FooTextToSpeechBuilder {
@@ -25,8 +25,7 @@ class FooTextToSpeechBuilder {
             var text = text
             if (text != null) {
                 require(text.length <= MAX_SPEECH_INPUT_LENGTH) {
-                    "text.length must be <= FooTextToSpeechBuilder.MAX_SPEECH_INPUT_LENGTH(" +
-                            MAX_SPEECH_INPUT_LENGTH + ')'
+                    "text.length must be <= FooTextToSpeechBuilder.MAX_SPEECH_INPUT_LENGTH($MAX_SPEECH_INPUT_LENGTH)"
                 }
                 text = text.trim { it <= ' ' }
                 if ("" == text) {
@@ -36,7 +35,7 @@ class FooTextToSpeechBuilder {
             mText = text
         }
 
-        override fun toString() = "mText=" + FooString.quote(mText)
+        override fun toString() = "mText=${FooString.quote(mText)}"
 
         override fun equals(other: Any?) =
             other is FooTextToSpeechPartSpeech && FooString.equals(mText, other.mText)
@@ -45,8 +44,7 @@ class FooTextToSpeechBuilder {
     }
 
     // package
-    class FooTextToSpeechPartSilence(val mSilenceDurationMillis: Int
-    ) : FooTextToSpeechPart() {
+    class FooTextToSpeechPartSilence(val mSilenceDurationMillis: Int) : FooTextToSpeechPart() {
         override fun toString() = "mSilenceDurationMillis=$mSilenceDurationMillis"
 
         override fun equals(other: Any?) =

@@ -31,7 +31,7 @@ class FooNotification(
     val notification: Notification)
     : Parcelable {
     companion object {
-        private val TAG: String = FooLog.TAG(FooNotification::class.java)
+        private val TAG = FooLog.TAG(FooNotification::class.java)
 
         /**
          * Non-hidden duplicate of [android.app.Notification.FLAG_NO_DISMISS]
@@ -65,6 +65,34 @@ class FooNotification(
                 }
             }
             return null
+        }
+
+        /**
+         * NOTE: Since Android 14 (API34) [androidx.core.app.NotificationCompat.Builder.setOngoing]
+         * notifications **CAN** be dismissed by the user...
+         *
+         * ...unless...
+         *
+         * [https://www.reddit.com/r/tasker/comments/1fv9ez4/how_to_enable_nondismissible_persistent/](https://www.reddit.com/r/tasker/comments/1fv9ez4/how_to_enable_nondismissible_persistent/)
+         *
+         * (There are lots of goodies in this article that might be of some help in the future.)
+         *
+         * To enable:
+         *
+         * `adb shell appops set --uid ${packageName} SYSTEM_EXEMPT_FROM_DISMISSIBLE_NOTIFICATIONS allow`
+         *
+         * This will add a `android.app.Notification.FLAG_NO_DISMISS` to the notification that can be seen with:
+         *
+         * `adb shell dumpsys notification --noredact | grep ${packageName}`
+         *
+         * To disable:
+         *
+         * `adb shell appops set --uid ${packageName} SYSTEM_EXEMPT_FROM_DISMISSIBLE_NOTIFICATIONS default`
+         */
+        @JvmStatic
+        fun isCallingAppNotificationNoDismiss(context: Context, notificationId: Int): Boolean {
+            val notification = findCallingAppNotification(context, notificationId)
+            return getNoDismiss(notification)
         }
 
         /**

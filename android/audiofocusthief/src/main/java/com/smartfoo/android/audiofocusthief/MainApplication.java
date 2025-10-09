@@ -10,8 +10,8 @@ import androidx.annotation.RequiresPermission;
 
 import com.smartfoo.android.core.FooListenerManager;
 import com.smartfoo.android.core.logging.FooLog;
-import com.smartfoo.android.core.media.FooAudioFocusListener;
-import com.smartfoo.android.core.media.FooAudioFocusListener.FooAudioFocusListenerCallbacks;
+import com.smartfoo.android.core.media.FooAudioFocusController;
+import com.smartfoo.android.core.media.FooAudioFocusController.FooAudioFocusControllerCallbacks;
 import com.smartfoo.android.core.media.FooAudioUtils;
 import com.smartfoo.android.core.notification.FooNotification;
 import com.smartfoo.android.core.notification.FooNotification.Companion.ChannelInfo;
@@ -22,9 +22,9 @@ public class MainApplication
 {
     private static final String TAG = FooLog.TAG(MainApplication.class);
 
-    private final FooAudioFocusListener                              mAudioFocusListener;
-    private final FooAudioFocusListenerCallbacks                     mAudioFocusListenerCallbacks;
-    private final FooListenerManager<FooAudioFocusListenerCallbacks> mAudioFocusListenerManager;
+    private final FooAudioFocusController mAudioFocusController;
+    private final FooAudioFocusControllerCallbacks mAudioFocusControllerCallbacks;
+    private final FooListenerManager<FooAudioFocusControllerCallbacks> mAudioFocusControllerManager;
 
     private int mAudioFocusStreamType   = AudioManager.STREAM_MUSIC;
     private int mAudioFocusDurationHint = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
@@ -34,8 +34,8 @@ public class MainApplication
 
     public MainApplication()
     {
-        mAudioFocusListener = FooAudioFocusListener.getInstance();
-        mAudioFocusListenerCallbacks = new FooAudioFocusListenerCallbacks()
+        mAudioFocusController = FooAudioFocusController.getInstance();
+        mAudioFocusControllerCallbacks = new FooAudioFocusControllerCallbacks()
         {
             @Override
             public void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
@@ -44,12 +44,12 @@ public class MainApplication
             }
 
             @Override
-            public boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
+            public boolean onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
             {
-                return MainApplication.this.onAudioFocusLost(audioFocusListener, audioFocusStreamType, audioFocusDurationHint, focusChange);
+                return MainApplication.this.onAudioFocusLost(audioFocusStreamType, audioFocusDurationHint, focusChange);
             }
         };
-        mAudioFocusListenerManager = new FooListenerManager<>(this);
+        mAudioFocusControllerManager = new FooListenerManager<>(this);
     }
 
     @Override
@@ -111,19 +111,19 @@ public class MainApplication
     //
     //
 
-    public void attach(FooAudioFocusListenerCallbacks callbacks)
+    public void attach(FooAudioFocusControllerCallbacks callbacks)
     {
-        mAudioFocusListenerManager.attach(callbacks);
+        mAudioFocusControllerManager.attach(callbacks);
     }
 
-    public void detach(FooAudioFocusListenerCallbacks callbacks)
+    public void detach(FooAudioFocusControllerCallbacks callbacks)
     {
-        mAudioFocusListenerManager.detach(callbacks);
+        mAudioFocusControllerManager.detach(callbacks);
     }
 
     public boolean isAudioFocusGained()
     {
-        return mAudioFocusListener.isAudioFocusGained();
+        return mAudioFocusController.isAudioFocusGained();
     }
 
     public String getAudioFocusHashtag()
@@ -139,19 +139,19 @@ public class MainApplication
     public void setIsAudioFocusThief(boolean thief)
     {
         mIsAudioFocusThief = thief;
-        mAudioFocusListener.setHashtag(getAudioFocusHashtag());
+        mAudioFocusController.setHashtag(getAudioFocusHashtag());
     }
 
     public boolean audioFocusOn()
     {
-        mAudioFocusListener.setHashtag(getAudioFocusHashtag());
-        mAudioFocusListener.audioFocusStart(this, mAudioFocusStreamType, mAudioFocusDurationHint, mAudioFocusListenerCallbacks);
+        mAudioFocusController.setHashtag(getAudioFocusHashtag());
+        mAudioFocusController.audioFocusStart(this, mAudioFocusStreamType, mAudioFocusDurationHint, mAudioFocusControllerCallbacks);
         return true;
     }
 
     public boolean audioFocusOff()
     {
-        mAudioFocusListener.audioFocusStop(mAudioFocusListenerCallbacks);
+        mAudioFocusController.audioFocusStop(mAudioFocusControllerCallbacks);
         return true;
     }
 
@@ -161,30 +161,30 @@ public class MainApplication
                       " onAudioFocusGained(audioFocusStreamType=" +
                       FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
                       ", audioFocusDurationHint=" +
-                      FooAudioUtils.audioFocusToString(audioFocusDurationHint) + ')');
+                      FooAudioUtils.audioFocusGainLossToString(audioFocusDurationHint) + ')');
 
-        for (FooAudioFocusListenerCallbacks callbacks : mAudioFocusListenerManager.beginTraversing())
+        for (FooAudioFocusControllerCallbacks callbacks : mAudioFocusControllerManager.beginTraversing())
         {
             callbacks.onAudioFocusGained(audioFocusStreamType, audioFocusDurationHint);
         }
-        mAudioFocusListenerManager.endTraversing();
+        mAudioFocusControllerManager.endTraversing();
     }
 
-    private boolean onAudioFocusLost(FooAudioFocusListener audioFocusListener, int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
+    private boolean onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +
                       " onAudioFocusLost(…, audioFocusStreamType=" +
                       FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
                       ", audioFocusDurationHint=" +
-                      FooAudioUtils.audioFocusToString(audioFocusDurationHint) +
+                      FooAudioUtils.audioFocusGainLossToString(audioFocusDurationHint) +
                       ", focusChange=" +
-                      FooAudioUtils.audioFocusToString(focusChange) + ')');
+                      FooAudioUtils.audioFocusGainLossToString(focusChange) + ')');
 
-        for (FooAudioFocusListenerCallbacks callbacks : mAudioFocusListenerManager.beginTraversing())
+        for (FooAudioFocusControllerCallbacks callbacks : mAudioFocusControllerManager.beginTraversing())
         {
-            callbacks.onAudioFocusLost(audioFocusListener, audioFocusStreamType, audioFocusDurationHint, focusChange);
+            callbacks.onAudioFocusLost(audioFocusStreamType, audioFocusDurationHint, focusChange);
         }
-        mAudioFocusListenerManager.endTraversing();
+        mAudioFocusControllerManager.endTraversing();
 
         if (mIsAudioFocusThief)
         {
