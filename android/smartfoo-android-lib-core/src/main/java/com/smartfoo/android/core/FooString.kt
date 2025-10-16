@@ -43,29 +43,34 @@ object FooString {
     @JvmField
     val LINEFEED: String? = System.lineSeparator()
 
-    const val Utf8Encoding: String = "utf-8"
+    const val CHARSET_NAME_UTF8 = "UTF-8"
 
-    val EMPTY_BYTES: ByteArray = byteArrayOf(0)
+    @JvmField
+    val CHARSET_UTF8 = charset(CHARSET_NAME_UTF8)
+
+    @JvmField
+    val EMPTY_BYTES = byteArrayOf(0)
 
     @JvmStatic
-    fun getBytes(value: String): ByteArray? {
+    fun getBytes(value: String): ByteArray {
         try {
-            return value.toByteArray(charset(Utf8Encoding))
+            return value.toByteArray(CHARSET_UTF8)
         } catch (e: UnsupportedEncodingException) {
-            throw IllegalStateException("UnsupportedEncodingException: Should never happen as long as Utf8Encoding is valid")
+            throw IllegalStateException("UnsupportedEncodingException: Should never happen as long as CHARSET_UTF8 is valid")
         }
     }
 
     @JvmStatic
-    fun getString(bytes: ByteArray?, offset: Int, length: Int): String? {
+    fun getString(
+        bytes: ByteArray?,
+        offset: Int,
+        length: Int,
+    ): String =
         try {
-            // TODO:(pv) Does this work for *all* UTF8 strings?
-            return kotlin.text.String(bytes!!, offset, length, charset(Utf8Encoding))
+            String(bytes!!, offset, length, CHARSET_UTF8)
         } catch (e: UnsupportedEncodingException) {
-            // Should *NEVER* happen since this method always uses a supported encoding
-            return null
+            throw IllegalStateException("UnsupportedEncodingException: Should never happen as long as CHARSET_UTF8 is valid")
         }
-    }
 
     /**
      * Tests if a String value is null or empty.
@@ -74,19 +79,13 @@ object FooString {
      * @return true if the String is null, zero length, or ""
      */
     @JvmStatic
-    fun isNullOrEmpty(value: String?): Boolean {
-        return value.isNullOrEmpty()
-    }
+    fun isNullOrEmpty(value: String?): Boolean = value.isNullOrEmpty()
 
     @JvmStatic
-    fun isNullOrEmpty(value: CharSequence?): Boolean {
-        return value.isNullOrEmpty()
-    }
+    fun isNullOrEmpty(value: CharSequence?): Boolean = value.isNullOrEmpty()
 
     @JvmStatic
-    fun toString(value: Any?): String? {
-        return value?.toString()
-    }
+    fun toString(value: Any?): String? = value?.toString()
 
     /**
      * Creates a String from a null-terminated array of default String encoded bytes.
@@ -96,7 +95,10 @@ object FooString {
      * @return the resulting String value of the bytes from offset to null or end (whichever comes first)
      */
     @JvmStatic
-    fun fromNullTerminatedBytes(bytes: ByteArray?, offset: Int): String? {
+    fun fromNullTerminatedBytes(
+        bytes: ByteArray?,
+        offset: Int,
+    ): String? {
         if (bytes == null) {
             return null
         }
@@ -131,9 +133,7 @@ object FooString {
     }
 
     @JvmStatic
-    fun toHexString(bytes: ByteArray?): String {
-        return toHexString(bytes, true)
-    }
+    fun toHexString(bytes: ByteArray?): String = toHexString(bytes, true)
 
     @JvmStatic
     fun toHexString(
@@ -145,25 +145,44 @@ object FooString {
     }
 
     @JvmStatic
-    fun toHexString(bytes: ByteArray?, offset: Int, count: Int): String {
-        return toHexString(bytes, offset, count, true)
-    }
+    fun toHexString(
+        bytes: ByteArray?,
+        offset: Int,
+        count: Int,
+    ): String = toHexString(bytes, offset, count, true)
 
-    private val HEX_CHARS = charArrayOf(
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-    )
+    private val HEX_CHARS =
+        charArrayOf(
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F',
+        )
 
     @JvmStatic
     fun toHexString(
-        bytes: ByteArray?, offset: Int, count: Int,  //
-        asByteArray: Boolean
+        bytes: ByteArray?,
+        offset: Int,
+        count: Int, //
+        asByteArray: Boolean,
     ): String {
         if (bytes == null) return "null"
 
         val sb = StringBuilder()
         if (asByteArray) {
-            var i: Int
-            i = offset
+            var i = offset
             while (i < count) {
                 if (i != offset) {
                     sb.append('-')
@@ -186,19 +205,22 @@ object FooString {
     }
 
     @JvmStatic
-    fun toHexString(value: Short, maxBytes: Int): String {
-        return toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
-    }
+    fun toHexString(
+        value: Short,
+        maxBytes: Int,
+    ): String = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
 
     @JvmStatic
-    fun toHexString(value: Int, maxBytes: Int): String {
-        return toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
-    }
+    fun toHexString(
+        value: Int,
+        maxBytes: Int,
+    ): String = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
 
     @JvmStatic
-    fun toHexString(value: Long, maxBytes: Int): String {
-        return toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
-    }
+    fun toHexString(
+        value: Long,
+        maxBytes: Int,
+    ): String = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
 
     @JvmStatic
     fun toHexString(value: String): String? {
@@ -207,10 +229,14 @@ object FooString {
 
     @JvmOverloads
     @JvmStatic
-    fun toBitString(value: Byte, maxBits: Int, spaceEvery: Int = 0): String {
+    fun toBitString(
+        value: Byte,
+        maxBits: Int,
+        spaceEvery: Int = 0,
+    ): String {
         var maxBits = maxBits
         val bits = FooBitSet(value)
-        maxBits = max(0, min(maxBits, bits.getLength()))
+        maxBits = max(0, min(maxBits, bits.length))
         val sb = StringBuilder()
         for (i in maxBits - 1 downTo 0) {
             sb.append(if (bits.get(i)) '1' else '0')
@@ -222,10 +248,14 @@ object FooString {
     }
 
     @JvmStatic
-    fun toBitString(bytes: ByteArray, maxBits: Int, spaceEvery: Int): String {
+    fun toBitString(
+        bytes: ByteArray,
+        maxBits: Int,
+        spaceEvery: Int,
+    ): String {
         var maxBits = maxBits
         val bits = FooBitSet(bytes)
-        maxBits = max(0, min(maxBits, bits.getLength()))
+        maxBits = max(0, min(maxBits, bits.length))
         val sb = StringBuilder()
         for (i in maxBits - 1 downTo 0) {
             sb.append(if (bits.get(i)) '1' else '0')
@@ -238,29 +268,37 @@ object FooString {
 
     @JvmOverloads
     @JvmStatic
-    fun toBitString(value: Short, maxBits: Int, spaceEvery: Int = 8): String {
-        return toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
-    }
+    fun toBitString(
+        value: Short,
+        maxBits: Int,
+        spaceEvery: Int = 8,
+    ): String = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
     @JvmOverloads
     @JvmStatic
-    fun toBitString(value: Int, maxBits: Int, spaceEvery: Int = 8): String {
-        return toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
-    }
+    fun toBitString(
+        value: Int,
+        maxBits: Int,
+        spaceEvery: Int = 8,
+    ): String = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
     @JvmOverloads
     @JvmStatic
-    fun toBitString(value: Long, maxBits: Int, spaceEvery: Int = 8): String {
-        return toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
-    }
+    fun toBitString(
+        value: Long,
+        maxBits: Int,
+        spaceEvery: Int = 8,
+    ): String = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
     @JvmStatic
-    fun toChar(value: Boolean): Char {
-        return if (value) '1' else '0'
-    }
+    fun toChar(value: Boolean): Char = if (value) '1' else '0'
 
     @JvmStatic
-    fun padNumber(number: Long, ch: Char, minimumLength: Int): String {
+    fun padNumber(
+        number: Long,
+        ch: Char,
+        minimumLength: Int,
+    ): String {
         var s = number.toString()
         while (s.length < minimumLength) {
             s = ch.toString() + s
@@ -269,17 +307,23 @@ object FooString {
     }
 
     @JvmStatic
-    fun formatNumber(number: Long, minimumLength: Int): String {
-        return padNumber(number, '0', minimumLength)
-    }
+    fun formatNumber(
+        number: Long,
+        minimumLength: Int,
+    ): String = padNumber(number, '0', minimumLength)
 
     @JvmStatic
-    fun formatNumber(number: Double, leading: Int, trailing: Int): String {
+    fun formatNumber(
+        number: Double,
+        leading: Int,
+        trailing: Int,
+    ): String {
+        @Suppress("KotlinConstantConditions")
         if (number == Double.NaN || number == Double.NEGATIVE_INFINITY || number == Double.POSITIVE_INFINITY) {
             return number.toString()
         }
 
-        // String.valueOf(1) is guranteed to at least be of the form "1.0"
+        // String.valueOf(1) is guaranteed to at least be of the form "1.0"
         val parts = split(number.toString(), ".", 0)!!
         while (parts[0].length < leading) {
             parts[0] = '0'.toString() + parts[0]
@@ -292,9 +336,10 @@ object FooString {
     }
 
     @JvmStatic
-    fun join(delimiter: String, vararg parts: String?): String? {
-        return TextUtils.join(delimiter, parts)
-    }
+    fun join(
+        delimiter: String,
+        vararg parts: String?,
+    ): String? = TextUtils.join(delimiter, parts)
 
     /**
      * Returns a string array that contains the substrings in a source string that are delimited by a specified string.
@@ -316,20 +361,31 @@ object FooString {
      * string.
      */
     @JvmStatic
-    fun split(source: String?, separator: String?, limit: Int): Array<String>? {
+    fun split(
+        source: String?,
+        separator: String?,
+        limit: Int,
+    ): Array<String>? {
         if (source == null) return null
         val kotlinLimit = if (limit < 0) 0 else limit
         return source.split(separator ?: "", limit = kotlinLimit).toTypedArray()
     }
 
     @JvmStatic
-    fun replaceFirst(source: String?, pattern: String, replacement: String?): String {
-        return replace(source, pattern, replacement, 1)
-    }
+    fun replaceFirst(
+        source: String?,
+        pattern: String,
+        replacement: String?,
+    ): String = replace(source, pattern, replacement, 1)
 
     @JvmOverloads
     @JvmStatic
-    fun replace(source: String?, pattern: String, replacement: String?, limit: Int = -1): String {
+    fun replace(
+        source: String?,
+        pattern: String,
+        replacement: String?,
+        limit: Int = -1,
+    ): String {
         if (source == null) {
             return ""
         }
@@ -338,8 +394,12 @@ object FooString {
         var index = -1
         var fromIndex = 0
         var count = 0
-        while ((source.indexOf(pattern, fromIndex)
-                .also { index = it }) != -1 && (limit == -1 || count < limit)
+        while ((
+                    source
+                        .indexOf(pattern, fromIndex)
+                        .also { index = it }
+                    ) != -1 &&
+            (limit == -1 || count < limit)
         ) {
             sb.append(source.substring(fromIndex, index))
             sb.append(replacement)
@@ -351,34 +411,10 @@ object FooString {
     }
 
     @JvmStatic
-    fun contains(s: String, cs: String): Boolean {
-        return s.contains(cs)
-    }
-
-    /**
-     * @param msElapsed msElapsed
-     * @return HH:MM:SS.MMM
-     */
-    @JvmStatic
-    fun getTimeElapsedString(msElapsed: Long): String {
-        var msElapsed = msElapsed
-        var h: Long = 0
-        var m: Long = 0
-        var s: Long = 0
-        if (msElapsed > 0) {
-            h = (msElapsed / (3600 * 1000)).toInt().toLong()
-            msElapsed -= (h * 3600 * 1000)
-            m = (msElapsed / (60 * 1000)).toInt().toLong()
-            msElapsed -= (m * 60 * 1000)
-            s = (msElapsed / 1000).toInt().toLong()
-            msElapsed -= (s * 1000)
-        } else {
-            msElapsed = 0
-        }
-
-        return formatNumber(h, 2) + ":" + formatNumber(m, 2) + ":" + formatNumber(s, 2) + "." +
-                formatNumber(msElapsed, 3)
-    }
+    fun contains(
+        s: String,
+        cs: String,
+    ): Boolean = s.contains(cs)
 
     /**
      * Identical to [repr], but grammatically intended for Strings.
@@ -387,9 +423,7 @@ object FooString {
      * @return "null", or '\"' + value.toString + '\"', or value.toString()
      */
     @JvmStatic
-    fun quote(value: Any?): String {
-        return repr(value, false)
-    }
+    fun quote(value: Any?): String = repr(value, false)
 
     /**
      * Identical to [quote], but grammatically intended for Objects.
@@ -400,13 +434,16 @@ object FooString {
      */
     @JvmOverloads
     @JvmStatic
-    fun repr(value: Any?, typeOnly: Boolean = false): String {
+    fun repr(
+        value: Any?,
+        typeOnly: Boolean = false,
+    ): String {
         if (value == null) {
             return "null"
         }
 
         if (typeOnly) {
-            return FooReflectionUtils.getShortClassName(value)
+            return FooReflectionUtils.getShortClassName(value)!!
         }
 
         if (value is String) {
@@ -421,7 +458,10 @@ object FooString {
     }
 
     @JvmStatic
-    fun <T> toString(items: Iterable<T?>?, multiline: Boolean): String {
+    fun <T> toString(
+        items: Iterable<T?>?,
+        multiline: Boolean,
+    ): String {
         val sb = StringBuilder()
 
         if (items == null) {
@@ -466,14 +506,14 @@ object FooString {
 
     @JvmStatic
     fun capitalize(s: String?): String {
-        if (s == null || s.length == 0) {
+        if (s == null || s.isEmpty()) {
             return ""
         }
-        val first = s.get(0)
-        if (Character.isUpperCase(first)) {
-            return s
+        val first = s[0]
+        return if (Character.isUpperCase(first)) {
+            s
         } else {
-            return first.uppercaseChar().toString() + s.substring(1)
+            first.uppercaseChar().toString() + s.substring(1)
         }
     }
 
@@ -503,9 +543,10 @@ object FooString {
      * @return str1 != null ? str1.equals(str2) : str2 == null
      */
     @JvmStatic
-    fun equals(str1: String?, str2: String?): Boolean {
-        return if (str1 != null) (str1 == str2) else str2 == null
-    }
+    fun equals(
+        str1: String?,
+        str2: String?,
+    ): Boolean = if (str1 != null) (str1 == str2) else str2 == null
 
     /*
     public static String plurality(int count)
@@ -528,26 +569,52 @@ object FooString {
     {
         return name + plurality(count);
     }
-    */
+     */
 
+    /**
+     * @param msElapsed msElapsed
+     * @return HH:MM:SS.MMM
+     */
     @JvmStatic
-    fun getTimeDurationString(context: Context, elapsedMillis: Long): String? {
-        return getTimeDurationString(context, elapsedMillis, true)
-    }
+    fun getTimeElapsedString(msElapsed: Long): String {
+        var msElapsed = msElapsed
+        var h: Long = 0
+        var m: Long = 0
+        var s: Long = 0
+        if (msElapsed > 0) {
+            h = (msElapsed / (3600 * 1000)).toInt().toLong()
+            msElapsed -= (h * 3600 * 1000)
+            m = (msElapsed / (60 * 1000)).toInt().toLong()
+            msElapsed -= (m * 60 * 1000)
+            s = (msElapsed / 1000).toInt().toLong()
+            msElapsed -= (s * 1000)
+        } else {
+            msElapsed = 0
+        }
 
-    @JvmStatic
-    fun getTimeDurationString(context: Context, elapsedMillis: Long, expanded: Boolean): String? {
-        return getTimeDurationString(context, elapsedMillis, expanded, null)
+        return formatNumber(h, 2) + ":" + formatNumber(m, 2) + ":" + formatNumber(s, 2) + "." +
+                formatNumber(msElapsed, 3)
     }
 
     @JvmStatic
     fun getTimeDurationString(
         context: Context,
         elapsedMillis: Long,
-        minimumTimeUnit: TimeUnit?
-    ): String? {
-        return getTimeDurationString(context, elapsedMillis, true, minimumTimeUnit)
-    }
+    ): String? = getTimeDurationString(context, elapsedMillis, true)
+
+    @JvmStatic
+    fun getTimeDurationString(
+        context: Context,
+        elapsedMillis: Long,
+        expanded: Boolean,
+    ): String? = getTimeDurationString(context, elapsedMillis, expanded, null)
+
+    @JvmStatic
+    fun getTimeDurationString(
+        context: Context,
+        elapsedMillis: Long,
+        minimumTimeUnit: TimeUnit?,
+    ): String? = getTimeDurationString(context, elapsedMillis, true, minimumTimeUnit)
 
     /**
      * @param context         context
@@ -562,7 +629,7 @@ object FooString {
         context: Context,
         elapsedMillis: Long,
         expanded: Boolean,
-        minimumTimeUnit: TimeUnit?
+        minimumTimeUnit: TimeUnit?,
     ): String? {
         var elapsedMillis = elapsedMillis
         var minimumTimeUnit = minimumTimeUnit
@@ -579,7 +646,7 @@ object FooString {
         if (elapsedMillis >= 0) {
             val sb = StringBuilder()
 
-            val res = context.getResources()
+            val res = context.resources
 
             if (expanded) {
                 val days = TimeUnit.MILLISECONDS.toDays(elapsedMillis).toInt()
@@ -617,16 +684,16 @@ object FooString {
                     sb.append(' ').append(temp)
                 }
 
-                if (sb.length == 0) {
-                    val timeUnitNameResId: Int
-                    when (minimumTimeUnit) {
-                        TimeUnit.DAYS -> timeUnitNameResId = R.plurals.days
-                        TimeUnit.HOURS -> timeUnitNameResId = R.plurals.hours
-                        TimeUnit.MINUTES -> timeUnitNameResId = R.plurals.minutes
-                        TimeUnit.SECONDS -> timeUnitNameResId = R.plurals.seconds
-                        TimeUnit.MILLISECONDS -> timeUnitNameResId = R.plurals.milliseconds
-                        else -> timeUnitNameResId = R.plurals.milliseconds
-                    }
+                if (sb.isEmpty()) {
+                    val timeUnitNameResId =
+                        when (minimumTimeUnit) {
+                            TimeUnit.DAYS -> R.plurals.days
+                            TimeUnit.HOURS -> R.plurals.hours
+                            TimeUnit.MINUTES -> R.plurals.minutes
+                            TimeUnit.SECONDS -> R.plurals.seconds
+                            TimeUnit.MILLISECONDS -> R.plurals.milliseconds
+                            else -> R.plurals.milliseconds
+                        }
                     val temp = res.getQuantityString(timeUnitNameResId, 0, 0)
                     sb.append(' ').append(temp)
                 }
@@ -659,7 +726,12 @@ object FooString {
                 sb.append(res.getQuantityString(timeUnitNameResId, timeUnitValue, timeUnitValue))
             }
 
-            result = sb.toString().trim { it <= ' ' }
+            result =
+                sb
+                    .toString()
+                    // Remove any unspeakable/unprintable characters
+                    //noinspection TrimLambda
+                    .trim { it <= ' ' }
         }
 
         return result
@@ -700,7 +772,11 @@ object FooString {
                 sb.append(part).append(' ')
             }
         }
-        return sb.toString().trim { it <= ' ' }
+        return sb
+            .toString()
+            // Remove any unspeakable/unprintable characters
+            //noinspection TrimLambda
+            .trim { it <= ' ' }
     }
 
     @JvmStatic
@@ -727,13 +803,15 @@ object FooString {
     }
 
     @JvmStatic
-    fun startsWithVowel(vowels: String?, s: String?): Boolean {
-        return s != null && s.matches(("^[$vowels].*").toRegex())
-    }
+    fun startsWithVowel(
+        vowels: String?,
+        s: String?,
+    ): Boolean = s != null && s.matches(("^[$vowels].*").toRegex())
 
-    //
-    //
-    //
+//
+//
+//
+
     /**
      * @param text            text to set the SpannableString to
      * @param foregroundColor One of Color.*, or any other 0xaarrggbb value

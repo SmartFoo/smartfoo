@@ -32,6 +32,7 @@ object FooCrypto {
      */
     const val SHA256 = "SHA-256"
 
+    @JvmStatic
     fun proprietaryHash(string: String): String {
         val hash: ByteArray?
 
@@ -56,12 +57,22 @@ object FooCrypto {
     }
 
     @Throws(FooCryptoException::class)
-    fun HMACSHA256(key: ByteArray, buffer: ByteArray): ByteArray {
+    @JvmStatic
+    fun HMACSHA256(
+        key: ByteArray,
+        buffer: ByteArray,
+    ): ByteArray {
         return HMACSHA256(key, buffer, 0, buffer.size)
     }
 
     @Throws(FooCryptoException::class)
-    fun HMACSHA256(key: ByteArray, buffer: ByteArray, offset: Int, length: Int): ByteArray {
+    @JvmStatic
+    fun HMACSHA256(
+        key: ByteArray,
+        buffer: ByteArray,
+        offset: Int,
+        length: Int,
+    ): ByteArray {
         val signingKey = SecretKeySpec(key, HMACSHA256)
         try {
             val mac = Mac.getInstance(signingKey.algorithm)
@@ -76,6 +87,7 @@ object FooCrypto {
     }
 
     @Throws(FooCryptoException::class)
+    @JvmStatic
     fun SHA256(buffer: ByteArray): ByteArray {
         try {
             return MessageDigest.getInstance(SHA256).digest(buffer)
@@ -84,18 +96,21 @@ object FooCrypto {
         }
     }
 
+    @JvmStatic
     val randomInt32: Int
         get() {
             val random = SecureRandom()
             return random.nextInt()
         }
 
+    @JvmStatic
     val randomInt64: Long
         get() {
             val random = SecureRandom()
             return random.nextLong()
         }
 
+    @JvmStatic
     fun getRandomBytes(count: Int): ByteArray {
         val bytes = ByteArray(count)
         val random = SecureRandom()

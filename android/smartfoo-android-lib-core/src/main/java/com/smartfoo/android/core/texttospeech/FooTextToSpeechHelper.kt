@@ -58,7 +58,10 @@ object FooTextToSpeechHelper {
      * @param requestCode requestCode
      */
     @JvmStatic
-    fun requestTextToSpeechData(activity: Activity, requestCode: Int) {
+    fun requestTextToSpeechData(
+        activity: Activity,
+        requestCode: Int,
+    ) {
         if (activity.isFinishing || activity.isDestroyed) {
             return
         }

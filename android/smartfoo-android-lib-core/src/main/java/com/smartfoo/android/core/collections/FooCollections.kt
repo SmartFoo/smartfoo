@@ -13,7 +13,10 @@ object FooCollections {
     }
 
     @JvmStatic
-    fun <T> identical(a: Collection<T>?, b: Collection<T>?): Boolean {
+    fun <T> identical(
+        a: Collection<T>?,
+        b: Collection<T>?,
+    ): Boolean {
         if (a === b) {
             return true
         }
@@ -43,9 +46,14 @@ object FooCollections {
      *
      * @param a
      * @param b
+     * @param <T>
      * @return
-     */
-    fun <T> equivalent(a: Collection<T>, b: Collection<T>): Boolean {
+     </T> */
+    @JvmStatic
+    fun <T> equivalent(
+        a: Collection<T>,
+        b: Collection<T>,
+    ): Boolean {
         // TODO:(pv) Make this more efficient...
 
         if (false) {
