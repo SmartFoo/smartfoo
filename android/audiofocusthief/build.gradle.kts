@@ -15,22 +15,19 @@ dependencies {
 
 android {
     namespace = "com.smartfoo.android.audiofocusthief"
-    compileSdk = 35
-
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.smartfoo.android.audiofocusthief"
         minSdk = 34
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
-
     }
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
