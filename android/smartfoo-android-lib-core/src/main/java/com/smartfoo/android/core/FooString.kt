@@ -1,6 +1,8 @@
 package com.smartfoo.android.core
 
 import android.content.Context
+import android.content.Intent
+import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextUtils
@@ -9,34 +11,15 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
-import com.smartfoo.android.core.reflection.FooReflectionUtils
+import com.smartfoo.android.core.FooString.quote
+import com.smartfoo.android.core.FooString.repr
+import com.smartfoo.android.core.platform.FooPlatformUtils
 import java.io.UnsupportedEncodingException
 import java.util.Locale
 import java.util.Vector
 import java.util.concurrent.TimeUnit
-import kotlin.Any
-import kotlin.Array
-import kotlin.Boolean
-import kotlin.Byte
-import kotlin.ByteArray
-import kotlin.Char
-import kotlin.CharSequence
-import kotlin.Double
-import kotlin.Float
-import kotlin.IllegalStateException
-import kotlin.Int
-import kotlin.Long
-import kotlin.String
-import kotlin.also
-import kotlin.arrayOf
-import kotlin.arrayOfNulls
-import kotlin.byteArrayOf
-import kotlin.charArrayOf
-import kotlin.code
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.require
-import kotlin.requireNotNull
 
 @Suppress("unused")
 object FooString {
@@ -137,8 +120,8 @@ object FooString {
 
     @JvmStatic
     fun toHexString(
-        bytes: ByteArray?,  //
-        asByteArray: Boolean
+        bytes: ByteArray?, //
+        asByteArray: Boolean,
     ): String {
         if (bytes == null) return "null"
         return toHexString(bytes, 0, bytes.size, asByteArray)
@@ -208,24 +191,22 @@ object FooString {
     fun toHexString(
         value: Short,
         maxBytes: Int,
-    ): String = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
+    ) = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
 
     @JvmStatic
     fun toHexString(
         value: Int,
         maxBytes: Int,
-    ): String = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
+    ) = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
 
     @JvmStatic
     fun toHexString(
         value: Long,
         maxBytes: Int,
-    ): String = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
+    ) = toHexString(FooMemoryStream.newBytes(value), 0, maxBytes, false)
 
     @JvmStatic
-    fun toHexString(value: String): String? {
-        return toHexString(value.toByteArray())
-    }
+    fun toHexString(value: String) = toHexString(value.toByteArray())
 
     @JvmOverloads
     @JvmStatic
@@ -272,7 +253,7 @@ object FooString {
         value: Short,
         maxBits: Int,
         spaceEvery: Int = 8,
-    ): String = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
+    ) = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
     @JvmOverloads
     @JvmStatic
@@ -280,7 +261,7 @@ object FooString {
         value: Int,
         maxBits: Int,
         spaceEvery: Int = 8,
-    ): String = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
+    ) = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
     @JvmOverloads
     @JvmStatic
@@ -288,10 +269,10 @@ object FooString {
         value: Long,
         maxBits: Int,
         spaceEvery: Int = 8,
-    ): String = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
+    ) = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
     @JvmStatic
-    fun toChar(value: Boolean): Char = if (value) '1' else '0'
+    fun toChar(value: Boolean) = if (value) '1' else '0'
 
     @JvmStatic
     fun padNumber(
@@ -310,7 +291,7 @@ object FooString {
     fun formatNumber(
         number: Long,
         minimumLength: Int,
-    ): String = padNumber(number, '0', minimumLength)
+    ) = padNumber(number, '0', minimumLength)
 
     @JvmStatic
     fun formatNumber(
@@ -318,8 +299,7 @@ object FooString {
         leading: Int,
         trailing: Int,
     ): String {
-        @Suppress("KotlinConstantConditions")
-        if (number == Double.NaN || number == Double.NEGATIVE_INFINITY || number == Double.POSITIVE_INFINITY) {
+        if (number.isNaN() || number == Double.NEGATIVE_INFINITY || number == Double.POSITIVE_INFINITY) {
             return number.toString()
         }
 
@@ -376,7 +356,7 @@ object FooString {
         source: String?,
         pattern: String,
         replacement: String?,
-    ): String = replace(source, pattern, replacement, 1)
+    ) = replace(source, pattern, replacement, 1)
 
     @JvmOverloads
     @JvmStatic
@@ -414,7 +394,7 @@ object FooString {
     fun contains(
         s: String,
         cs: String,
-    ): Boolean = s.contains(cs)
+    ) = s.contains(cs)
 
     /**
      * Identical to [repr], but grammatically intended for Strings.
@@ -423,7 +403,7 @@ object FooString {
      * @return "null", or '\"' + value.toString + '\"', or value.toString()
      */
     @JvmStatic
-    fun quote(value: Any?): String = repr(value, false)
+    fun quote(value: Any?) = repr(value, false)
 
     /**
      * Identical to [quote], but grammatically intended for Objects.
@@ -441,26 +421,22 @@ object FooString {
         if (value == null) {
             return "null"
         }
-
         if (typeOnly) {
-            return FooReflectionUtils.getShortClassName(value)!!
+            return FooReflection.getShortClassName(value)
         }
-
-        if (value is String) {
-            return "\"$value\""
+        return when (value) {
+            is String -> "\"$value\""
+            is CharSequence -> "\"$value\""
+            is Intent -> FooPlatformUtils.toString(value)
+            is Bundle -> FooPlatformUtils.toString(value)
+            else -> value.toString()
         }
-
-        if (value is CharSequence) {
-            return "\"$value\""
-        }
-
-        return value.toString()
     }
 
     @JvmStatic
     fun <T> toString(
         items: Iterable<T?>?,
-        multiline: Boolean,
+        multiline: Boolean = false,
     ): String {
         val sb = StringBuilder()
 
@@ -468,9 +444,15 @@ object FooString {
             sb.append("null")
         } else {
             sb.append('[')
+            if (multiline) {
+                sb.append(LINEFEED)
+            }
             val it = items.iterator()
             while (it.hasNext()) {
                 val item = it.next()
+                if (multiline) {
+                    sb.append("  ")
+                }
                 sb.append(quote(item))
                 if (it.hasNext()) {
                     sb.append(", ")
@@ -485,7 +467,8 @@ object FooString {
     }
 
     @JvmStatic
-    fun toString(items: Array<Any?>?): String {
+    fun toString(items: Array<out Any?>?,
+                 formatter: (Any?) -> String = { item -> quote(item) }): String {
         val sb = StringBuilder()
 
         if (items == null) {
@@ -497,7 +480,7 @@ object FooString {
                 if (i != 0) {
                     sb.append(", ")
                 }
-                sb.append(quote(item))
+                sb.append(formatter(item))
             }
             sb.append(']')
         }
@@ -506,7 +489,7 @@ object FooString {
 
     @JvmStatic
     fun capitalize(s: String?): String {
-        if (s == null || s.isEmpty()) {
+        if (s.isNullOrEmpty()) {
             return ""
         }
         val first = s[0]
@@ -546,7 +529,7 @@ object FooString {
     fun equals(
         str1: String?,
         str2: String?,
-    ): Boolean = if (str1 != null) (str1 == str2) else str2 == null
+    ) = if (str1 != null) (str1 == str2) else str2 == null
 
     /*
     public static String plurality(int count)
@@ -569,7 +552,7 @@ object FooString {
     {
         return name + plurality(count);
     }
-     */
+    */
 
     /**
      * @param msElapsed msElapsed
@@ -600,21 +583,21 @@ object FooString {
     fun getTimeDurationString(
         context: Context,
         elapsedMillis: Long,
-    ): String? = getTimeDurationString(context, elapsedMillis, true)
+    ) = getTimeDurationString(context, elapsedMillis, true)
 
     @JvmStatic
     fun getTimeDurationString(
         context: Context,
         elapsedMillis: Long,
         expanded: Boolean,
-    ): String? = getTimeDurationString(context, elapsedMillis, expanded, null)
+    ) = getTimeDurationString(context, elapsedMillis, expanded, null)
 
     @JvmStatic
     fun getTimeDurationString(
         context: Context,
         elapsedMillis: Long,
         minimumTimeUnit: TimeUnit?,
-    ): String? = getTimeDurationString(context, elapsedMillis, true, minimumTimeUnit)
+    ) = getTimeDurationString(context, elapsedMillis, true, minimumTimeUnit)
 
     /**
      * @param context         context
@@ -633,7 +616,6 @@ object FooString {
     ): String? {
         var elapsedMillis = elapsedMillis
         var minimumTimeUnit = minimumTimeUnit
-        requireNotNull(context) { "context must not be null" }
 
         if (minimumTimeUnit == null) {
             minimumTimeUnit = TimeUnit.SECONDS
@@ -806,7 +788,7 @@ object FooString {
     fun startsWithVowel(
         vowels: String?,
         s: String?,
-    ): Boolean = s != null && s.matches(("^[$vowels].*").toRegex())
+    ) = s != null && s.matches(("^[$vowels].*").toRegex())
 
 //
 //
@@ -855,9 +837,9 @@ object FooString {
             value.setSpan(TypefaceSpan(family), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             length = value.length
         }
-        if (proportion != Float.NaN) {
+        if (!proportion.isNaN()) {
             value.setSpan(RelativeSizeSpan(proportion), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            length = value.length
+            //length = value.length
         }
         return value
     }

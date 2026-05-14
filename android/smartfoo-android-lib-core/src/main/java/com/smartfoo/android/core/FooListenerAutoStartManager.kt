@@ -1,23 +1,22 @@
 package com.smartfoo.android.core
 
-import com.smartfoo.android.core.reflection.FooReflectionUtils
-
-class FooListenerAutoStartManager<T>(name: String) : FooListenerManager<T?>(name) {
+@Suppress("unused")
+class FooListenerAutoStartManager<T>(name: String)
+    : FooListenerManager<T?>(name) {
     interface FooListenerAutoStartManagerCallbacks {
         fun onFirstAttach()
 
         /**
-         * @return true to automatically detach this [FooListenerAutoStartManagerCallbacks] from [ ][FooListenerAutoStartManager.autoStartListeners]
+         * @return true to automatically detach this [FooListenerAutoStartManagerCallbacks] from [FooListenerAutoStartManager.autoStartListeners]
          */
         fun onLastDetach(): Boolean
     }
 
-    private val autoStartListeners: FooListenerManager<FooListenerAutoStartManagerCallbacks> =
-        FooListenerManager<FooListenerAutoStartManagerCallbacks>(this)
+    private val autoStartListeners = FooListenerManager<FooListenerAutoStartManagerCallbacks>(this)
 
     private var isStarted = false
 
-    constructor(name: Any) : this(FooReflectionUtils.getShortClassName(name))
+    constructor(name: Any) : this(FooReflection.getShortClassName(name))
 
     fun attach(callbacks: FooListenerAutoStartManagerCallbacks) {
         autoStartListeners.attach(callbacks)
@@ -29,13 +28,13 @@ class FooListenerAutoStartManager<T>(name: String) : FooListenerManager<T?>(name
 
     override fun onListenersUpdated(listenersSize: Int) {
         super.onListenersUpdated(listenersSize)
-
         if (isStarted) {
             if (listenersSize == 0) {
                 isStarted = false
                 for (callbacks in autoStartListeners.beginTraversing()) {
+                    @Suppress("ControlFlowWithEmptyBody")
                     if (callbacks.onLastDetach()) {
-                        //mAutoStartListeners.detach(callbacks);
+                        //autoStartListeners.detach(callbacks);
                     }
                 }
                 autoStartListeners.endTraversing()

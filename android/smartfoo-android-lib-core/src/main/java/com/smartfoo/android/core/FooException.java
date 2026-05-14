@@ -1,6 +1,6 @@
 package com.smartfoo.android.core;
 
-import com.smartfoo.android.core.reflection.FooReflectionUtils;
+import com.smartfoo.android.core.FooReflection;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -19,7 +19,7 @@ public class FooException
         }
         else
         {
-            sb.append(FooReflectionUtils.getShortClassName(throwable));
+            sb.append(FooReflection.getShortClassName(throwable));
             List<String> parts = new LinkedList<>();
             if (!FooString.isNullOrEmpty(fieldsPrefix))
             {

@@ -10,11 +10,13 @@ import java.util.LinkedList
 @Suppress("unused")
 class FooTextToSpeechBuilder {
     companion object {
-        private val TAG = FooLog.TAG(FooTextToSpeechBuilder::class.java)
+        private val TAG = FooLog.TAG(FooTextToSpeechBuilder::class)
 
-        const val SILENCE_WORD_BREAK_MILLIS = 300
-        const val SILENCE_SENTENCE_BREAK_MILLIS = 500
-        const val SILENCE_PARAGRAPH_BREAK_MILLIS = 750
+        enum class SilenceMillis(val value: Int) {
+            Word(300),
+            Sentence(500),
+            Paragraph(750),
+        }
 
         /**
          * 4000 in API36
@@ -30,8 +32,10 @@ class FooTextToSpeechBuilder {
         text: String,
     ) : FooTextToSpeechPart() {
         companion object {
-            private val TAG = FooTextToSpeechPartSpeech::class.java.simpleName
+            private val TAG = FooLog.TAG(FooTextToSpeechPartSpeech::class)
         }
+
+        // TODO: Split text into separate sentences and repeat current sentence if interrupted
 
         val text =
             if (text.length > MAX_SPEECH_INPUT_LENGTH) {
@@ -84,6 +88,10 @@ class FooTextToSpeechBuilder {
         appendSpeech(text)
     }
 
+    constructor(silenceMillis: Int) {
+        appendSilence(silenceMillis)
+    }
+
     constructor(context: Context, text: String) {
         this.context = context
         appendSpeech(text)
@@ -96,6 +104,10 @@ class FooTextToSpeechBuilder {
 
     constructor(builder: FooTextToSpeechBuilder) {
         append(builder)
+    }
+
+    constructor(part: FooTextToSpeechPart) {
+        append(part)
     }
 
     override fun toString(): String {
@@ -117,11 +129,14 @@ class FooTextToSpeechBuilder {
 
     override fun hashCode(): Int = FooCollections.hashCode(parts)
 
-    val isEmpty: Boolean
-        get() = parts.isEmpty()
-
     val numberOfParts: Int
         get() = parts.size
+
+    val isEmpty: Boolean
+        get() = numberOfParts == 0
+
+    val isNotEmpty: Boolean
+        get() = !isEmpty
 
     fun appendSpeech(
         context: Context,
@@ -142,35 +157,96 @@ class FooTextToSpeechBuilder {
         return appendSpeech(context.getString(textResId, *formatArgs))
     }
 
-    fun appendSpeech(text: CharSequence): FooTextToSpeechBuilder = appendSpeech(text.toString())
+    fun appendSpeech(text: CharSequence) = appendSpeech(text.toString())
 
-    fun appendSpeech(text: String): FooTextToSpeechBuilder = append(FooTextToSpeechPartSpeech(text))
+    // TODO: Split text into separate sentences and repeat current sentence if interrupted
+    fun appendSpeech(text: String) = append(FooTextToSpeechPartSpeech(text))
 
-    fun appendSilenceWordBreak(): FooTextToSpeechBuilder = appendSilence(SILENCE_WORD_BREAK_MILLIS)
+    fun appendSilenceWordBreak() = appendSilence(SilenceMillis.Word.value)
 
-    fun appendSilenceSentenceBreak(): FooTextToSpeechBuilder = appendSilence(SILENCE_SENTENCE_BREAK_MILLIS)
+    fun appendSilenceSentenceBreak() = appendSilence(SilenceMillis.Sentence.value)
 
-    fun appendSilenceParagraphBreak(): FooTextToSpeechBuilder = appendSilence(SILENCE_PARAGRAPH_BREAK_MILLIS)
+    fun appendSilenceParagraphBreak() = appendSilence(SilenceMillis.Paragraph.value)
 
-    fun appendSilence(durationInMs: Int): FooTextToSpeechBuilder = append(FooTextToSpeechPartSilence(durationInMs))
+    fun appendSilence(silenceMillis: Int): FooTextToSpeechBuilder {
+        if (silenceMillis <= 0) {
+            FooLog.w(TAG, "appendSilence: silenceMillis <= 0; ignoring")
+        } else {
+            append(FooTextToSpeechPartSilence(silenceMillis))
+        }
+        return this
+    }
+
+    fun appendEarcon(earcon: String): FooTextToSpeechBuilder {
+        if (earcon.isBlank()) {
+            FooLog.w(TAG, "appendEarcon: earcon.isBlank(); ignoring")
+        } else {
+            append(FooTextToSpeechPartEarcon(earcon))
+        }
+        return this
+    }
+
+    /*
+    val last: FooTextToSpeechPart
+        get() = parts.last()
+
+    fun lastEquals(text: String): Boolean {
+        return parts.last().equals(text)
+    }
+    */
+
+    var dedupe = true
 
     fun append(part: FooTextToSpeechPart): FooTextToSpeechBuilder {
         when (part) {
             is FooTextToSpeechPartSpeech ->
                 if (part.text.isNotBlank()) {
-                    parts.add(part)
+                    var add = true
+                    if (dedupe and parts.isNotEmpty()) {
+                        val last = parts.last()
+                        if (last is FooTextToSpeechPartSpeech) {
+                            add = part.text != last.text
+                        }
+                    }
+                    if (add) {
+                        parts.add(part)
+                    } else {
+                        FooLog.w(TAG, "append: duplicate text; ignoring")
+                    }
                 } else {
                     FooLog.w(TAG, "append: part.text.isBlank(); ignoring")
                 }
             is FooTextToSpeechPartSilence ->
                 if (part.durationMillis > 0) {
-                    parts.add(part)
+                    var add = true
+                    if (dedupe and parts.isNotEmpty()) {
+                        val last = parts.last()
+                        if (last is FooTextToSpeechPartSilence) {
+                            add = part.durationMillis != last.durationMillis
+                        }
+                    }
+                    if (add) {
+                        parts.add(part)
+                    } else {
+                        FooLog.w(TAG, "append: duplicate silence; ignoring")
+                    }
                 } else {
                     FooLog.w(TAG, "append: part.durationMillis <= 0; ignoring")
                 }
             is FooTextToSpeechPartEarcon ->
                 if (part.earcon.isNotBlank()) {
-                    parts.add(part)
+                    var add = true
+                    if (dedupe and parts.isNotEmpty()) {
+                        val last = parts.last()
+                        if (last is FooTextToSpeechPartEarcon) {
+                            add = part.earcon != last.earcon
+                        }
+                    }
+                    if (add) {
+                        parts.add(part)
+                    } else {
+                        FooLog.w(TAG, "append: duplicate earcon; ignoring")
+                    }
                 } else {
                     FooLog.w(TAG, "append: part.earcon.isBlank(); ignoring")
                 }
@@ -187,13 +263,14 @@ class FooTextToSpeechBuilder {
     }
 
     /**
-     * @param ensureEndsWithSilence if true and the last part is NOT a [FooTextToSpeechPartSilence] then call [appendSilenceSentenceBreak]
+     * @param ensureNonEmptyEndsWithSilence if true and [isNotEmpty] is false and the last part is NOT a [FooTextToSpeechPartSilence] then call [appendSilenceSentenceBreak]
      * @return a copy of the parts
      */
-    fun build(ensureEndsWithSilence: Boolean = false): List<FooTextToSpeechPart> {
-        if (ensureEndsWithSilence && parts.last() !is FooTextToSpeechPartSilence) {
+    fun build(ensureNonEmptyEndsWithSilence: Boolean = false): List<FooTextToSpeechPart> {
+        if (ensureNonEmptyEndsWithSilence && isNotEmpty && parts.last() !is FooTextToSpeechPartSilence) {
             appendSilenceSentenceBreak()
         }
+        // TODO: dedupe?
         val parts = LinkedList(parts)
         this.parts.clear()
         return parts

@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import com.smartfoo.android.core.reflection.FooReflectionUtils;
+import com.smartfoo.android.core.FooReflection;
 
 /**
  * <p>
@@ -81,7 +81,7 @@ public abstract class CallbackDialogFragment<T>
     {
         super.onAttach(context);
 
-        if (FooReflectionUtils.isAssignableFrom(mDummyCallback, this))
+        if (FooReflection.isAssignableFrom(mDummyCallback, this))
         {
             //noinspection unchecked
             mCallback = (T) this;
@@ -89,7 +89,7 @@ public abstract class CallbackDialogFragment<T>
         else
         {
             Fragment parentFragment = getParentFragment();
-            if (FooReflectionUtils.isAssignableFrom(mDummyCallback, parentFragment))
+            if (FooReflection.isAssignableFrom(mDummyCallback, parentFragment))
             {
                 //noinspection unchecked
                 mCallback = (T) parentFragment;
@@ -97,7 +97,7 @@ public abstract class CallbackDialogFragment<T>
             else
             {
                 FragmentActivity activity = getActivity();
-                if (FooReflectionUtils.isAssignableFrom(mDummyCallback, activity))
+                if (FooReflection.isAssignableFrom(mDummyCallback, activity))
                 {
                     //noinspection unchecked
                     mCallback = (T) activity;
@@ -108,7 +108,7 @@ public abstract class CallbackDialogFragment<T>
                                                     ", getParentFragment()[" + parentFragment + ']' +
                                                     ", or getActivity()[" + activity + ']' +
                                                     " must be an instance of " +
-                                                    FooReflectionUtils.getInstanceSignature(mDummyCallback));
+                            FooReflection.getInstanceSignature(mDummyCallback));
                 }
             }
         }

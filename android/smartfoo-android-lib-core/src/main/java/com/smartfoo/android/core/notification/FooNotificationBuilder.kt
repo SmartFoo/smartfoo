@@ -14,7 +14,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
-import com.smartfoo.android.core.notification.FooNotification.Companion.createPendingIntentForActivity
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class FooNotificationBuilder
@@ -103,7 +102,7 @@ class FooNotificationBuilder
         requestCode: Int,
         activity: Class<out Activity?>
     ): FooNotificationBuilder {
-        return setContentIntent(createPendingIntentForActivity(mContext, requestCode, activity))
+        return setContentIntent(FooNotification.createPendingIntentForActivity(mContext, requestCode, activity))
     }
 
     fun setContentIntentBroadcast(
@@ -145,7 +144,7 @@ class FooNotificationBuilder
         requestCode: Int,
         activity: Class<out Activity?>
     ): FooNotificationBuilder {
-        return setDeleteIntent(createPendingIntentForActivity(mContext, requestCode, activity))
+        return setDeleteIntent(FooNotification.createPendingIntentForActivity(mContext, requestCode, activity))
     }
 
     fun setDeleteIntentBroadcast(

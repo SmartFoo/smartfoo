@@ -12,6 +12,7 @@ version = "0.1.23"
 //def gitUrl = "https://github.com/SmartFoo/smartfoo.git"
 
 dependencies {
+    //implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.recyclerview)
     implementation(libs.google.android.material)
@@ -23,15 +24,13 @@ dependencies {
 
 android {
     namespace = "com.smartfoo.android.core"
-    compileSdk = 35
-
+    compileSdk = 36
     defaultConfig {
         minSdk = 34
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -49,7 +48,6 @@ android {
             enableAndroidTestCoverage = true
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -60,7 +58,6 @@ android {
     buildFeatures {
         buildConfig = true
     }
-
     /*
     if (getIsLocalDevelopmentBuild()) {
         defaultPublishConfig = "debug"

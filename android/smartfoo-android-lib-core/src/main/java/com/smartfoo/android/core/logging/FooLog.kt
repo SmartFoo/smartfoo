@@ -2,14 +2,15 @@ package com.smartfoo.android.core.logging
 
 import android.content.Context
 import com.smartfoo.android.core.BuildConfig
+import com.smartfoo.android.core.FooReflection
 import com.smartfoo.android.core.FooString
-import com.smartfoo.android.core.FooString.separateCamelCaseWords
-import com.smartfoo.android.core.FooString.toHexString
-import com.smartfoo.android.core.reflection.FooReflectionUtils
 import com.smartfoo.android.core.texttospeech.FooTextToSpeech
+import kotlin.reflect.KClass
 
 @Suppress("unused")
 object FooLog {
+    //private val TAG = TAG(FooLog::class)
+
     private const val FORCE_TEXT_LOGGING = true
 
     private val sLogPrinters: MutableSet<FooLogPrinter>
@@ -27,14 +28,18 @@ object FooLog {
 
     @Suppress("FunctionName")
     @JvmStatic
-    fun TAG(o: Any): String = TAG(o.javaClass)
+    fun TAG(o: Any) = TAG(FooReflection.getShortClassName(o))
 
     @Suppress("FunctionName")
     @JvmStatic
-    fun TAG(c: Class<*>): String = TAG(FooReflectionUtils.getShortClassName(c)!!)
+    fun TAG(c: Class<*>) = TAG(FooReflection.getShortClassName(c))
+
+    @Suppress("FunctionName")
+    @JvmStatic
+    fun TAG(c: KClass<*>) = TAG(FooReflection.getShortClassName(c))
 
     /**
-     * Per http://developer.android.com/reference/android/util/Log.html#isLoggable(java.lang.String, int)
+     * Per https://developer.android.com/reference/android/util/Log.html#isLoggable(java.lang.String,%20int)
      */
     const val LOG_TAG_LENGTH_LIMIT: Int = 23
 
@@ -110,6 +115,7 @@ object FooLog {
 
     internal fun println(tag: String?, level: Int, msg: String?, e: Throwable?) {
         synchronized(FooLog::class.java) {
+            @Suppress("SimplifyBooleanWithConstants", "KotlinConstantConditions")
             if (FORCE_TEXT_LOGGING || isEnabled)  // && FooLogPlatform.isLoggable(tag, level))
             {
                 for (logPrinter in sLogPrinters) {
@@ -294,10 +300,10 @@ object FooLog {
 
         if (isEnabled && !FooString.isNullOrEmpty(text)) {
             if (!FooString.isNullOrEmpty(tag)) {
-                text = separateCamelCaseWords(tag) + " " + text
+                text = FooString.separateCamelCaseWords(tag) + " " + text
             }
 
-            sTextToSpeech!!.speak(clear, text!!)
+            sTextToSpeech!!.speak(text!!, FooTextToSpeech.QueuePlacement.CLEAR)
         }
     }
 
@@ -322,7 +328,7 @@ object FooLog {
                 }
                 println(
                     tag, level, text + ":" + padding + "100s(" + bytesLength + ")=[" +
-                            toHexString(reference100s) + "]", null
+                            FooString.toHexString(reference100s) + "]", null
                 )
             }
             if (bytesLength > 10) {
@@ -332,7 +338,7 @@ object FooLog {
                 }
                 println(
                     tag, level, text + ":" + padding + "10s(" + bytesLength + ")=[" +
-                            toHexString(reference10s) + "]", null
+                            FooString.toHexString(reference10s) + "]", null
                 )
             }
             padding = StringBuilder()
@@ -341,11 +347,11 @@ object FooLog {
             }
             println(
                 tag, level, text + ":" + padding + "1s(" + bytesLength + ")=[" +
-                        toHexString(reference1s) + "]", null
+                        FooString.toHexString(reference1s) + "]", null
             )
             println(
                 tag, level, text + ": " + name + "(" + bytesLength + ")=[" +
-                        toHexString(bytes) + "]", null
+                        FooString.toHexString(bytes) + "]", null
             )
         }
     }

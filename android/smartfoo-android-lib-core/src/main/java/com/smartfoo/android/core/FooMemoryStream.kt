@@ -21,9 +21,8 @@ open class FooMemoryStream
                 throwException: Boolean = true,
             ): Boolean {
                 if (checkParameters) {
-                    requireNotNull(buffer) { "buffer must not be null" }
                     require(length <= buffer.size) { "length($length) must be <= buffer.length(${buffer.size})" }
-                    require(!(offset < 0 || offset >= length)) {
+                    require(offset in 0..<length) {
                         "offset($offset) must be >= 0 and < (length($length) or buffer.length(${buffer.size}))"
                     }
                 }
@@ -250,7 +249,7 @@ open class FooMemoryStream
 
         @Synchronized
         fun writeString(value: String?) {
-            if (value != null && !value.isEmpty()) {
+            if (!value.isNullOrEmpty()) {
                 val b = FooString.getBytes(value)
                 makeSpaceFor(position + b.size + 1) // null terminated
                 write(b, 0, b.size)
