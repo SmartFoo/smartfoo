@@ -2,14 +2,18 @@ package com.smartfoo.android.core.collections;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+// TODO Update this with modern androidx.collection.LongSparseArray [Kotlin?] code...
+
 /**
- * Mutation of {@link android.support.v4.util.LongSparseArray} that changes the following:
+ * Mutation of {@link androidx.collection.LongSparseArray} that changes the following:
  * <ul>
  * <li>{@link #delete(long)} calls {@link #remove(long)}, instead of the other way around</li>
  * <li>{@link #remove(long)} returns the removed value (or null)</li>
@@ -249,6 +253,7 @@ public class FooLongSparseArray<E>
      * @param key key
      * @deprecated Use {@link #remove(long)}
      */
+    @Deprecated
     public void delete(long key)
     {
         if (mDebugName != null)
@@ -526,6 +531,7 @@ public class FooLongSparseArray<E>
     /**
      * @param index an index in the range <code>0...size()-1</code>
      * @param value value
+     * @noinspection unused
      */
     public void setValueAt(int index, E value)
     {
@@ -556,6 +562,7 @@ public class FooLongSparseArray<E>
      * @param key key
      * @return the index for which {@link #keyAt} would return the specified key, or a negative number if the specified
      * key is not mapped
+     * @noinspection unused
      */
     public int indexOfKey(long key)
     {
@@ -584,6 +591,7 @@ public class FooLongSparseArray<E>
      * @param value value
      * @return the index for which {@link #valueAt} would return the specified key, or a negative number if no keys map
      * to the specified value-1 if the value does not exist in the collection
+     * @noinspection unused
      */
     public int indexOfValue(E value)
     {
@@ -699,6 +707,7 @@ public class FooLongSparseArray<E>
      *
      * @return never null
      */
+    @NonNull
     @Override
     public String toString()
     {
@@ -796,6 +805,7 @@ public class FooLongSparseArray<E>
     // New iterators…
     //
 
+    /** @noinspection unused*/
     public Iterator<Long> iterateKeys()
     {
         if (mDebugName != null)
@@ -815,6 +825,7 @@ public class FooLongSparseArray<E>
     }
 
     // TODO:(pv) Implement this to use mKeys directly so that it doesn't cause a gc() hit for every iteration.
+    /** @noinspection CommentedOutCode*/
     private static final class SparseArrayKeysIterator<E>
             implements Iterator<Long>
     {
@@ -842,7 +853,7 @@ public class FooLongSparseArray<E>
         {
             if (mArray.mDebugName != null)
             {
-                Log.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray.toString());
+                Log.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray);
             }
             //
             // NOTE:(pv) hasNext() causes mArray.gc() to be called
@@ -884,7 +895,7 @@ public class FooLongSparseArray<E>
         }
     }
 
-    // TODO:(pv) Implement this to use mValues directly so that it doesn't cause a gc() hit for every iteration.
+    /** @noinspection CommentedOutCode*/ // TODO:(pv) Implement this to use mValues directly so that it doesn't cause a gc() hit for every iteration.
     private static final class SparseArrayValuesIterator<E>
             implements Iterator<E>
     {
@@ -912,7 +923,7 @@ public class FooLongSparseArray<E>
         {
             if (mArray.mDebugName != null)
             {
-                Log.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray.toString());
+                Log.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray);
             }
             //
             // NOTE:(pv) hasNext() causes mArray.gc() to be called

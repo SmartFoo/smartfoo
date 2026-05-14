@@ -29,6 +29,65 @@ private constructor() {
         private val TAG = FooLog.TAG(FooNotificationListenerManager::class.java)
 
         @JvmStatic
+        fun isNotificationAccessSettingConfirmedEnabled(
+            context: Context,
+            notificationListenerServiceClass: Class<out NotificationListenerService> = FooNotificationListenerService::class.java
+        ): Boolean {
+            if (supportsNotificationListenerSettings()) {
+                val notificationListenerServiceLookingFor =
+                    ComponentName(context, notificationListenerServiceClass)
+                FooLog.d(TAG, "isNotificationAccessSettingConfirmedEnabled: notificationListenerServiceLookingFor=$notificationListenerServiceLookingFor")
+
+                val contentResolver = context.contentResolver
+                val notificationListenersString =
+                    Settings.Secure.getString(contentResolver, ENABLED_NOTIFICATION_LISTENERS)
+                if (notificationListenersString != null) {
+                    val notificationListeners = notificationListenersString.split(":".toRegex())
+                        .dropLastWhile { it.isEmpty() }.toTypedArray()
+                    for (i in notificationListeners.indices) {
+                        val notificationListener = ComponentName.unflattenFromString(
+                            notificationListeners[i]
+                        )
+                        FooLog.d(TAG, "isNotificationAccessSettingConfirmedEnabled: notificationListeners[$i]=$notificationListener")
+                        if (notificationListenerServiceLookingFor == notificationListener) {
+                            FooLog.i(TAG, "isNotificationAccessSettingConfirmedEnabled: found match; return true")
+                            return true
+                        }
+                    }
+                }
+            }
+
+            FooLog.w(TAG, "isNotificationAccessSettingConfirmedEnabled: found NO match; return false")
+            return false
+        }
+
+        @Suppress("LocalVariableName")
+        @JvmStatic
+        @get:SuppressLint("InlinedApi")
+        val intentNotificationListenerSettings: Intent?
+            /**
+             * @return null if [supportsNotificationListenerSettings] == false
+             */
+            get() {
+                var intent: Intent? = null
+                if (supportsNotificationListenerSettings()) {
+                    val ACTION_NOTIFICATION_LISTENER_SETTINGS = if (VERSION_SDK_INT >= 22) {
+                        Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
+                    } else {
+                        "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
+                    }
+                    intent = Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+                return intent
+            }
+
+        @JvmStatic
+        fun startActivityNotificationListenerSettings(context: Context) {
+            context.startActivity(intentNotificationListenerSettings)
+        }
+
+        @JvmStatic
         val instance: FooNotificationListenerManager by lazy {
             FooNotificationListenerManager()
         }

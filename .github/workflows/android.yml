@@ -17,17 +17,23 @@ jobs:
         shell: bash
         working-directory: ./android
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
-      env:
-        # Increase GitHub rate limits, per:
-        # https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#jetbrains
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'jetbrains'
-        cache: gradle
-    - run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+      - name: Checkout code and submodule(s)
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        env:
+          # Increase GitHub rate limits, per:
+          # https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#jetbrains
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'jetbrains'
+          cache: gradle
+
+      - run: chmod +x gradlew
+
+      - name: Build gradle project
+        run: ./gradlew build
