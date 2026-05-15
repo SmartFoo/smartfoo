@@ -85,6 +85,9 @@ class FooAudioFocusController private constructor() {
     /** Total live handles (ownership), independent of tags. */
     private var liveHolders: Int = 0
 
+    /** Formatted log prefix captured from the acquire() that established focus; empty when idle. */
+    private var activeLogTag: String = ""
+
     private val focusListener = OnAudioFocusChangeListener { change -> onAudioFocusChange(change) }
 
     // --- Core API ------------------------------------------------------------
@@ -136,6 +139,7 @@ class FooAudioFocusController private constructor() {
                 currentAudioFocusRequest = audioFocusRequest
                 currentAudioAttributes = audioAttributes
                 currentFocusGainType = focusGainType
+                activeLogTag = logTag
                 dispatchGained(audioFocusRequest)
             } else {
                 // roll back this acquire since request failed
@@ -173,10 +177,13 @@ class FooAudioFocusController private constructor() {
             currentAudioAttributes = null
             currentFocusGainType = AudioManager.AUDIOFOCUS_NONE
 
+            val releaseTag = activeLogTag
+            activeLogTag = ""
+
             if (audioFocusRequest != null && audioManager != null) {
                 val result = audioManager!!.abandonAudioFocusRequest(audioFocusRequest)
                 val ok = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-                if (VERBOSE) FooLog.v(TAG, "${tag}abandonAudioFocusRequest result=$result ok=$ok")
+                if (VERBOSE) FooLog.v(TAG, "${releaseTag}abandonAudioFocusRequest result=$result ok=$ok")
                 if (ok) dispatchLost(audioFocusRequest, AudioManager.AUDIOFOCUS_LOSS)
             }
         }
@@ -187,10 +194,10 @@ class FooAudioFocusController private constructor() {
     private fun onAudioFocusChange(change: Int) {
         val audioFocusRequest =
             currentAudioFocusRequest ?: run {
-                if (VERBOSE) FooLog.v(TAG, "onAudioFocusChange(${audioFocusToString(change)}): no currentRequest; ignoring")
+                if (VERBOSE) FooLog.v(TAG, "${activeLogTag}onAudioFocusChange(${audioFocusToString(change)}): no currentRequest; ignoring")
                 return
             }
-        if (VERBOSE) FooLog.v(TAG, "onAudioFocusChange(${audioFocusToString(change)}) holders=$liveHolders")
+        if (VERBOSE) FooLog.v(TAG, "${activeLogTag}onAudioFocusChange(${audioFocusToString(change)}) holders=$liveHolders")
         when (change) {
             AudioManager.AUDIOFOCUS_GAIN ->
                 dispatchGained(audioFocusRequest)

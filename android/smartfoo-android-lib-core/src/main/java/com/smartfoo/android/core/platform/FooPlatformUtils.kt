@@ -464,6 +464,7 @@ object FooPlatformUtils {
      * May be unnecessary; [android.os.Bundle]`.toString` output seems almost acceptable nowadays.
      */
     @JvmStatic
+    @JvmOverloads
     fun toString(bundle: Bundle?, skipZeroFalseNullValues: Boolean = true): String {
         if (bundle == null) return "null"
 

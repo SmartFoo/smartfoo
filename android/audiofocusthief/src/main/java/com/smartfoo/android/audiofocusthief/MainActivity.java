@@ -2,6 +2,7 @@ package com.smartfoo.android.audiofocusthief;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioFocusRequest;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -15,7 +16,6 @@ import androidx.core.app.ActivityCompat;
 import com.smartfoo.android.audiofocusthief.databinding.ActivityMainBinding;
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.media.FooAudioFocusController;
-import com.smartfoo.android.core.media.FooAudioFocusController.FooAudioFocusControllerCallbacks;
 import com.smartfoo.android.core.media.FooAudioUtils;
 import com.smartfoo.android.core.platform.FooPlatformUtils;
 
@@ -26,18 +26,19 @@ public class MainActivity
 
     private static final int REQUEST_PERMISSION_POST_NOTIFICATIONS = 100;
 
-    private final FooAudioFocusControllerCallbacks mAudioFocusListenerCallbacks = new FooAudioFocusControllerCallbacks()
+    private final FooAudioFocusController.Callbacks mAudioFocusListenerCallbacks = new FooAudioFocusController.Callbacks()
     {
         @Override
-        public void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
+        public boolean onFocusGained(@NonNull FooAudioFocusController controller, @NonNull AudioFocusRequest request)
         {
-            MainActivity.this.onAudioFocusGained(audioFocusStreamType, audioFocusDurationHint);
+            MainActivity.this.onAudioFocusGained(request);
+            return false;
         }
 
         @Override
-        public boolean onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
+        public boolean onFocusLost(@NonNull FooAudioFocusController controller, @NonNull AudioFocusRequest request, int focusChange)
         {
-            return MainActivity.this.onAudioFocusLost(audioFocusStreamType, audioFocusDurationHint, focusChange);
+            return MainActivity.this.onAudioFocusLost(request, focusChange);
         }
     };
 
@@ -161,25 +162,18 @@ public class MainActivity
         FooLog.e(TAG, "-updateViews()");
     }
 
-    private void onAudioFocusGained(int audioFocusStreamType, int audioFocusDurationHint)
+    private void onAudioFocusGained(AudioFocusRequest request)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +
-                      " onAudioFocusGained(audioFocusStreamType=" +
-                      FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
-                      ", audioFocusDurationHint=" +
-                      FooAudioUtils.audioFocusGainLossToString(audioFocusDurationHint) + ')');
+                      " onAudioFocusGained(focusGain=" +
+                      FooAudioUtils.audioFocusGainLossToString(request.getFocusGain()) + ')');
         setChecked(mSwitchAudioFocus, true);
     }
 
-    /** @noinspection unused*/
-    private boolean onAudioFocusLost(int audioFocusStreamType, int audioFocusDurationHint, int focusChange)
+    private boolean onAudioFocusLost(AudioFocusRequest request, int focusChange)
     {
         FooLog.e(TAG, getAudioFocusHashtag() +
-                      " onAudioFocusLost(audioFocusStreamType=" +
-                      FooAudioUtils.audioStreamTypeToString(audioFocusStreamType) +
-                      ", audioFocusDurationHint=" +
-                      FooAudioUtils.audioFocusGainLossToString(audioFocusDurationHint) +
-                      ", focusChange=" +
+                      " onAudioFocusLost(focusChange=" +
                       FooAudioUtils.audioFocusGainLossToString(focusChange) + ')');
         setChecked(mSwitchAudioFocus, false);
         mMainApplication.audioFocusOff();
