@@ -15,7 +15,7 @@ dependencies {
 
 android {
     namespace = "com.smartfoo.android.audiofocusthief"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig {
         applicationId = "com.smartfoo.android.audiofocusthief"
         minSdk = 34

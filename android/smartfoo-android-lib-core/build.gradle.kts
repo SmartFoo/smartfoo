@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 base.archivesName = "smartfoo-android-lib-core"
@@ -24,7 +23,7 @@ dependencies {
 
 android {
     namespace = "com.smartfoo.android.core"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig {
         minSdk = 34
 
@@ -52,8 +51,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "21"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
     }
     buildFeatures {
         buildConfig = true

@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
 }
 
 dependencies {
@@ -16,7 +15,7 @@ dependencies {
 
 android {
     namespace = "com.smartfoo.android.testapp"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig {
         applicationId = "com.smartfoo.android.testapp"
         minSdk = 34
@@ -38,11 +37,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    /*
-    kotlinOptions {
-        jvmTarget = "21"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
     }
-    */
     buildFeatures {
         viewBinding = true
         //compose = true
