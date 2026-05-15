@@ -307,13 +307,13 @@ object FooPlatformUtils {
             val context = permissionsChecker.context
             val telephonyManager =
                 context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            deviceId = telephonyManager.deviceId
+            deviceId = telephonyManager.imei
         }
 
         val repeatingPattern = "((.)\\2+)"
 
         if (deviceId == null || deviceId.matches(repeatingPattern.toRegex())) {
-            deviceId = Build.SERIAL
+            deviceId = Build.getSerial()
         }
 
         return deviceId
