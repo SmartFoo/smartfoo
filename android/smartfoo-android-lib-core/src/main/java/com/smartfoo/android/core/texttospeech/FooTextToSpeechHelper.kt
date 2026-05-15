@@ -99,7 +99,7 @@ object FooTextToSpeechHelper {
         val normalizeLanguage = HashMap<String, String>()
         for (language in Locale.getISOLanguages()) {
             try {
-                normalizeLanguage[Locale(language).isO3Language] = language
+                normalizeLanguage[Locale.Builder().setLanguage(language).build().isO3Language] = language
             } catch (e: MissingResourceException) {
                 continue
             }
@@ -108,7 +108,7 @@ object FooTextToSpeechHelper {
         val normalizeCountry = HashMap<String, String>()
         for (country in Locale.getISOCountries()) {
             try {
-                normalizeCountry[Locale("", country).isO3Country] = country
+                normalizeCountry[Locale.Builder().setRegion(country).build().isO3Country] = country
             } catch (e: MissingResourceException) {
                 continue
             }
@@ -127,17 +127,11 @@ object FooTextToSpeechHelper {
                     .toTypedArray()
             language = split[0].lowercase(Locale.getDefault())
             if (split.isEmpty()) {
-                FooLog.w(
-                    TAG,
-                    "Failed to convert $localeString to a valid Locale object. Only separators"
-                )
+                FooLog.w(TAG, "Failed to convert $localeString to a valid Locale object. Only separators")
                 return null
             }
             if (split.size > 3) {
-                FooLog.w(
-                    TAG,
-                    "Failed to convert $localeString to a valid Locale object. Too many separators"
-                )
+                FooLog.w(TAG, "Failed to convert $localeString to a valid Locale object. Too many separators")
                 return null
             }
             if (split.size >= 2) {
@@ -147,18 +141,21 @@ object FooTextToSpeechHelper {
                 variant = split[2]
             }
         }
-        val normalizedLanguage = sNormalizeLanguage[language]
-        if (normalizedLanguage != null) {
-            language = normalizedLanguage
-        }
-        val normalizedCountry = sNormalizeCountry[country]
-        if (normalizedCountry != null) {
-            country = normalizedCountry
-        }
+        language = sNormalizeLanguage[language] ?: language
+        country = sNormalizeCountry[country] ?: country
         if (DBG) {
             FooLog.d(TAG, "parseLocaleString($language,$country,$variant)")
         }
-        val result = Locale(language, country, variant)
+        val result = try {
+            Locale.Builder()
+                .setLanguage(language)
+                .setRegion(country)
+                .setVariant(variant)
+                .build()
+        } catch (e: RuntimeException) {
+            FooLog.w(TAG, "Failed to convert $localeString to a valid Locale object: ${e.message}")
+            return null
+        }
         return try {
             result.isO3Language
             result.isO3Country
