@@ -1,5 +1,6 @@
 [versions]
 agp = "9.2.1"
+nmcp = "0.1.5"
 androidx-appcompat = "1.7.1"
 androidx-recyclerview = "1.4.0"
 androidx-test-espresso-core = "3.7.0"
@@ -20,5 +21,6 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+nmcp = { id = "com.gradleup.nmcp", version.ref = "nmcp" }
 
 [bundles]

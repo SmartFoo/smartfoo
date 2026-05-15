@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
+    `maven-publish`
+    signing
+    alias(libs.plugins.nmcp)
 }
 
 base.archivesName = "smartfoo-android-lib-core"
@@ -64,6 +67,12 @@ android {
         defaultPublishConfig = "debug"
     }
     */
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 /*
@@ -72,84 +81,61 @@ tasks.withType(JavaCompile) {
 }
 */
 
-/*
-bintray {
-    user = System.getenv("BINTRAY_USER")
-    key = System.getenv("BINTRAY_KEY")
-
-    configurations = ["archives"]
-
-    publish = true
-
-    pkg {
-        repo = "maven"
-        name = archivesBaseName
-        userOrg = "smartfoo"
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = ["MIT"]
+// Credentials are read from ~/.gradle/gradle.properties (local) or env vars (CI).
+// See publishing setup docs in the project README.
+nmcp {
+    centralPortal {
+        username.set(providers.gradleProperty("mavenCentralUsername")
+            .orElse(providers.environmentVariable("MAVEN_CENTRAL_USERNAME")))
+        password.set(providers.gradleProperty("mavenCentralPassword")
+            .orElse(providers.environmentVariable("MAVEN_CENTRAL_PASSWORD")))
+        // USER_MANAGED lets you review the deployment in the Central Portal UI before publishing.
+        // Switch to AUTOMATIC once you've confirmed the first upload looks correct.
+        publishingType.set("USER_MANAGED")
     }
 }
 
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging "aar"
-
-                // Add your description here
-                name description
-                url siteUrl
-
-                // Set your license
-                licenses {
-                    license {
-                        name "The MIT License (MIT)"
-                        url "https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE"
+// afterEvaluate required because the Android "release" component isn't available until after evaluation.
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                groupId    = "com.smartfoo"
+                artifactId = "smartfoo-android-lib-core"
+                version    = "0.1.23"
+                pom {
+                    name        = "SmartFoo Android Core Library"
+                    description = "Cross-platform abstraction layer for Android"
+                    url         = "https://github.com/SmartFoo/smartfoo"
+                    licenses {
+                        license {
+                            name = "The MIT License"
+                            url  = "https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE"
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id "paulpv"
-                        name "Paul Peavyhouse"
-                        email "pv@swooby.com"
+                    developers {
+                        developer {
+                            id    = "paulpv"
+                            name  = "Paul Peavyhouse"
+                            email = "pv@swooby.com"
+                        }
                     }
-                }
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
-
+                    scm {
+                        connection          = "scm:git:git://github.com/SmartFoo/smartfoo.git"
+                        developerConnection = "scm:git:ssh://github.com/SmartFoo/smartfoo.git"
+                        url                 = "https://github.com/SmartFoo/smartfoo"
+                    }
                 }
             }
         }
     }
-}
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = "sources"
+    signing {
+        val signingKeyId: String?    by project
+        val signingKey: String?      by project
+        val signingPassword: String? by project
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign(publishing.publications["release"])
+    }
 }
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-// Required to prevent "error: reference not found" for Android OS/API calls
-afterEvaluate {
-    javadoc.classpath += files(android.libraryVariants.collect { variant ->
-        variant.javaCompile.classpath.files
-    })
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = "javadoc"
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-*/
