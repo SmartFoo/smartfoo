@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string name="app_name">SmartFoo Android Core Library</string>
+    <string name="app_name" translatable="false">SmartFoo Android Core Library</string>
 
     <string name="charge_port_unknown_charger">Unknown Charger</string>
     <string name="charge_port_usb_port">USB Port</string>
@@ -14,9 +14,9 @@
     <string name="audio_stream_media">Media</string>
     <string name="audio_stream_alarm">Alarm</string>
     <string name="audio_stream_notification">Notification</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
+    <string name="audio_stream_bluetooth_sco" translatable="false">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">System Enforced</string>
-    <string name="audio_stream_dtmf">DTMF</string>
+    <string name="audio_stream_dtmf" translatable="false">DTMF</string>
     <string name="audio_stream_text_to_speech">Text-To-Speech</string>
     <string name="audio_stream_unknown">Unknown</string>
 

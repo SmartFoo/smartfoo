@@ -23,10 +23,13 @@
     <string name="audio_stream_media">メディア</string>
     <string name="audio_stream_alarm">アラーム</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">通知</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">システム強制</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">テキスト読み上げ</string>
     <string name="audio_stream_unknown">不明</string>
+
+    <string name="charge_port_unknown_charger">不明な充電器</string>
+    <string name="charge_port_usb_port">USBポート</string>
+    <string name="charge_port_ac_charger">ACアダプター</string>
+    <string name="charge_port_wireless_charger">ワイヤレス充電器</string>
 
 </resources>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Dummy">더미</string>
+    <string name="network_source_cellular">셀룰러</string>
+    <string name="network_type_cellular_1xRTT">셀룰러 (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">셀룰러 (CDMA)</string>
+    <string name="network_type_cellular_EDGE">셀룰러 (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">셀룰러 (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">셀룰러 (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">셀룰러 (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">셀룰러 (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">셀룰러 (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">셀룰러 (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">셀룰러 (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">셀룰러 (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">셀룰러 (HSUPA)</string>
+    <string name="network_type_cellular_iDen">셀룰러 (iDen)</string>
+    <string name="network_type_cellular_LTE">셀룰러 (LTE)</string>
+    <string name="network_type_cellular_UMTS">셀룰러 (UMTS)</string>
+    <string name="network_type_cellular_Unknown">셀룰러 (알 수 없음)</string>
+    <string name="network_source_cellular_DUN">셀룰러 DUN</string>
+    <string name="network_source_cellular_HIPRI">셀룰러 HIPRI</string>
+    <string name="network_source_cellular_MMS">셀룰러 MMS</string>
+    <string name="network_source_cellular_SUPL">셀룰러 SUPL</string>
+    <string name="network_source_Unknown">알 수 없음</string>
+    <string name="network_source_None">없음</string>
+</resources>

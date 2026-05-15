@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Dummy">模拟</string>
+    <string name="network_source_cellular">蜂窝网络</string>
+    <string name="network_type_cellular_1xRTT">蜂窝网络 (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">蜂窝网络 (CDMA)</string>
+    <string name="network_type_cellular_EDGE">蜂窝网络 (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">蜂窝网络 (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">蜂窝网络 (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">蜂窝网络 (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">蜂窝网络 (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">蜂窝网络 (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">蜂窝网络 (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">蜂窝网络 (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">蜂窝网络 (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">蜂窝网络 (HSUPA)</string>
+    <string name="network_type_cellular_iDen">蜂窝网络 (iDen)</string>
+    <string name="network_type_cellular_LTE">蜂窝网络 (LTE)</string>
+    <string name="network_type_cellular_UMTS">蜂窝网络 (UMTS)</string>
+    <string name="network_type_cellular_Unknown">蜂窝网络 (未知)</string>
+    <string name="network_source_cellular_DUN">蜂窝网络 DUN</string>
+    <string name="network_source_cellular_HIPRI">蜂窝网络 HIPRI</string>
+    <string name="network_source_cellular_MMS">蜂窝网络 MMS</string>
+    <string name="network_source_cellular_SUPL">蜂窝网络 SUPL</string>
+    <string name="network_source_Unknown">未知</string>
+    <string name="network_source_None">无</string>
+</resources>

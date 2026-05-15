@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="activity_debug_title">डीबग</string>
+
+    <string name="activity_debug_action_find">खोजें</string>
+    <string name="activity_debug_action_refresh">रीफ्रेश</string>
+    <string name="activity_debug_action_clear">साफ़ करें</string>
+    <string name="activity_debug_action_share">साझा करें</string>
+    <string name="activity_debug_action_set_log_limit">लॉग सीमा निर्धारित करें</string>
+    <string name="activity_debug_action_log_file_enable">लॉग फ़ाइल सक्षम करें</string>
+    <string name="activity_debug_action_log_file_disable">लॉग फ़ाइल अक्षम करें</string>
+
+    <string name="activity_debug_email_subject_formatted">%s डीबग लॉग</string>
+    <string name="activity_debug_send_title_formatted">%s भेजें&#8230;</string>
+
+    <string name="activity_debug_phone_state_permission_rationale">आपकी डिवाइस आईडी प्राप्त करें</string>
+    <string name="activity_debug_external_storage_permission_rationale">किसी फ़ाइल में डीबग लॉग करें</string>
+
+</resources>

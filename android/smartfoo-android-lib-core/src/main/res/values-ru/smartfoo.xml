@@ -38,10 +38,13 @@
     <string name="audio_stream_media">Медиа</string>
     <string name="audio_stream_alarm">Будильник</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">Уведомление</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">Принудительная система</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">Синтез речи</string>
     <string name="audio_stream_unknown">Неизвестно</string>
+
+    <string name="charge_port_unknown_charger">Неизвестное зарядное устройство</string>
+    <string name="charge_port_usb_port">USB-порт</string>
+    <string name="charge_port_ac_charger">Сетевое зарядное устройство</string>
+    <string name="charge_port_wireless_charger">Беспроводное зарядное устройство</string>
 
 </resources>

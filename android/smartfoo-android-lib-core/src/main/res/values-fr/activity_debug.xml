@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="activity_debug_title">Débogage</string>
+
+    <string name="activity_debug_action_find">Rechercher</string>
+    <string name="activity_debug_action_refresh">Actualiser</string>
+    <string name="activity_debug_action_clear">Effacer</string>
+    <string name="activity_debug_action_share">Partager</string>
+    <string name="activity_debug_action_set_log_limit">Définir la limite du journal</string>
+    <string name="activity_debug_action_log_file_enable">Activer le fichier journal</string>
+    <string name="activity_debug_action_log_file_disable">Désactiver le fichier journal</string>
+
+    <string name="activity_debug_email_subject_formatted">%s Journal de débogage</string>
+    <string name="activity_debug_send_title_formatted">Envoyer %s&#8230;</string>
+
+    <string name="activity_debug_phone_state_permission_rationale">obtenir l\'identifiant de votre appareil</string>
+    <string name="activity_debug_external_storage_permission_rationale">enregistrer le journal de débogage dans un fichier</string>
+
+</resources>

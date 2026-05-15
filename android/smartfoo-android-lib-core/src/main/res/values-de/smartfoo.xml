@@ -28,10 +28,13 @@
     <string name="audio_stream_media">Medien</string>
     <string name="audio_stream_alarm">Alarm</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">Benachrichtigung</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">Erzwungenes System</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">Text-zu-Sprache</string>
     <string name="audio_stream_unknown">Unbekannt</string>
+
+    <string name="charge_port_unknown_charger">Unbekanntes Ladegerät</string>
+    <string name="charge_port_usb_port">USB-Anschluss</string>
+    <string name="charge_port_ac_charger">Netzladegerät</string>
+    <string name="charge_port_wireless_charger">Kabelloses Ladegerät</string>
 
 </resources>

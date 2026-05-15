@@ -23,10 +23,13 @@
     <string name="audio_stream_media">Media</string>
     <string name="audio_stream_alarm">Alarm</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">Notifikasi</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">Sistem Terpaksa</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">Teks ke Suara</string>
     <string name="audio_stream_unknown">Tidak Diketahui</string>
+
+    <string name="charge_port_unknown_charger">Pengisi Daya Tidak Diketahui</string>
+    <string name="charge_port_usb_port">Port USB</string>
+    <string name="charge_port_ac_charger">Pengisi Daya AC</string>
+    <string name="charge_port_wireless_charger">Pengisi Daya Nirkabel</string>
 
 </resources>

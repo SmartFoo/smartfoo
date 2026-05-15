@@ -23,10 +23,13 @@
     <string name="audio_stream_media">미디어</string>
     <string name="audio_stream_alarm">알람</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">알림</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">시스템 강제</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">텍스트 음성 변환</string>
     <string name="audio_stream_unknown">알 수 없음</string>
+
+    <string name="charge_port_unknown_charger">알 수 없는 충전기</string>
+    <string name="charge_port_usb_port">USB 포트</string>
+    <string name="charge_port_ac_charger">AC 충전기</string>
+    <string name="charge_port_wireless_charger">무선 충전기</string>
 
 </resources>

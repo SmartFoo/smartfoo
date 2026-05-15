@@ -28,10 +28,13 @@
     <string name="audio_stream_media">मीडिया</string>
     <string name="audio_stream_alarm">अलार्म</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">सूचना</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">सिस्टम प्रवर्तित</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">टेक्स्ट से वाणी</string>
     <string name="audio_stream_unknown">अज्ञात</string>
+
+    <string name="charge_port_unknown_charger">अज्ञात चार्जर</string>
+    <string name="charge_port_usb_port">USB पोर्ट</string>
+    <string name="charge_port_ac_charger">AC चार्जर</string>
+    <string name="charge_port_wireless_charger">वायरलेस चार्जर</string>
 
 </resources>

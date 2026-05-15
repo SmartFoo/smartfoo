@@ -23,10 +23,13 @@
     <string name="audio_stream_media">媒體</string>
     <string name="audio_stream_alarm">鬧鐘</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">通知</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">強制系統</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">文字轉語音</string>
     <string name="audio_stream_unknown">未知</string>
+
+    <string name="charge_port_unknown_charger">未知充電器</string>
+    <string name="charge_port_usb_port">USB埠</string>
+    <string name="charge_port_ac_charger">交流充電器</string>
+    <string name="charge_port_wireless_charger">無線充電器</string>
 
 </resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="activity_debug_title">디버그</string>
+
+    <string name="activity_debug_action_find">찾기</string>
+    <string name="activity_debug_action_refresh">새로고침</string>
+    <string name="activity_debug_action_clear">지우기</string>
+    <string name="activity_debug_action_share">공유</string>
+    <string name="activity_debug_action_set_log_limit">로그 제한 설정</string>
+    <string name="activity_debug_action_log_file_enable">로그 파일 활성화</string>
+    <string name="activity_debug_action_log_file_disable">로그 파일 비활성화</string>
+
+    <string name="activity_debug_email_subject_formatted">%s 디버그 로그</string>
+    <string name="activity_debug_send_title_formatted">%s 보내기&#8230;</string>
+
+    <string name="activity_debug_phone_state_permission_rationale">기기 ID 가져오기</string>
+    <string name="activity_debug_external_storage_permission_rationale">파일에 디버그 로그 기록</string>
+
+</resources>

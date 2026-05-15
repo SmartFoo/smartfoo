@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Dummy">Fictício</string>
+    <string name="network_source_cellular">Celular</string>
+    <string name="network_type_cellular_1xRTT">Celular (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">Celular (CDMA)</string>
+    <string name="network_type_cellular_EDGE">Celular (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">Celular (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">Celular (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">Celular (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">Celular (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">Celular (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">Celular (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">Celular (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">Celular (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">Celular (HSUPA)</string>
+    <string name="network_type_cellular_iDen">Celular (iDen)</string>
+    <string name="network_type_cellular_LTE">Celular (LTE)</string>
+    <string name="network_type_cellular_UMTS">Celular (UMTS)</string>
+    <string name="network_type_cellular_Unknown">Celular (Desconhecido)</string>
+    <string name="network_source_cellular_DUN">Celular DUN</string>
+    <string name="network_source_cellular_HIPRI">Celular HIPRI</string>
+    <string name="network_source_cellular_MMS">Celular MMS</string>
+    <string name="network_source_cellular_SUPL">Celular SUPL</string>
+    <string name="network_source_Unknown">Desconhecido</string>
+    <string name="network_source_None">Nenhum</string>
+</resources>

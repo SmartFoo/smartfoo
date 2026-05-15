@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Dummy">模擬</string>
+    <string name="network_source_cellular">行動網路</string>
+    <string name="network_type_cellular_1xRTT">行動網路 (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">行動網路 (CDMA)</string>
+    <string name="network_type_cellular_EDGE">行動網路 (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">行動網路 (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">行動網路 (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">行動網路 (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">行動網路 (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">行動網路 (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">行動網路 (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">行動網路 (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">行動網路 (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">行動網路 (HSUPA)</string>
+    <string name="network_type_cellular_iDen">行動網路 (iDen)</string>
+    <string name="network_type_cellular_LTE">行動網路 (LTE)</string>
+    <string name="network_type_cellular_UMTS">行動網路 (UMTS)</string>
+    <string name="network_type_cellular_Unknown">行動網路 (未知)</string>
+    <string name="network_source_cellular_DUN">行動網路 DUN</string>
+    <string name="network_source_cellular_HIPRI">行動網路 HIPRI</string>
+    <string name="network_source_cellular_MMS">行動網路 MMS</string>
+    <string name="network_source_cellular_SUPL">行動網路 SUPL</string>
+    <string name="network_source_Unknown">未知</string>
+    <string name="network_source_None">無</string>
+</resources>

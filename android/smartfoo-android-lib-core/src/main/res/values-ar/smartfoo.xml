@@ -48,10 +48,13 @@
     <string name="audio_stream_media">وسائط</string>
     <string name="audio_stream_alarm">منبه</string>
     <string name="audio_stream_notification" tools:ignore="DuplicateStrings">إشعار</string>
-    <string name="audio_stream_bluetooth_sco">Bluetooth SCO</string>
     <string name="audio_stream_system_enforced">نظام مفروض</string>
-    <string name="audio_stream_dtmf">DTMF</string>
     <string name="audio_stream_text_to_speech" tools:ignore="DuplicateStrings">تحويل النص إلى كلام</string>
     <string name="audio_stream_unknown">غير معروف</string>
+
+    <string name="charge_port_unknown_charger">شاحن غير معروف</string>
+    <string name="charge_port_usb_port">منفذ USB</string>
+    <string name="charge_port_ac_charger">شاحن تيار متردد</string>
+    <string name="charge_port_wireless_charger">شاحن لاسلكي</string>
 
 </resources>

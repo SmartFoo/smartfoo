@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Dummy">Dummy</string>
+    <string name="network_source_cellular">Mobilfunk</string>
+    <string name="network_type_cellular_1xRTT">Mobilfunk (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">Mobilfunk (CDMA)</string>
+    <string name="network_type_cellular_EDGE">Mobilfunk (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">Mobilfunk (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">Mobilfunk (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">Mobilfunk (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">Mobilfunk (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">Mobilfunk (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">Mobilfunk (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">Mobilfunk (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">Mobilfunk (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">Mobilfunk (HSUPA)</string>
+    <string name="network_type_cellular_iDen">Mobilfunk (iDen)</string>
+    <string name="network_type_cellular_LTE">Mobilfunk (LTE)</string>
+    <string name="network_type_cellular_UMTS">Mobilfunk (UMTS)</string>
+    <string name="network_type_cellular_Unknown">Mobilfunk (Unbekannt)</string>
+    <string name="network_source_cellular_DUN">Mobilfunk DUN</string>
+    <string name="network_source_cellular_HIPRI">Mobilfunk HIPRI</string>
+    <string name="network_source_cellular_MMS">Mobilfunk MMS</string>
+    <string name="network_source_cellular_SUPL">Mobilfunk SUPL</string>
+    <string name="network_source_Unknown">Unbekannt</string>
+    <string name="network_source_None">Keine</string>
+</resources>

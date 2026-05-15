@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="activity_debug_title">デバッグ</string>
+
+    <string name="activity_debug_action_find">検索</string>
+    <string name="activity_debug_action_refresh">更新</string>
+    <string name="activity_debug_action_clear">クリア</string>
+    <string name="activity_debug_action_share">共有</string>
+    <string name="activity_debug_action_set_log_limit">ログ上限を設定</string>
+    <string name="activity_debug_action_log_file_enable">ログファイルを有効にする</string>
+    <string name="activity_debug_action_log_file_disable">ログファイルを無効にする</string>
+
+    <string name="activity_debug_email_subject_formatted">%s デバッグログ</string>
+    <string name="activity_debug_send_title_formatted">%s を送信&#8230;</string>
+
+    <string name="activity_debug_phone_state_permission_rationale">デバイスIDを取得する</string>
+    <string name="activity_debug_external_storage_permission_rationale">デバッグログをファイルに保存する</string>
+
+</resources>

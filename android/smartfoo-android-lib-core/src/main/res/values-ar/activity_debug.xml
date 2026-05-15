@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="activity_debug_title">تصحيح</string>
+
+    <string name="activity_debug_action_find">بحث</string>
+    <string name="activity_debug_action_refresh">تحديث</string>
+    <string name="activity_debug_action_clear">مسح</string>
+    <string name="activity_debug_action_share">مشاركة</string>
+    <string name="activity_debug_action_set_log_limit">تعيين حد السجل</string>
+    <string name="activity_debug_action_log_file_enable">تمكين ملف السجل</string>
+    <string name="activity_debug_action_log_file_disable">تعطيل ملف السجل</string>
+
+    <string name="activity_debug_email_subject_formatted">%s سجل التصحيح</string>
+    <string name="activity_debug_send_title_formatted">إرسال %s&#8230;</string>
+
+    <string name="activity_debug_phone_state_permission_rationale">الحصول على معرّف جهازك</string>
+    <string name="activity_debug_external_storage_permission_rationale">تسجيل التصحيح في ملف</string>
+
+</resources>

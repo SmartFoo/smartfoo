@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Types -->
+    <string name="network_source_Dummy">Fictif</string>
+    <string name="network_source_cellular">Cellulaire</string>
+    <string name="network_type_cellular_1xRTT">Cellulaire (1xRTT)</string>
+    <string name="network_type_cellular_CDMA">Cellulaire (CDMA)</string>
+    <string name="network_type_cellular_EDGE">Cellulaire (EDGE)</string>
+    <string name="network_type_cellular_eHRPD">Cellulaire (eHRPD)</string>
+    <string name="network_type_cellular_EVDO_0">Cellulaire (EVDOr0)</string>
+    <string name="network_type_cellular_EVDO_A">Cellulaire (EVDOrA)</string>
+    <string name="network_type_cellular_EVDO_B">Cellulaire (EVDOrB)</string>
+    <string name="network_type_cellular_GPRS">Cellulaire (GPRS)</string>
+    <string name="network_type_cellular_HSDPA">Cellulaire (HSDPA)</string>
+    <string name="network_type_cellular_HSPA">Cellulaire (HSPA)</string>
+    <string name="network_type_cellular_HSPAP">Cellulaire (HSPA+)</string>
+    <string name="network_type_cellular_HSUPA">Cellulaire (HSUPA)</string>
+    <string name="network_type_cellular_iDen">Cellulaire (iDen)</string>
+    <string name="network_type_cellular_LTE">Cellulaire (LTE)</string>
+    <string name="network_type_cellular_UMTS">Cellulaire (UMTS)</string>
+    <string name="network_type_cellular_Unknown">Cellulaire (Inconnu)</string>
+    <string name="network_source_cellular_DUN">Cellulaire DUN</string>
+    <string name="network_source_cellular_HIPRI">Cellulaire HIPRI</string>
+    <string name="network_source_cellular_MMS">Cellulaire MMS</string>
+    <string name="network_source_cellular_SUPL">Cellulaire SUPL</string>
+    <string name="network_source_Unknown">Inconnu</string>
+    <string name="network_source_None">Aucun</string>
+</resources>
