@@ -6,6 +6,12 @@ import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.annotations.NonNullNonEmpty;
 
+/**
+ * Java to Kotlin Conversion:
+ * This file is used almost exclusively by Java code to validate parameters.
+ * It should probably be the last Java file converted to Kotlin.
+ * Ideally this file would be obsolete/moot after the conversion and not needed at all and can be deleted.
+ */
 public class FooRun
 {
     private FooRun()
