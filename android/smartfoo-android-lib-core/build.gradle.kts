@@ -8,7 +8,7 @@ plugins {
 base.archivesName = "smartfoo-android-lib-core"
 description = "SmartFoo Core Library for Android"
 group = "com.smartfoo"
-version = "0.1.23"
+version = providers.gradleProperty("releaseVersion").getOrElse("1.0.0")
 
 //def siteUrl = "https://github.com/SmartFoo/smartfoo"
 //def gitUrl = "https://github.com/SmartFoo/smartfoo.git"
@@ -103,7 +103,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId    = "com.smartfoo"
                 artifactId = "smartfoo-android-lib-core"
-                version    = "0.1.23"
+                version    = project.version.toString()
                 pom {
                     name        = "SmartFoo Android Core Library"
                     description = "Cross-platform abstraction layer for Android"
@@ -132,10 +132,9 @@ afterEvaluate {
     }
 
     signing {
-        val signingKeyId: String?    by project
         val signingKey: String?      by project
         val signingPassword: String? by project
-        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications["release"])
     }
 }

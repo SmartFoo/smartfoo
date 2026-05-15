@@ -56,6 +56,78 @@ cross-platform classes in Android, iOS, .NET, and Win32, starting with Android.
 
 Eventually other platforms could be abstracted out (yes, possibly even Qt).
 
+## Using the Library
+
+Add the dependency to your Android project:
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.smartfoo:smartfoo-android-lib-core:<version>")
+}
+```
+
+The artifact is published to [Maven Central](https://central.sonatype.com/artifact/com.smartfoo/smartfoo-android-lib-core), which is included in Android projects by default. No extra repository configuration is needed.
+
+---
+
+## Publishing a New Release
+
+> This section is for maintainers only.
+
+### One-time setup
+
+1. **Sonatype Central Portal account** — register at [central.sonatype.com](https://central.sonatype.com) and verify the `com.smartfoo` namespace.
+
+2. **Central Portal token** — go to Account → Generate User Token. Keep the username and password it gives you.
+
+3. **GPG key** — the signing key fingerprint is `68A9F48759586BD553B0A2FA95B723E3101ED163` (`publish@smartfoo.com`). The public key is published to `keys.openpgp.org`. Export the armored private key with:
+   ```bash
+   gpg --armor --export-secret-keys publish@smartfoo.com
+   ```
+
+4. **Local credentials** — add to `~/.gradle/gradle.properties` (never commit this file):
+   ```properties
+   mavenCentralUsername=<Central Portal token username>
+   mavenCentralPassword=<Central Portal token password>
+   signingKey=<armored GPG private key>
+   signingPassword=<GPG passphrase>
+   ```
+
+5. **GitHub Actions secrets** — go to the repository → Settings → Secrets and variables → Actions, and add the following repository secrets:
+
+   | Secret | Value |
+   |---|---|
+   | `MAVEN_CENTRAL_USERNAME` | Central Portal token username |
+   | `MAVEN_CENTRAL_PASSWORD` | Central Portal token password |
+   | `GPG_SIGNING_KEY` | Armored GPG private key (same value as `signingKey` above) |
+   | `GPG_SIGNING_PASSWORD` | GPG passphrase (same value as `signingPassword` above) |
+
+### Publishing
+
+1. Choose the new version number. The version is derived automatically from the Git tag during CI publishing, so no file edits are required for a tag-triggered release. The fallback version in `android/smartfoo-android-lib-core/build.gradle.kts` can be kept in sync for reference.
+
+2. Verify the publication locally (no credentials required, signing is skipped):
+   ```bash
+   cd android
+   ./gradlew :smartfoo-android-lib-core:publishToMavenLocal
+   ```
+
+3. Publish to Maven Central:
+   ```bash
+   ./gradlew :smartfoo-android-lib-core:publishAllPublicationsToCentralPortal
+   ```
+
+4. Log in to [central.sonatype.com](https://central.sonatype.com) → Deployments, verify the artifacts, then click **Publish**. The release appears on Maven Central within ~15 minutes.
+
+5. Tag the release:
+   ```bash
+   git tag v<version> && git push origin v<version>
+   ```
+   Pushing a `v*` tag also triggers the [publish GitHub Actions workflow](.github/workflows/publish.yml), which performs step 3 automatically using repository secrets (`MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `GPG_SIGNING_KEY`, `GPG_SIGNING_PASSWORD`).
+
+---
+
 ## Frequently Unanswered Questions (FUQs)
 
 ### Why only Java (and a tiny bit of Kotlin)?
@@ -74,5 +146,7 @@ never expanded my needs for SmartFoo into other platforms (iOS, .NET, ...).
 
 ---
 
+```
 1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
          1         2         3         4         5         6         7         8         9         0
+```
