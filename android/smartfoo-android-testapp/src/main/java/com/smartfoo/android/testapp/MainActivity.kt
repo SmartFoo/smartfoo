@@ -20,7 +20,7 @@ import com.smartfoo.android.testapp.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     companion object {
-        val TAG = FooLog.TAG(MainActivity::class.java)!!
+        val TAG = FooLog.TAG(MainActivity::class.java)
     }
 
     private lateinit var binding: ActivityMainBinding
