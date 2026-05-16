@@ -127,9 +127,10 @@ open class FooMemoryStream
 
             makeSpaceFor(length)
 
-            // this.buffer can contain previously used data
-            // if length > this.length, re-zero any length added to the end.
-            FooArrays.fill(this.buffer, 0.toByte(), this.length, length)
+            // Re-zero bytes added when growing; no-op when shrinking.
+            if (length > this.length) {
+                FooArrays.fill(this.buffer, 0.toByte(), this.length, length)
+            }
 
             this.length = length
 
@@ -183,7 +184,7 @@ open class FooMemoryStream
             length: Int,
         ) {
             makeSpaceFor(position + length)
-            FooArrays.copy(buffer, offset, buffer, position, length)
+            FooArrays.copy(buffer, offset, this.buffer, position, length)
             position += length
             extendLengthToPosition()
         }
@@ -312,9 +313,9 @@ open class FooMemoryStream
         @Synchronized
         fun readUInt32(): Long {
             checkOffset(4, buffer, position, length)
-            var value = unsignedByteToInt(buffer[position++], 24).toLong()
-            value += unsignedByteToInt(buffer[position++], 16).toLong()
-            value += unsignedByteToInt(buffer[position++], 8).toLong()
+            var value = unsignedByteToInt(buffer[position++]).toLong() shl 24
+            value += unsignedByteToInt(buffer[position++]).toLong() shl 16
+            value += unsignedByteToInt(buffer[position++]).toLong() shl 8
             value += unsignedByteToInt(buffer[position++]).toLong()
             return value
         }

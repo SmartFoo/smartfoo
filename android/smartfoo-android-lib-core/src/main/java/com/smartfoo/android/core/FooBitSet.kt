@@ -17,7 +17,7 @@ class FooBitSet {
         // Walk through bytes and set the bits
         for (j in 0..<BITS_PER_BYTE) {
             if ((value.toInt() and (1 shl j)) != 0) {
-                bitset.set(BITS_PER_BYTE + j)
+                bitset.set(j)
             }
         }
     }
