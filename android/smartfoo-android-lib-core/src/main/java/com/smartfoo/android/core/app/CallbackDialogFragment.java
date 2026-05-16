@@ -60,6 +60,13 @@ public abstract class CallbackDialogFragment<T>
         mCallback = mDummyCallback;
     }
 
+    /**
+     * Enables instance retention when the fragment is not nested inside another fragment, which
+     * prevents "Can't retain fragments that are nested in other fragments" from being thrown on
+     * a configuration change.
+     *
+     * @param savedInstanceState the previously saved state, or {@code null} on first creation
+     */
     @Override
     public void onCreate(
             @Nullable
@@ -76,6 +83,14 @@ public abstract class CallbackDialogFragment<T>
         }
     }
 
+    /**
+     * Resolves the callback target by inspecting the fragment itself, its parent fragment, and
+     * its host activity in that order. The first object that implements {@code T} is stored in
+     * {@link #mCallback}.
+     *
+     * @param context the host context; not used directly but required by the super-class contract
+     * @throws IllegalStateException if none of the candidates implement the callback interface
+     */
     @Override
     public void onAttach(@NonNull Context context)
     {
@@ -114,6 +129,10 @@ public abstract class CallbackDialogFragment<T>
         }
     }
 
+    /**
+     * Resets {@link #mCallback} to the no-op dummy instance so that any callback invocations
+     * after detachment are safely ignored.
+     */
     @Override
     public void onDetach()
     {
@@ -121,6 +140,11 @@ public abstract class CallbackDialogFragment<T>
         mCallback = mDummyCallback;
     }
 
+    /**
+     * Clears the dismiss message on the retained dialog to work around a framework bug
+     * (https://code.google.com/p/android/issues/detail?id=17423) that prevents the dialog
+     * fragment from being correctly recreated after a screen rotation.
+     */
     @Override
     public void onDestroyView()
     {

@@ -19,11 +19,23 @@ public class FooHandlerThread
     Looper mLooper;
     */
 
+    /**
+     * Constructs a new handler thread with the given name and default priority.
+     *
+     * @param threadName the name to assign to the thread; used in logs and diagnostics
+     */
     public FooHandlerThread(String threadName)
     {
         super(threadName);
     }
 
+    /**
+     * Constructs a new handler thread with the given name and scheduling priority.
+     *
+     * @param threadName the name to assign to the thread; used in logs and diagnostics
+     * @param priority   the thread priority, as defined by {@link android.os.Process}
+     *                   (e.g. {@link android.os.Process#THREAD_PRIORITY_BACKGROUND})
+     */
     public FooHandlerThread(String threadName, int priority)
     {
         super(threadName, priority);

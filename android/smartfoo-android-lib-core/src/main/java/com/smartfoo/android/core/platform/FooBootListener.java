@@ -13,24 +13,44 @@ import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 
 // TODO:(pv) Also listen for shutdown?
+/**
+ * Observes device boot, reboot, and shutdown broadcast events.
+ *
+ * <p>Registers a {@link BroadcastReceiver} for {@link Intent#ACTION_BOOT_COMPLETED},
+ * {@link Intent#ACTION_REBOOT}, and {@link Intent#ACTION_SHUTDOWN} and fans them out
+ * to all attached {@link FooBootListenerCallbacks} via the auto-start listener pattern
+ * (the receiver is registered only while at least one callback is attached).</p>
+ *
+ * <p>Requires {@code android.permission.RECEIVE_BOOT_COMPLETED} in the manifest.</p>
+ */
 public class FooBootListener
 {
     private static final String TAG = FooLog.TAG(FooBootListener.class);
 
+    /** Callback interface for device boot lifecycle events. */
     public interface FooBootListenerCallbacks
     {
         //void onLockedBootCompleted();
 
+        /** Called when the device has finished booting ({@link Intent#ACTION_BOOT_COMPLETED}). */
         void onBootCompleted();
 
+        /** Called when the device is rebooting ({@link Intent#ACTION_REBOOT}). */
         void onReboot();
 
+        /** Called when the device is shutting down ({@link Intent#ACTION_SHUTDOWN}). */
         void onShutdown();
     }
 
     private final FooListenerAutoStartManager<FooBootListenerCallbacks> mListenerManager;
     private final FooBootBroadcastReceiver                              mBootBroadcastReceiver;
 
+    /**
+     * Constructs a new listener bound to the given context.
+     *
+     * @param context the application context used to register/unregister the broadcast receiver
+     * @throws IllegalArgumentException if {@code context} is null
+     */
     public FooBootListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
@@ -96,11 +116,27 @@ public class FooBootListener
         mBootBroadcastReceiver = new FooBootBroadcastReceiver(context);
     }
 
+    /**
+     * Registers {@code callbacks} to receive boot lifecycle events.
+     *
+     * <p>The underlying broadcast receiver is registered automatically when the first callbacks
+     * instance is attached.</p>
+     *
+     * @param callbacks the listener to register; no-op if already registered
+     */
     public void attach(FooBootListenerCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
     }
 
+    /**
+     * Unregisters previously registered {@code callbacks}.
+     *
+     * <p>The underlying broadcast receiver is unregistered automatically when the last callbacks
+     * instance is detached.</p>
+     *
+     * @param callbacks the listener to remove; no-op if not registered
+     */
     public void detach(FooBootListenerCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);

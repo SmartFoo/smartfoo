@@ -4,6 +4,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.smartfoo/smartfoo-android-lib-core)](https://central.sonatype.com/artifact/com.smartfoo/smartfoo-android-lib-core)
 [![CI](https://github.com/SmartFoo/smartfoo/actions/workflows/android.yml/badge.svg)](https://github.com/SmartFoo/smartfoo/actions/workflows/android.yml)
 [![Publish](https://github.com/SmartFoo/smartfoo/actions/workflows/publish.yml/badge.svg)](https://github.com/SmartFoo/smartfoo/actions/workflows/publish.yml)
+[![API Docs](https://img.shields.io/badge/API%20Docs-KDoc-blue)](https://smartfoo.github.io/smartfoo/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This project was started 2016/01 to [try to] be a pseudo cross-platform library

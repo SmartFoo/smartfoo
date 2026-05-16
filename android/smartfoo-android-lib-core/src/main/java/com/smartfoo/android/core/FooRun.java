@@ -39,6 +39,17 @@ public class FooRun
         return paramValue;
     }
 
+    /**
+     * Throws {@link IllegalArgumentException} if {@code paramValue} is null or empty.
+     *
+     * @param paramValue the string to validate
+     * @param paramName  the name of the parameter; must not be null or empty (throws immediately
+     *                   if violated)
+     * @return {@code paramName} (not {@code paramValue}) — a design quirk; callers should rely
+     *         on the side-effect throw rather than the return value
+     * @throws IllegalArgumentException if {@code paramName} is null/empty, or if
+     *                                  {@code paramValue} is null/empty
+     */
     @NonNullNonEmpty
     public static String throwIllegalArgumentExceptionIfNullOrEmpty(String paramValue,
                                                                     @NonNullNonEmpty String paramName)
@@ -86,12 +97,29 @@ public class FooRun
         return paramValue;
     }
 
+    /**
+     * Validates and returns the given context.
+     *
+     * @param context the context to validate; must not be null
+     * @return {@code context}, never null
+     * @throws IllegalArgumentException if {@code context} is null
+     */
     @NonNull
     public static Context getContext(@NonNull Context context)
     {
         return toNonNull(context, "context");
     }
 
+    /**
+     * Throws {@link IllegalArgumentException} if {@code paramValue} is null.
+     *
+     * <p>Unlike {@link #throwIllegalArgumentExceptionIfNull}, this method does not validate
+     * {@code paramName} and does not return the value.</p>
+     *
+     * @param paramValue the object to test
+     * @param paramName  the parameter name included in the exception message
+     * @throws IllegalArgumentException if {@code paramValue} is null
+     */
     public static void throwIfNull(Object paramValue,
                                    @NonNullNonEmpty String paramName) {
         if (paramValue == null) {

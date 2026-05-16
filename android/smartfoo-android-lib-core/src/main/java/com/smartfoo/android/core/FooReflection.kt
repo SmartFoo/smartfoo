@@ -140,6 +140,12 @@ object FooReflection {
             .trim { it <= ' ' }
     }
 
+    /**
+     * Appends a `" extends ClassName, ..."` suffix to [sb] for each inner class of [instanceClass].
+     *
+     * @param instanceClass the class to inspect
+     * @param sb            the builder to append to
+     */
     @JvmStatic
     fun getClassSignature(
         instanceClass: Class<*>,
@@ -157,6 +163,13 @@ object FooReflection {
         }
     }
 
+    /**
+     * Appends a `" implements InterfaceName, ..."` suffix to [sb] for each interface of
+     * [instanceClass].
+     *
+     * @param instanceClass the class to inspect
+     * @param sb            the builder to append to
+     */
     @JvmStatic
     fun getInterfaceSignature(
         instanceClass: Class<*>,
@@ -263,6 +276,13 @@ object FooReflection {
 
 
 
+    /**
+     * Kotlin-friendly overload of [mapConstants] that accepts a [KClass].
+     *
+     * @param clazz    the Kotlin class to inspect
+     * @param prefixes constant name prefixes to match (e.g. `"REASON_"`)
+     * @return a map from integer constant value to field name
+     */
     @JvmStatic
     fun mapConstants(clazz: KClass<*>, vararg prefixes: String): Map<Int, String> =
         mapConstants(clazz.java, *prefixes)

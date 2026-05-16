@@ -17,16 +17,29 @@ import com.smartfoo.android.core.FooListenerAutoStartManager.FooListenerAutoStar
 import com.smartfoo.android.core.FooRun;
 import com.smartfoo.android.core.logging.FooLog;
 
+/**
+ * Observes screen-on, screen-off, and user-unlock broadcast events.
+ *
+ * <p>Uses {@link FooListenerAutoStartManager} so the underlying
+ * {@link BroadcastReceiver} is registered only while at least one
+ * {@link FooScreenListenerCallbacks} is attached, avoiding unnecessary wake-locks.
+ * Query the current display state at any time via {@link #isScreenOn()} or
+ * {@link #isUserUnlocked()}.</p>
+ */
 public class FooScreenListener
 {
     private static final String TAG = FooLog.TAG(FooScreenListener.class);
 
+    /** Callback interface for screen state changes. */
     public interface FooScreenListenerCallbacks
     {
+        /** Called when all displays have turned off. */
         void onScreenOff();
 
+        /** Called when at least one display has turned on. */
         void onScreenOn();
 
+        /** Called when the user has unlocked the device after boot. */
         void onUserUnlocked();
     }
 
@@ -36,6 +49,13 @@ public class FooScreenListener
     private final KeyguardManager                                         mKeyguardManager;
     private final UserManager                                             mUserManager;
 
+    /**
+     * Constructs a new listener bound to the given context.
+     *
+     * @param context the application context used to query display state and to
+     *                register/unregister the broadcast receiver
+     * @throws IllegalArgumentException if {@code context} is null
+     */
     public FooScreenListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
@@ -92,11 +112,26 @@ public class FooScreenListener
         mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
     }
 
+    /**
+     * Returns true if at least one display is currently in a non-off state.
+     *
+     * <p>Queries {@link android.hardware.display.DisplayManager} at call time; does not require
+     * the receiver to be started.</p>
+     *
+     * @return true if any display is on
+     */
     public boolean isScreenOn()
     {
         return mScreenBroadcastReceiver.isScreenOn();
     }
 
+    /**
+     * Returns true if the current user has unlocked the device after boot.
+     *
+     * <p>Delegates to {@link android.os.UserManager#isUserUnlocked()}.</p>
+     *
+     * @return true if the user is unlocked
+     */
     public boolean isUserUnlocked()
     {
         boolean isUserUnlocked = mUserManager.isUserUnlocked();
@@ -104,11 +139,27 @@ public class FooScreenListener
         return isUserUnlocked;
     }
 
+    /**
+     * Registers {@code callbacks} to receive screen state events.
+     *
+     * <p>The underlying broadcast receiver is registered automatically when the first callbacks
+     * instance is attached.</p>
+     *
+     * @param callbacks the listener to register; no-op if already registered
+     */
     public void attach(FooScreenListenerCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
     }
 
+    /**
+     * Unregisters previously registered {@code callbacks}.
+     *
+     * <p>The underlying broadcast receiver is unregistered automatically when the last callbacks
+     * instance is detached.</p>
+     *
+     * @param callbacks the listener to remove; no-op if not registered
+     */
     public void detach(FooScreenListenerCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);

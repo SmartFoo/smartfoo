@@ -37,10 +37,26 @@ object FooAudioUtils {
             }
     }
 
+    /**
+     * Returns a symbolic name for the given audio stream type using reflection-based constant
+     * mapping (no localisation).
+     *
+     * @param audioStreamType an [android.media.AudioManager].STREAM_* constant
+     * @return a string such as `"STREAM_MUSIC(3)"`
+     */
     @JvmStatic
     fun audioStreamTypeToString(audioStreamType: Int) =
         audioStreamTypeToString(null, audioStreamType)
 
+    /**
+     * Returns a localised display name for the given audio stream type when [context] is
+     * non-null, or falls back to the reflection-based constant name.
+     *
+     * @param context         optional context used to look up string resources; pass null for
+     *                        the non-localised fallback
+     * @param audioStreamType an [android.media.AudioManager].STREAM_* constant
+     * @return a human-readable stream-type name
+     */
     @JvmStatic
     fun audioStreamTypeToString(
         context: Context?,
@@ -72,6 +88,12 @@ object FooAudioUtils {
         FooReflection.mapConstants(AudioManager::class, "AUDIOFOCUS_NONE", "AUDIOFOCUS_GAIN", "AUDIOFOCUS_LOSS")
     }
 
+    /**
+     * Returns a symbolic name for the given audio focus gain/loss value.
+     *
+     * @param audioFocusGainLoss an [android.media.AudioManager].AUDIOFOCUS_* constant
+     * @return a string such as `"AUDIOFOCUS_GAIN(1)"`
+     */
     @JvmStatic
     fun audioFocusGainLossToString(audioFocusGainLoss: Int) =
         FooReflection.toString(audioFocusMap, audioFocusGainLoss)
@@ -81,6 +103,12 @@ object FooAudioUtils {
         FooReflection.mapConstants(AudioManager::class, "AUDIOFOCUS_REQUEST_")
     }
 
+    /**
+     * Returns a symbolic name for the given audio focus request result.
+     *
+     * @param audioFocusRequest an [android.media.AudioManager].AUDIOFOCUS_REQUEST_* constant
+     * @return a string such as `"AUDIOFOCUS_REQUEST_GRANTED(1)"`
+     */
     @JvmStatic
     fun audioFocusRequestToString(audioFocusRequest: Int) =
         FooReflection.toString(audioFocusRequestMap, audioFocusRequest)
@@ -121,12 +149,26 @@ object FooAudioUtils {
         return (volumeMax * volumePercent).roundToInt()
     }
 
+    /**
+     * Returns the current absolute volume level for the given stream.
+     *
+     * @param audioManager    the audio manager
+     * @param audioStreamType the stream type (e.g. [android.media.AudioManager.STREAM_MUSIC])
+     * @return the current absolute volume level
+     */
     @JvmStatic
     fun getVolumeAbsolute(
         audioManager: AudioManager,
         audioStreamType: Int,
     ) = audioManager.getStreamVolume(audioStreamType)
 
+    /**
+     * Returns the current volume for the given stream as a [0.0, 1.0] fraction.
+     *
+     * @param audioManager    the audio manager
+     * @param audioStreamType the stream type (e.g. [android.media.AudioManager.STREAM_MUSIC])
+     * @return current volume as a fraction of the stream maximum
+     */
     @JvmStatic
     fun getVolumePercent(
         audioManager: AudioManager,

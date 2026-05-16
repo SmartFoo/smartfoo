@@ -261,6 +261,14 @@ public class FooDebugActivity
         return (FooDebugApplication) applicationContext;
     }
 
+    /**
+     * Initialises the activity, inflates the layout, loads colours from resources, and triggers
+     * the first log load. If {@code savedInstanceState} is null this is a fresh start; otherwise
+     * the super-class restores the view hierarchy and {@link #onRestoreInstanceState} will be
+     * called to reload the saved log state.
+     *
+     * @param savedInstanceState the previously saved state bundle, or {@code null} on first launch
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -349,6 +357,13 @@ public class FooDebugActivity
         loadLog(false);
     }
 
+    /**
+     * Saves the current log state so it can be restored after a configuration change.
+     * Persists the raw log text, header, log-size limits, and whether the last shared file
+     * was compressed.
+     *
+     * @param outState the bundle in which to place the saved state
+     */
     @Override
     protected void onSaveInstanceState(Bundle outState)
     {
@@ -363,6 +378,12 @@ public class FooDebugActivity
         outState.putInt("mLogEmailLimitKb", mLogEmailLimitKb);
     }
 
+    /**
+     * Restores log state saved in {@link #onSaveInstanceState}. Called after {@link #onCreate}
+     * when the activity is recreated after a configuration change.
+     *
+     * @param savedInstanceState the bundle that was previously populated by {@link #onSaveInstanceState}
+     */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState)
     {

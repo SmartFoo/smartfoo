@@ -15,6 +15,17 @@ import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 
+/**
+ * Fluent builder for Android notifications backed by [NotificationCompat.Builder].
+ *
+ * Every setter returns `this` so calls can be chained. Convenience overloads are
+ * provided for [android.app.Activity], broadcast, and service [android.app.PendingIntent]
+ * targets so that callers do not need to construct PendingIntents manually.
+ * Call [build] to produce the final [android.app.Notification].
+ *
+ * @param context the context used for resource resolution and PendingIntent creation
+ * @param channelId the notification channel ID (required on API 26+)
+ */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class FooNotificationBuilder
     (context: Context, channelId: String) {

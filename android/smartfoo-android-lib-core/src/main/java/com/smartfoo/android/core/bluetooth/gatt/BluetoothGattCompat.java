@@ -31,12 +31,32 @@ public class BluetoothGattCompat
 
     private final Context context;
 
+    /**
+     * Creates a {@link BluetoothGattCompat} that will use {@code context} when connecting.
+     *
+     * @param context application or activity context; must not be null
+     */
     @SuppressWarnings("WeakerAccess")
     public BluetoothGattCompat(Context context)
     {
         this.context = context;
     }
 
+    /**
+     * Initiates a GATT connection to the remote device, working around a race condition in
+     * Android 6.x and earlier where the auto-connect flag was not properly propagated before
+     * the native {@code connectGatt} call.
+     *
+     * <p>On Android 7.0 (N) and above, or when {@code autoConnect} is false, this method
+     * delegates directly to the platform {@link BluetoothDevice#connectGatt} API. On older
+     * versions with {@code autoConnect = true} it uses reflection to set the flag before
+     * connecting, falling back to the standard API if reflection fails.</p>
+     *
+     * @param remoteDevice            the device to connect to; returns null if null
+     * @param autoConnect             true to use the OS background auto-connect mechanism
+     * @param bluetoothGattCallback   callback to receive GATT events
+     * @return the {@link BluetoothGatt} connection object, or null if the connection could not be initiated
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothGatt connectGatt(BluetoothDevice remoteDevice,
                                      boolean autoConnect,

@@ -75,6 +75,16 @@ public class FooLogFilePrinter
         return sInstance;
     }
 
+    /**
+     * Returns the absolute path of the log file on external storage for the given application.
+     * The path follows the pattern {@code <external-storage>/<package-name>/debug.log}.
+     *
+     * <p>Requires {@link #REQUIRED_PERMISSIONS}.</p>
+     *
+     * @param applicationContext the application context used to resolve the package name;
+     *                           must not be null
+     * @return the absolute log-file path, never null
+     */
     public static String getLogFilePath(@NonNull Context applicationContext)
     {
         return Environment.getExternalStorageDirectory().getAbsolutePath() +
@@ -263,6 +273,13 @@ public class FooLogFilePrinter
         }
     }
 
+    /**
+     * Enables or disables writing to the log file. When disabling, the underlying
+     * {@link java.io.BufferedWriter} is flushed and closed so that no data is lost.
+     *
+     * @param enabled {@code true} to enable file logging; {@code false} to disable and close the
+     *                file immediately
+     */
     @Override
     public void setEnabled(boolean enabled)
     {
@@ -277,6 +294,17 @@ public class FooLogFilePrinter
         }
     }
 
+    /**
+     * Formats the log record and appends it to the log file, opening the file lazily if needed.
+     * Returns {@code false} (which disables this printer) if external storage is not mounted or
+     * an {@link java.io.IOException} is encountered.
+     *
+     * @param tag   the log tag
+     * @param level the log level (one of {@link FooLog.FooLogLevel} constants)
+     * @param msg   the log message
+     * @param e     an optional throwable; may be null
+     * @return {@code true} on success; {@code false} if the record could not be written
+     */
     @Override
     protected boolean printlnInternal(String tag, int level, String msg, Throwable e)
     {
@@ -308,6 +336,10 @@ public class FooLogFilePrinter
         return true;
     }
 
+    /**
+     * Closes the log file and deletes it from external storage.
+     * After this call the printer remains enabled and a new file is opened on the next write.
+     */
     @Override
     public void clear()
     {

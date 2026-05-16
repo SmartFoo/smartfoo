@@ -75,11 +75,14 @@ private constructor() {
     private var mNotificationListenerServiceConnectedTimeoutStartMillis: Long = -1
 
     /**
-     * **Set to slow mode for debug builds.**
+     * Switches the connection timeout between normal and slow (debug) mode.
      *
-     * Sets timeout based on [FooNotificationListener.NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout]
+     * Slow mode uses a longer timeout to accommodate the extra startup time of debug builds.
+     * Delegates to [FooNotificationListener.NOTIFICATION_LISTENER_SERVICE_CONNECTED_TIMEOUT_MILLIS.getRecommendedTimeout].
      *
      * To set a more precise timeout, use [setTimeout]
+     *
+     * @param value true to enable slow mode, false for normal mode
      */
     fun setSlowMode(value: Boolean) {
         val timeoutMillis =
@@ -88,6 +91,13 @@ private constructor() {
         setTimeout(timeoutMillis)
     }
 
+    /**
+     * Sets the maximum number of milliseconds to wait for the
+     * [FooNotificationListenerService] to connect before calling
+     * [FooNotificationListenerManagerCallbacks.onNotificationListenerServiceNotConnected].
+     *
+     * @param timeoutMillis the timeout in milliseconds
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     fun setTimeout(timeoutMillis: Long) {
         mNotificationListenerServiceConnectedTimeoutMillis = timeoutMillis
@@ -96,6 +106,17 @@ private constructor() {
     val isNotificationListenerServiceConnected: Boolean
         get() = mNotificationListenerService != null
 
+    /**
+     * Registers [callbacks] to receive notification listener events.
+     *
+     * If notification listener access is confirmed enabled, starts the connection timeout
+     * on the first attachment. If access is not enabled, immediately calls
+     * [FooNotificationListenerManagerCallbacks.onNotificationListenerServiceNotConnected]
+     * with [NotConnectedReason.ConfirmedNotEnabled].
+     *
+     * @param context   the application context used to check notification listener access
+     * @param callbacks the listener to register
+     */
     fun attach(
         context: Context,
         callbacks: FooNotificationListenerManagerCallbacks
@@ -121,6 +142,13 @@ private constructor() {
         }
     }
 
+    /**
+     * Unregisters previously registered [callbacks].
+     *
+     * Stops the connection timeout if no listeners remain.
+     *
+     * @param callbacks the listener to remove; no-op if not registered
+     */
     fun detach(callbacks: FooNotificationListenerManagerCallbacks) {
         mListenerManager.detach(callbacks)
 
@@ -355,6 +383,14 @@ private constructor() {
         return activeNotificationsSnapshot.snapshot(notificationListenerService)
     }
 
+    /**
+     * Replays all currently active notifications through the registered callbacks, as if each
+     * had just been posted.
+     *
+     * Call this after connection when the default automatic initialization has been suppressed
+     * (i.e. [FooNotificationListenerManagerCallbacks.onNotificationListenerServiceConnected]
+     * returned true).
+     */
     fun initializeActiveNotifications() {
         val notificationListenerService = mNotificationListenerService
         val activeNotificationsSnapshot = getActiveNotificationsSnapshot(notificationListenerService)

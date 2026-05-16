@@ -9,6 +9,12 @@ import android.util.SizeF
 import android.util.SparseArray
 import java.io.Serializable
 
+/**
+ * Fluent builder for [android.os.Bundle].
+ *
+ * Wraps every [android.os.Bundle] put-method and returns `this` so calls can be chained.
+ * Call [build] to retrieve the assembled Bundle.
+ */
 @Suppress("unused")
 class FooBundleBuilder {
     private val mBundle = Bundle()

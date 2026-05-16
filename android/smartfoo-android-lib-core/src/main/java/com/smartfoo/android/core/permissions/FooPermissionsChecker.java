@@ -65,11 +65,27 @@ public class FooPermissionsChecker
             return mContext;
         }
 
+        /**
+         * Returns the request code that will be passed to
+         * {@link ActivityCompat#requestPermissions} and echoed back in
+         * {@link Activity#onRequestPermissionsResult}.
+         *
+         * @return the permissions request code
+         */
         public int getPermissionsRequestCode()
         {
             return mPermissionsRequestCodeCallbacks.getPermissionsRequestCode();
         }
 
+        /**
+         * Called when one or more requested permissions have been denied by the OS. Subclasses
+         * should show appropriate UI (e.g. a rationale dialog) and return whether the checker
+         * should continue.
+         *
+         * @param requestCode       the request code from {@link #getPermissionsRequestCode()}
+         * @param permissionsDenied the permissions that were denied; never null
+         * @return true to halt further processing, false to allow the checker to proceed
+         */
         protected abstract boolean onPermissionsDenied(int requestCode, String[] permissionsDenied);
     }
 
@@ -85,33 +101,59 @@ public class FooPermissionsChecker
         mCallbacks = callbacks;
     }
 
+    /**
+     * Returns the {@link android.content.Context} provided by the callbacks object.
+     *
+     * @return the context, never null
+     */
     public Context getContext()
     {
         return mCallbacks.getContext();
     }
 
+    /**
+     * Returns the request code used when calling
+     * {@link ActivityCompat#requestPermissions} so the Activity can route the result back to
+     * this checker.
+     *
+     * @return the permissions request code
+     */
     public int getPermissionsRequestCode()
     {
         return mCallbacks.getPermissionsRequestCode();
     }
 
     /**
-     * @param permissionRequested One of {@link android.Manifest.permission}.*
-     * @return never null
+     * Checks whether a single permission is granted and, if not, invokes the denied callback.
+     *
+     * @param permissionRequested one of the {@link android.Manifest.permission} constants
+     * @return an unmodifiable list of denied permissions; empty if the permission is granted
      */
     public List<String> checkPermission(String permissionRequested)
     {
         return checkPermissions(new String[] { permissionRequested });
     }
 
+    /**
+     * Checks whether the given permission is currently granted in the given context.
+     *
+     * @param context    the context used to perform the check; must not be null
+     * @param permission one of the {@link android.Manifest.permission} constants; must not be null
+     * @return true if the permission is granted
+     */
     public static boolean isPermissionGranted(@NonNull Context context, @NonNull String permission)
     {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
-     * @param permissionsRequested One of {@link android.Manifest.permission}.*; ignored if null/empty
-     * @return never null
+     * Checks each of the requested permissions. For any that are not yet granted, collects them
+     * into a list and calls {@link FooPermissionsCheckerCallbacks#onPermissionsDenied} so the
+     * host can show rationale UI and forward the runtime-permission request.
+     *
+     * @param permissionsRequested an array of {@link android.Manifest.permission} constants to
+     *                             check; ignored if null or empty
+     * @return an unmodifiable list of denied permissions (may be empty); never null
      */
     public List<String> checkPermissions(String[] permissionsRequested)
     {

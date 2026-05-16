@@ -48,6 +48,14 @@ public class FooLogAdbPrinter
                     Log.ASSERT // 7 FooLog.LogLevel.Fatal
             };
 
+    /**
+     * Returns whether a log message at the given level is loggable for the given tag,
+     * delegating to {@link Log#isLoggable(String, int)}.
+     *
+     * @param tag   the log tag to check
+     * @param level the Android log level constant (e.g. {@link Log#DEBUG})
+     * @return {@code true} if the message should be logged
+     */
     public static boolean isLoggable(String tag, int level)
     {
         return Log.isLoggable(tag, level);
@@ -101,12 +109,23 @@ public class FooLogAdbPrinter
         return true;
     }
 
+    /**
+     * Clears the Android logcat buffer by invoking {@link FooLogCat#clear()}.
+     */
     @Override
     public void clear()
     {
         FooLogCat.clear();
     }
 
+    /**
+     * Returns a loggable stack trace string for the given throwable, delegating to
+     * {@link Log#getStackTraceString(Throwable)}.
+     *
+     * @param caller    the object initiating the call; currently unused but kept for API compatibility
+     * @param throwable the throwable whose stack trace to format
+     * @return the formatted stack-trace string, never null
+     */
     public static String getStackTraceString(Object caller, Throwable throwable)
     {
         return Log.getStackTraceString(throwable);

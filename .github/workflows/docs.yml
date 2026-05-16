@@ -1,0 +1,65 @@
+name: Publish API Docs to GitHub Pages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; do not cancel an in-progress deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    name: Build Dokka HTML
+    runs-on: ubuntu-latest
+    env:
+      JAVA_VERSION: 21
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./android
+    steps:
+      - name: Checkout code and submodule(s)
+        uses: actions/checkout@v6
+        with:
+          submodules: 'recursive'
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'jetbrains'
+          cache: gradle
+
+      - run: chmod +x gradlew
+
+      - name: Generate Dokka HTML
+        run: ./gradlew :smartfoo-android-lib-core:dokkaGeneratePublicationHtml
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Path is relative to the repository root, not the job working-directory.
+          path: android/smartfoo-android-lib-core/build/dokka/html
+
+  deploy-docs:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -66,6 +66,16 @@ public class GenericPromptPositiveNegativeDialogFragment
         return resId != -1 && resId != 0;
     }
 
+    /**
+     * Creates a new instance using Android string-resource IDs, without a checkbox.
+     *
+     * @param context           a context used to resolve the resource IDs; must not be null
+     * @param title             string resource ID for the dialog title
+     * @param message           string resource ID for the dialog message
+     * @param textPositiveButton string resource ID for the positive button label
+     * @param textNegativeButton string resource ID for the negative button label
+     * @return a configured dialog fragment, never null
+     */
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(
             @NonNull Context context,
@@ -77,6 +87,20 @@ public class GenericPromptPositiveNegativeDialogFragment
         return newInstance(context, title, message, 0, false, textPositiveButton, textNegativeButton);
     }
 
+    /**
+     * Creates a new instance using Android string-resource IDs, optionally with a checkbox.
+     *
+     * @param context            a context used to resolve the resource IDs; must not be null
+     * @param title              string resource ID for the dialog title
+     * @param message            string resource ID for the dialog message
+     * @param checkboxMessage    string resource ID for the optional checkbox label;
+     *                           pass {@code 0} to omit the checkbox
+     * @param checkboxChecked    initial checked state of the checkbox; ignored when
+     *                           {@code checkboxMessage} is {@code 0}
+     * @param textPositiveButton string resource ID for the positive button label
+     * @param textNegativeButton string resource ID for the negative button label
+     * @return a configured dialog fragment, never null
+     */
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(
             @NonNull Context context,
@@ -97,6 +121,14 @@ public class GenericPromptPositiveNegativeDialogFragment
                 context.getString(textNegativeButton));
     }
 
+    /**
+     * Creates a new instance with string arguments and default button labels ({@link android.R.string#ok}
+     * / {@link android.R.string#cancel}).
+     *
+     * @param title   dialog title text
+     * @param message dialog message text
+     * @return a configured dialog fragment, never null
+     */
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(String title,
                                                                           String message)
@@ -104,6 +136,15 @@ public class GenericPromptPositiveNegativeDialogFragment
         return newInstance(title, message, null, null);
     }
 
+    /**
+     * Creates a new instance with string arguments and explicit button labels, without a checkbox.
+     *
+     * @param title              dialog title text
+     * @param message            dialog message text
+     * @param textPositiveButton positive button label, or {@code null} for the system default
+     * @param textNegativeButton negative button label, or {@code null} for the system default
+     * @return a configured dialog fragment, never null
+     */
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(String title,
                                                                           String message,
@@ -113,6 +154,18 @@ public class GenericPromptPositiveNegativeDialogFragment
         return newInstance(title, message, null, false, textPositiveButton, textNegativeButton);
     }
 
+    /**
+     * Creates a new instance with string arguments, an optional checkbox, and explicit button labels.
+     *
+     * @param title              dialog title text
+     * @param message            dialog message text
+     * @param checkboxMessage    optional checkbox label text; pass {@code null} to omit the checkbox
+     * @param checkboxChecked    initial checked state of the checkbox; ignored when
+     *                           {@code checkboxMessage} is {@code null}
+     * @param textPositiveButton positive button label, or {@code null} for the system default
+     * @param textNegativeButton negative button label, or {@code null} for the system default
+     * @return a configured dialog fragment, never null
+     */
     @NonNull
     public static GenericPromptPositiveNegativeDialogFragment newInstance(String title,
                                                                           String message,
@@ -137,6 +190,15 @@ public class GenericPromptPositiveNegativeDialogFragment
     protected static final String ARG_POSITIVE_BUTTON_TEXT = "ARG_POSITIVE_BUTTON_TEXT";
     protected static final String ARG_NEGATIVE_BUTTON_TEXT = "ARG_NEGATIVE_BUTTON_TEXT";
 
+    /**
+     * Builds a {@link Bundle} of fragment arguments without a checkbox.
+     *
+     * @param title              dialog title text; must not be null or empty
+     * @param message            dialog message text; must not be null or empty
+     * @param textPositiveButton positive button label, or {@code null} for the system default
+     * @param textNegativeButton negative button label, or {@code null} for the system default
+     * @return a bundle suitable for passing to {@link #setArguments}, never null
+     */
     @NonNull
     protected Bundle makeArguments(
             @NonNullNonEmpty String title,
@@ -147,6 +209,17 @@ public class GenericPromptPositiveNegativeDialogFragment
         return makeArguments(title, message, null, false, textPositiveButton, textNegativeButton);
     }
 
+    /**
+     * Builds a {@link Bundle} of fragment arguments, optionally including a checkbox entry.
+     *
+     * @param title              dialog title text; must not be null or empty
+     * @param message            dialog message text; must not be null or empty
+     * @param checkboxMessage    optional checkbox label; pass {@code null} to omit the checkbox
+     * @param checkboxChecked    initial checked state; ignored when {@code checkboxMessage} is null
+     * @param textPositiveButton positive button label, or {@code null} for the system default
+     * @param textNegativeButton negative button label, or {@code null} for the system default
+     * @return a bundle suitable for passing to {@link #setArguments}, never null
+     */
     @NonNull
     protected Bundle makeArguments(
             @NonNullNonEmpty String title,
@@ -187,16 +260,32 @@ public class GenericPromptPositiveNegativeDialogFragment
         });
     }
 
+    /**
+     * Returns the dialog title that was passed to the factory method.
+     *
+     * @return the title string, or {@code null} if the dialog has not yet been created
+     */
     public String getTitle()
     {
         return mTitle;
     }
 
+    /**
+     * Returns the dialog message that was passed to the factory method.
+     *
+     * @return the message string, or {@code null} if the dialog has not yet been created
+     */
     public String getMessage()
     {
         return mMessage;
     }
 
+    /**
+     * Returns the outcome of the last user interaction with this dialog.
+     *
+     * @return one of {@link Result#Canceled}, {@link Result#Positive}, {@link Result#PositiveChecked},
+     *         or {@link Result#Negative}; {@code null} if the dialog has not been dismissed yet
+     */
     public Result getResult()
     {
         return mResult;
@@ -281,6 +370,18 @@ public class GenericPromptPositiveNegativeDialogFragment
         return alertDialog;
     }
 
+    /**
+     * Finalises the dialog result, notifies the callback, and dismisses the dialog.
+     * Calls after the first are silently ignored so that {@code onCancel}/{@code onDismiss}
+     * cannot overwrite a result that was already set by a button click.
+     *
+     * <p>If {@code result} is {@link Result#Positive} and the optional checkbox is checked,
+     * the stored result is promoted to {@link Result#PositiveChecked}.</p>
+     *
+     * @param dialog the dialog interface to dismiss; may be {@code null} (e.g. called from
+     *               {@code onDismiss} where the dialog is already going away)
+     * @param result the raw result from the button or cancel event
+     */
     protected void onResult(DialogInterface dialog, Result result)
     {
         //FooLog.e(TAG, "onResult(dialog=" + dialog + ", result=" + result + ')');

@@ -46,14 +46,29 @@ class FooAudioFocusController private constructor() {
     }
 
     // --- Callback API -------------------------------------------------------
+
+    /** Callback interface for audio focus gain and loss events. */
     abstract class Callbacks {
-        /** Return true to consume. */
+        /**
+         * Called when audio focus is gained.
+         *
+         * @param audioFocusController the controller that dispatched this event
+         * @param audioFocusRequest    the request that was granted focus
+         * @return true to consume the event and stop delivery to subsequent callbacks
+         */
         open fun onFocusGained(
             audioFocusController: FooAudioFocusController,
             audioFocusRequest: AudioFocusRequest,
         ): Boolean = false
 
-        /** Return true to consume. */
+        /**
+         * Called when audio focus is lost.
+         *
+         * @param audioFocusController the controller that dispatched this event
+         * @param audioFocusRequest    the request that lost focus
+         * @param focusChange          one of the [android.media.AudioManager].AUDIOFOCUS_LOSS_* constants
+         * @return true to consume the event and stop delivery to subsequent callbacks
+         */
         open fun onFocusLost(
             audioFocusController: FooAudioFocusController,
             audioFocusRequest: AudioFocusRequest,
@@ -73,6 +88,12 @@ class FooAudioFocusController private constructor() {
 
         override fun close() = release()
 
+        /**
+         * Releases this handle, detaching its callbacks and abandoning audio focus if this was
+         * the last live holder.
+         *
+         * Safe to call more than once; subsequent calls are no-ops.
+         */
         fun release() {
             if (closed) return
             closed = true

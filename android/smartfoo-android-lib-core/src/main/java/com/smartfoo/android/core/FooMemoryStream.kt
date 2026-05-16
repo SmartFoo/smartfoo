@@ -222,6 +222,16 @@ open class FooMemoryStream
             return getPosition()
         }
 
+        /**
+         * Ensures the backing buffer is at least [size] bytes long, growing in
+         * [BLOCK_SIZE]-aligned increments if necessary.
+         *
+         * The logical [getLength] and [getPosition] are unchanged by this call.
+         *
+         * @param size the minimum required buffer capacity in bytes
+         * @return true if the buffer was reallocated (i.e. it was too small), false if no
+         *         change was needed
+         */
         @Synchronized
         protected fun makeSpaceFor(size: Int): Boolean {
             var size = size

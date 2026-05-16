@@ -33,8 +33,20 @@ public abstract class FooLogFormatter
                     "F", // 7 FooLog.LogLevel.Fatal
             };
 
+    /**
+     * Returns the process ID of the current process.
+     * Implementations use the API appropriate for their runtime environment.
+     *
+     * @return the current process ID
+     */
     protected abstract int getPid();
 
+    /**
+     * Returns the thread ID of the calling thread.
+     * Implementations use the API appropriate for their runtime environment.
+     *
+     * @return the current thread ID
+     */
     protected abstract int getTid();
 
     /**
@@ -51,11 +63,36 @@ public abstract class FooLogFormatter
         return format(new Date(), level, tag, msg, e);
     }
 
+    /**
+     * Formats a log record using an explicit date/time value.
+     * Resolves the PID and TID via {@link #getPid()} and {@link #getTid()}.
+     *
+     * @param dateTime the timestamp to embed in the formatted line
+     * @param level    the log level (one of {@link FooLog.FooLogLevel} constants)
+     * @param tag      the log tag
+     * @param msg      the log message
+     * @param e        an optional throwable whose stack trace is appended; may be null
+     * @return the formatted log line, never null
+     */
     public String format(Date dateTime, int level, String tag, String msg, Throwable e)
     {
         return format(dateTime, getPid(), getTid(), level, tag, msg, e);
     }
 
+    /**
+     * Formats a log record using all explicitly provided fields.
+     * Produces a line in the form:
+     * {@code MM-DD HH:mm:ss.SSS PID-TID L/TAG: message [: throwable=stacktrace]}.
+     *
+     * @param dateTime the timestamp to embed in the formatted line
+     * @param pid      the process ID to embed
+     * @param tid      the thread ID to embed
+     * @param level    the log level (one of {@link FooLog.FooLogLevel} constants)
+     * @param tag      the log tag
+     * @param msg      the log message
+     * @param e        an optional throwable whose stack trace is appended; may be null
+     * @return the formatted log line, never null
+     */
     public String format(Date dateTime, int pid, int tid, int level, String tag, String msg, Throwable e)
     {
         StringBuilder sb = new StringBuilder() //

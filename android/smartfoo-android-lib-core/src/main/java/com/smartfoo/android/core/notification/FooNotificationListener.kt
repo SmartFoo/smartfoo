@@ -13,6 +13,12 @@ import com.smartfoo.android.core.logging.FooLog
 object FooNotificationListener {
     private val TAG = FooLog.TAG(FooNotificationListener::class.java)
 
+    /**
+     * Returns a human-readable name for the given notification cancel reason constant.
+     *
+     * @param reason a [android.service.notification.NotificationListenerService].REASON_* constant
+     * @return a string such as `"REASON_CLICK(1)"`
+     */
     fun notificationCancelReasonToString(reason: Int): String {
         return when (reason) {
             NotificationListenerService.REASON_CLICK -> "REASON_CLICK"
@@ -65,6 +71,11 @@ object FooNotificationListener {
      */
     private val VERSION_SDK_INT = Build.VERSION.SDK_INT
 
+    /**
+     * Returns true if the current API level supports notification listener settings (API 19+).
+     *
+     * @return true on KitKat and above
+     */
     fun supportsNotificationListenerSettings(): Boolean {
         return VERSION_SDK_INT >= Build.VERSION_CODES.KITKAT
     }
@@ -74,6 +85,17 @@ object FooNotificationListener {
      */
     private const val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
 
+    /**
+     * Returns true if the given notification listener service class is listed in the system's
+     * enabled-notification-listeners setting.
+     *
+     * Unlike [android.app.NotificationManager.isNotificationListenerAccessGranted] (API 27+),
+     * this method works on older APIs and is not restricted to the calling app's own package.
+     *
+     * @param context                          the context
+     * @param notificationListenerServiceClass the service class to check
+     * @return true if the service is enabled
+     */
     @JvmStatic
     fun hasNotificationListenerAccess(
         context: Context,
@@ -123,11 +145,26 @@ object FooNotificationListener {
             return intent
         }
 
+    /**
+     * Opens the system Notification Listener settings screen.
+     *
+     * Does nothing if [supportsNotificationListenerSettings] returns false.
+     *
+     * @param context the context from which to start the activity
+     */
     @JvmStatic
     fun startActivityNotificationListenerSettings(context: Context) {
         context.startActivity(intentNotificationListenerSettings)
     }
 
+    /**
+     * Requests the OS to unbind (stop) the given notification listener service.
+     *
+     * Failures are logged as warnings rather than propagated.
+     *
+     * @param context                          the context
+     * @param notificationListenerServiceClass the service class to unbind
+     */
     @SuppressLint("ObsoleteSdkInt")
     @RequiresApi(Build.VERSION_CODES.N)
     fun requestNotificationListenerUnbind(
@@ -144,6 +181,15 @@ object FooNotificationListener {
         }
     }
 
+    /**
+     * Requests the OS to rebind (restart) the given notification listener service.
+     *
+     * Use this as a workaround after app updates that leave the service in an unbound state.
+     * Failures are logged as warnings rather than propagated.
+     *
+     * @param context                          the context
+     * @param notificationListenerServiceClass the service class to rebind
+     */
     @SuppressLint("ObsoleteSdkInt")
     @RequiresApi(Build.VERSION_CODES.N)
     fun requestNotificationListenerRebind(

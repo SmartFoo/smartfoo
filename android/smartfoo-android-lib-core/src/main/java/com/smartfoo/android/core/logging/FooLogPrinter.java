@@ -14,11 +14,22 @@ public abstract class FooLogPrinter
 {
     protected boolean mIsEnabled = true;
 
+    /**
+     * Enables or disables this printer. A disabled printer silently drops all log records.
+     * Subclasses may override to perform additional work (e.g. closing a file) when disabling.
+     *
+     * @param enabled {@code true} to enable; {@code false} to disable
+     */
     public void setEnabled(boolean enabled)
     {
         mIsEnabled = enabled;
     }
 
+    /**
+     * Returns whether this printer is currently enabled.
+     *
+     * @return {@code true} if log records are being processed; {@code false} if they are dropped
+     */
     public boolean isEnabled()
     {
         return mIsEnabled;
@@ -58,5 +69,10 @@ public abstract class FooLogPrinter
      */
     protected abstract boolean printlnInternal(String tag, int level, String msg, Throwable e);
 
+    /**
+     * Clears any buffered or stored log content managed by this printer.
+     * The exact behaviour is implementation-specific (e.g. deletes a log file, executes
+     * {@code logcat -c}, or is a no-op).
+     */
     public abstract void clear();
 }

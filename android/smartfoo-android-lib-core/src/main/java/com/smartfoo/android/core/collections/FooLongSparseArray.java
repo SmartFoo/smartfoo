@@ -741,11 +741,26 @@ public class FooLongSparseArray<E>
         return buffer.toString();
     }
 
+    /**
+     * Returns a multi-line debug string showing the raw internal arrays including {@code DELETED}
+     * slot markers. Equivalent to {@code toDebugString(false)}.
+     *
+     * @return a detailed debug string, never null
+     */
     public String toDebugString()
     {
         return toDebugString(false);
     }
 
+    /**
+     * Returns a multi-line debug string showing the raw internal arrays including {@code DELETED}
+     * slot markers.
+     *
+     * @param simple if true, values are rendered as {@code ClassName@hashCode} instead of calling
+     *               {@link Object#toString()}; useful when {@code toString()} is expensive or
+     *               recursive
+     * @return a detailed debug string, never null
+     */
     public String toDebugString(boolean simple)
     {
         StringBuilder buffer = new StringBuilder();
@@ -805,6 +820,14 @@ public class FooLongSparseArray<E>
     // New iterators…
     //
 
+    /**
+     * Returns an {@link Iterator} over the keys in ascending sorted order.
+     *
+     * <p><b>Note:</b> Each call to {@link Iterator#hasNext()} triggers a garbage-collection
+     * pass on the underlying array if there are any pending deletions.</p>
+     *
+     * @return an iterator over the {@code long} keys; never null
+     */
     /** @noinspection unused*/
     public Iterator<Long> iterateKeys()
     {
@@ -815,6 +838,16 @@ public class FooLongSparseArray<E>
         return new SparseArrayKeysIterator<>(this);
     }
 
+    /**
+     * Returns an {@link Iterator} over the values in key-ascending order.
+     *
+     * <p><b>Note:</b> Each call to {@link Iterator#hasNext()} triggers a garbage-collection
+     * pass on the underlying array if there are any pending deletions. Calling
+     * {@link Iterator#remove()} removes the entry at the current position and is safe to use
+     * during iteration.</p>
+     *
+     * @return an iterator over the values; never null
+     */
     public Iterator<E> iterateValues()
     {
         if (mDebugName != null)
@@ -839,6 +872,12 @@ public class FooLongSparseArray<E>
             mArray = array;
         }
 
+        /**
+         * Returns true if there is another key to iterate. Note that this call may trigger an
+         * internal garbage-collection pass on the underlying array.
+         *
+         * @return true if {@link #next()} can be called
+         */
         @Override
         public boolean hasNext()
         {
@@ -872,6 +911,12 @@ public class FooLongSparseArray<E>
             }
         }
 
+        /**
+         * Removes the entry returned by the most recent {@link #next()} call.
+         *
+         * @throws IllegalStateException if {@link #next()} has not been called since the last
+         *                               remove
+         */
         @Override
         public void remove()
         {
@@ -909,6 +954,12 @@ public class FooLongSparseArray<E>
             mArray = array;
         }
 
+        /**
+         * Returns true if there is another value to iterate. Note that this call may trigger an
+         * internal garbage-collection pass on the underlying array.
+         *
+         * @return true if {@link #next()} can be called
+         */
         @Override
         public boolean hasNext()
         {
@@ -942,6 +993,12 @@ public class FooLongSparseArray<E>
             }
         }
 
+        /**
+         * Removes the entry returned by the most recent {@link #next()} call.
+         *
+         * @throws IllegalStateException if {@link #next()} has not been called since the last
+         *                               remove
+         */
         @Override
         public void remove()
         {

@@ -12,6 +12,13 @@ import java.io.IOException
 import java.io.InputStream
 import java.util.Locale
 
+/**
+ * Convenience utilities for accessing Android resources and display metrics.
+ *
+ * Covers colour and drawable retrieval, dp→px conversion, locale and orientation
+ * queries, and reading raw resource files into a [ByteArray]. All methods require
+ * a [android.content.Context] or [android.content.res.Resources] obtained from one.
+ */
 @Suppress("unused")
 object FooRes {
     @JvmStatic
@@ -38,6 +45,13 @@ object FooRes {
     val systemResourcesDisplayMetricsHeightPixels: Int
         get() = Resources.getSystem().displayMetrics.heightPixels
 
+    /**
+     * Converts a density-independent pixel value to physical pixels.
+     *
+     * @param context any valid context (used to read the display density)
+     * @param dpValue the value in dp to convert
+     * @return the equivalent value in physical pixels, rounded to the nearest integer
+     */
     @JvmStatic
     fun dip2px(context: Context, dpValue: Float): Int {
         val scale = getDisplayMetrics(context).density
@@ -61,6 +75,13 @@ object FooRes {
     @JvmStatic
     fun orientationToString(orientation: Int) = FooReflection.toString(orientationMap, orientation)
 
+    /**
+     * Reads a raw resource file into a [ByteArray].
+     *
+     * @param context any valid context
+     * @param resId the raw resource ID to open
+     * @return the file contents, or null if the resource does not exist or an I/O error occurs
+     */
     @JvmStatic
     fun openRawResource(context: Context, @RawRes resId: Int): ByteArray? {
         val inputStream: InputStream?

@@ -138,6 +138,12 @@ public class FooDataConnectionManager
         };
     }
 
+    /**
+     * Returns a debug-friendly string including the current {@link ConnectionState} and
+     * {@link FooDataConnectionInfo}.
+     *
+     * @return a non-null string suitable for logging
+     */
     @Override
     @NonNull
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
@@ -148,11 +154,24 @@ public class FooDataConnectionManager
                + " }";
     }
 
+    /**
+     * Returns whether this manager is currently active (i.e. at least one callback is attached
+     * and the underlying listeners have been started).
+     *
+     * @return {@code true} if active
+     */
     public boolean isStarted()
     {
         return mIsStarted;
     }
 
+    /**
+     * Attaches a callback to receive connection and call-state events. The underlying
+     * {@link FooCellularStateListener} and {@link FooDataConnectionListener} are started
+     * automatically when the first callback is attached.
+     *
+     * @param callbacks the callbacks to register; may be null (silently ignored)
+     */
     public void attach(FooDataConnectionManagerCallbacks callbacks)
     {
         FooLog.v(TAG, "+attach(...)");
@@ -160,6 +179,12 @@ public class FooDataConnectionManager
         FooLog.v(TAG, "-attach(...)");
     }
 
+    /**
+     * Detaches a previously attached callback. The underlying listeners are stopped
+     * automatically when the last callback is detached.
+     *
+     * @param callbacks the callbacks to remove; may be null (silently ignored)
+     */
     public void detach(FooDataConnectionManagerCallbacks callbacks)
     {
         FooLog.v(TAG, "+detach(...)");
@@ -168,8 +193,16 @@ public class FooDataConnectionManager
     }
 
     /**
-     * @return the live state of the data connection; either {@link ConnectionState#OK},
-     * {@link ConnectionState#PhoneOffHook}, or {@link ConnectionState#NetworkDisconnected}
+     * Returns the current overall connection state by combining phone hook-state and network
+     * connectivity.
+     *
+     * <ul>
+     *   <li>{@link ConnectionState#PhoneOffHook} — an active call is in progress</li>
+     *   <li>{@link ConnectionState#NetworkDisconnected} — no active data connection</li>
+     *   <li>{@link ConnectionState#OK} — phone is on-hook and data is connected</li>
+     * </ul>
+     *
+     * @return the current {@link ConnectionState}; never null
      */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @NonNull
@@ -192,6 +225,11 @@ public class FooDataConnectionManager
         }
     }
 
+    /**
+     * Returns the most recently observed data connection info.
+     *
+     * @return the current {@link FooDataConnectionInfo}; never null
+     */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()

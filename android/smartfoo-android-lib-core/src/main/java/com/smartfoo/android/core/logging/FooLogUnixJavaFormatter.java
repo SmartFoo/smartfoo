@@ -39,12 +39,23 @@ public class FooLogUnixJavaFormatter
         mPid = pid;
     }
 
+    /**
+     * Returns the process ID captured at construction time by reading {@code $PPID} from the
+     * Unix shell. Returns {@code -1} if that read failed.
+     *
+     * @return the process ID, or {@code -1} on failure
+     */
     @Override
     protected int getPid()
     {
         return mPid;
     }
 
+    /**
+     * Returns the calling thread's ID cast to {@code int} via {@link Thread#getId()}.
+     *
+     * @return the current thread ID
+     */
     @Override
     protected int getTid()
     {

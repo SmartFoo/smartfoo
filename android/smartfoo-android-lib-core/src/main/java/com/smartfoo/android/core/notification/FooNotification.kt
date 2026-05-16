@@ -51,6 +51,12 @@ class FooNotification(
             FooReflection.mapConstants(NotificationListenerService::class, "REASON_")
         }
 
+        /**
+         * Returns a symbolic name for the given notification cancel reason.
+         *
+         * @param reason a [android.service.notification.NotificationListenerService].REASON_* constant
+         * @return a string such as `"REASON_CLICK(1)"`
+         */
         @JvmStatic
         fun notificationCancelReasonToString(reason: Int) =
             FooReflection.toString(cancelReasonMap, reason)
@@ -59,6 +65,12 @@ class FooNotification(
             FooReflection.mapConstants(NotificationListenerService::class, "HINT_")
         }
 
+        /**
+         * Returns a flags-style symbolic representation for the given listener hints bitmask.
+         *
+         * @param hints a bitmask of [android.service.notification.NotificationListenerService].HINT_* constants
+         * @return a string such as `"HINT_HOST_DISABLE_CALL_EFFECTS(2)|HINT_HOST_DISABLE_NOTIFICATION_EFFECTS(1)"`
+         */
         @JvmStatic
         fun notificationHintsToString(hints: Int) =
             FooReflection.toString(hintsMaps, hints, true)
@@ -67,15 +79,35 @@ class FooNotification(
             FooReflection.mapConstants(NotificationListenerService::class, "INTERRUPTION_FILTER_")
         }
 
+        /**
+         * Returns a symbolic name for the given notification interruption filter value.
+         *
+         * @param filter a [android.service.notification.NotificationListenerService].INTERRUPTION_FILTER_* constant
+         * @return a string such as `"INTERRUPTION_FILTER_ALL(1)"`
+         */
         @JvmStatic
         fun notificationInterruptionFilterToString(filter: Int) =
             FooReflection.toString(interruptionFilterMap, filter)
 
+        /**
+         * Returns an [Intent] that opens the system per-app notification settings page for the
+         * calling app's package.
+         *
+         * @param context the context whose package name is used
+         * @return an intent targeting [Settings.ACTION_APP_NOTIFICATION_SETTINGS]
+         */
         @JvmStatic
         fun intentAppNotificationSettings(context: Context) =
             Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                 .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
 
+        /**
+         * Returns true if the [android.Manifest.permission.POST_NOTIFICATIONS] runtime
+         * permission has been granted to the calling app.
+         *
+         * @param context the context
+         * @return true if the permission is granted
+         */
         @JvmStatic
         fun isPostNotificationsPermissionGranted(context: Context) =
             ContextCompat
@@ -88,6 +120,13 @@ class FooNotification(
         @Suppress("KDocUnresolvedReference")
         const val FLAG_NO_DISMISS = 0x00002000
 
+        /**
+         * Returns true if all bits in [flags] are set in [notification]'s flags field.
+         *
+         * @param notification the notification to test; returns false if null
+         * @param flags        the bitmask to check
+         * @return true if all given flags are set
+         */
         @JvmStatic
         fun hasFlags(notification: Notification?, flags: Int) =
             notification != null && (notification.flags and flags) != 0
@@ -98,6 +137,13 @@ class FooNotification(
         @JvmStatic
         fun getNoDismiss(notification: Notification?) = hasFlags(notification, FLAG_NO_DISMISS)
 
+        /**
+         * Searches the calling app's active notifications for one matching [notificationId].
+         *
+         * @param context        the context
+         * @param notificationId the notification ID to look for
+         * @return the matching [Notification], or null if not found or the manager is unavailable
+         */
         @JvmStatic
         fun findCallingAppNotification(
             context: Context,
@@ -300,6 +346,12 @@ class FooNotification(
          */
         const val FOREGROUND_SERVICE_TYPE_NONE = 0
 
+        /**
+         * Returns the [NotificationManagerCompat] for the given context.
+         *
+         * @param context the context
+         * @return the notification manager compat instance
+         */
         fun getNotificationManager(context: Context): NotificationManagerCompat {
             return NotificationManagerCompat.from(context)
         }
@@ -311,6 +363,12 @@ class FooNotification(
             val description: String
         )
 
+        /**
+         * Creates (or updates) a notification channel described by [channelInfo].
+         *
+         * @param context     the context
+         * @param channelInfo the channel metadata (id, name, importance, description)
+         */
         @JvmStatic
         fun createNotificationChannel(
             context: Context,
@@ -378,6 +436,14 @@ class FooNotification(
             return ("android.resource://${context.packageName}/$soundResId").toUri()
         }
 
+        /**
+         * Returns the [NotificationChannel] associated with [notification]'s channel ID, or null
+         * if the notification has no channel or the channel does not exist.
+         *
+         * @param context      the context
+         * @param notification the notification whose channel to look up
+         * @return the [NotificationChannel], or null
+         */
         @JvmStatic
         fun getNotificationChannel(
             context: Context,

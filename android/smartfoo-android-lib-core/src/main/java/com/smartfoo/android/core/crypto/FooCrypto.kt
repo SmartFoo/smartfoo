@@ -32,6 +32,17 @@ object FooCrypto {
      */
     const val SHA256 = "SHA-256"
 
+    /**
+     * Computes a proprietary 16-character uppercase hex token derived from an MD5 digest of
+     * [string].
+     *
+     * The token is extracted as characters 8–23 (inclusive) of the 32-character hex digest.
+     * This is intentionally non-standard and should not be used as a general-purpose hash.
+     *
+     * @param string the input string to hash; must be UTF-8 encodable
+     * @return a 16-character uppercase hex string
+     * @throws RuntimeException if MD5 or UTF-8 are unexpectedly unavailable on the platform
+     */
     @JvmStatic
     fun proprietaryHash(string: String): String {
         val hash: ByteArray?
@@ -56,6 +67,14 @@ object FooCrypto {
         return hex.toString().uppercase(Locale.getDefault()).substring(8, 24)
     }
 
+    /**
+     * Computes an HMAC-SHA-256 message authentication code over the entire [buffer].
+     *
+     * @param key    the secret key bytes
+     * @param buffer the data to authenticate
+     * @return the 32-byte HMAC-SHA-256 result
+     * @throws FooCryptoException if the HMAC-SHA-256 algorithm or key is unavailable
+     */
     @Throws(FooCryptoException::class)
     @JvmStatic
     fun HMACSHA256(
@@ -65,6 +84,16 @@ object FooCrypto {
         return HMACSHA256(key, buffer, 0, buffer.size)
     }
 
+    /**
+     * Computes an HMAC-SHA-256 message authentication code over a slice of [buffer].
+     *
+     * @param key    the secret key bytes
+     * @param buffer the data buffer
+     * @param offset the starting index within [buffer]
+     * @param length the number of bytes to include starting at [offset]
+     * @return the 32-byte HMAC-SHA-256 result
+     * @throws FooCryptoException if the HMAC-SHA-256 algorithm or key is unavailable
+     */
     @Throws(FooCryptoException::class)
     @JvmStatic
     fun HMACSHA256(
@@ -86,6 +115,13 @@ object FooCrypto {
         }
     }
 
+    /**
+     * Computes a SHA-256 digest of [buffer].
+     *
+     * @param buffer the data to hash
+     * @return the 32-byte SHA-256 digest
+     * @throws FooCryptoException if the SHA-256 algorithm is unavailable on this platform
+     */
     @Throws(FooCryptoException::class)
     @JvmStatic
     fun SHA256(buffer: ByteArray): ByteArray {
@@ -96,6 +132,11 @@ object FooCrypto {
         }
     }
 
+    /**
+     * Returns a cryptographically secure random 32-bit integer.
+     *
+     * @return a random [Int] value from [SecureRandom]
+     */
     @JvmStatic
     val randomInt32: Int
         get() {
@@ -103,6 +144,11 @@ object FooCrypto {
             return random.nextInt()
         }
 
+    /**
+     * Returns a cryptographically secure random 64-bit integer.
+     *
+     * @return a random [Long] value from [SecureRandom]
+     */
     @JvmStatic
     val randomInt64: Long
         get() {
@@ -110,6 +156,13 @@ object FooCrypto {
             return random.nextLong()
         }
 
+    /**
+     * Returns a byte array of the specified length filled with cryptographically secure random
+     * bytes.
+     *
+     * @param count the number of random bytes to generate; must be >= 0
+     * @return a new [ByteArray] of length [count]
+     */
     @JvmStatic
     fun getRandomBytes(count: Int): ByteArray {
         val bytes = ByteArray(count)

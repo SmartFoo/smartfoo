@@ -83,6 +83,13 @@ public class SetLogLimitDialogFragment
 
     private SetLogLimitDialogFragmentCallbacks mCallbacks = sDummyCallbacks;
 
+    /**
+     * Binds the hosting {@link android.app.Activity} as the callback target.
+     *
+     * @param context the host context
+     * @throws ClassCastException if the host activity does not implement
+     *                            {@link SetLogLimitDialogFragmentCallbacks}
+     */
     @Override
     public void onAttach(Context context)
     {
@@ -90,6 +97,10 @@ public class SetLogLimitDialogFragment
         mCallbacks = (SetLogLimitDialogFragmentCallbacks) getActivity();
     }
 
+    /**
+     * Resets the callback reference to the no-op dummy so that calls after detachment are
+     * silently ignored.
+     */
     @Override
     public void onDetach()
     {
@@ -123,6 +134,14 @@ public class SetLogLimitDialogFragment
         seekBarLogLimit.setMax(1024);
         seekBarLogLimit.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
         {
+            /**
+             * Updates the log-limit label; displays "Unlimited" when {@code progress} is 0,
+             * otherwise displays the value in KB.
+             *
+             * @param seekBar  the seekbar whose progress changed
+             * @param progress the new progress value (0–1024)
+             * @param fromUser {@code true} if the change was initiated by the user
+             */
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
             {
@@ -145,6 +164,14 @@ public class SetLogLimitDialogFragment
         seekBarLogEmailLimit.setMax(128);
         seekBarLogEmailLimit.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
         {
+            /**
+             * Updates the email-limit label; displays "Unlimited" when {@code progress} is 0,
+             * otherwise displays the value in KB.
+             *
+             * @param seekBar  the seekbar whose progress changed
+             * @param progress the new progress value (0–128)
+             * @param fromUser {@code true} if the change was initiated by the user
+             */
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
             {

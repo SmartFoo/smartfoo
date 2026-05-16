@@ -161,9 +161,20 @@ public class FooGattUtils
     }
 
     /**
-     * @param callerName callerName
-     * @param gatt       gatt
-     * @return true if both gatt.disconnect() and gatt.close() were called successfully, otherwise false
+     * Calls {@link android.bluetooth.BluetoothGatt#disconnect()} followed immediately by
+     * {@link android.bluetooth.BluetoothGatt#close()}, suppressing any exception thrown by
+     * {@code disconnect()} so that {@code close()} is always attempted.
+     *
+     * <p><b>Note:</b> Per <a href="https://code.google.com/p/android/issues/detail?id=183108">
+     * Android bug #183108</a>, calling {@code close()} immediately after {@code disconnect()} can
+     * trigger a status-257 error on Android 5.x. Use this overload only when the intent is to
+     * fully destroy the GATT client.</p>
+     *
+     * @param callerName a label used in log messages to identify the caller
+     * @param gatt       the GATT connection to disconnect and close; a null value is logged and
+     *                   returns false
+     * @return true if both {@code disconnect()} and {@code close()} completed without throwing;
+     *         false otherwise
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean safeDisconnectAndClose(@NonNull final String callerName, final BluetoothGatt gatt)
@@ -172,14 +183,17 @@ public class FooGattUtils
     }
 
     /**
-     * Oh oh! According to Android bug:
-     * https://code.google.com/p/android/issues/detail?id=183108
-     * <p>
-     * Starting in 5.0, if you call disconnect and then immediately call close the
+     * Calls {@link android.bluetooth.BluetoothGatt#disconnect()} and returns whether the call
+     * succeeded without throwing an exception.
      *
-     * @param callerName callerName
-     * @param gatt       gatt
-     * @return true if gatt.disconnect() was called successfully, otherwise false
+     * <p><b>Note:</b> Per <a href="https://code.google.com/p/android/issues/detail?id=183108">
+     * Android bug #183108</a>, callers should not call
+     * {@link android.bluetooth.BluetoothGatt#close()} immediately after this method on Android
+     * 5.x; wait for the {@code onConnectionStateChange} callback first.</p>
+     *
+     * @param callerName a label used in log messages to identify the caller
+     * @param gatt       the GATT connection to disconnect; a null value is logged and returns false
+     * @return true if {@code disconnect()} completed without throwing; false otherwise
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean safeDisconnect(@NonNull final String callerName, final BluetoothGatt gatt)
@@ -217,9 +231,12 @@ public class FooGattUtils
     }
 
     /**
-     * @param callerName callerName
-     * @param gatt       gatt
-     * @return true if gatt.close() was called successfully, otherwise false
+     * Calls {@link android.bluetooth.BluetoothGatt#close()} and returns whether the call
+     * succeeded without throwing an exception. All exceptions are caught and logged.
+     *
+     * @param callerName a label used in log messages to identify the caller
+     * @param gatt       the GATT connection to close; a null value is logged and returns false
+     * @return true if {@code close()} completed without throwing; false otherwise
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean safeClose(@NonNull final String callerName, final BluetoothGatt gatt)

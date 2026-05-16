@@ -3,6 +3,16 @@ package com.smartfoo.android.core.collections
 import com.smartfoo.android.core.FooObjects
 
 object FooCollections {
+    /**
+     * Computes a order-sensitive hash code over all elements of [items].
+     *
+     * Equivalent to the hash code produced by [java.util.List] implementations that iterate
+     * each element, combining via `31 * acc + element.hashCode()`.
+     *
+     * @param items the collection to hash
+     * @param T     the element type
+     * @return the combined hash code; 0 for an empty collection
+     */
     @JvmStatic
     fun <T> hashCode(items: Collection<T>): Int {
         var hashCode = 0
@@ -12,6 +22,18 @@ object FooCollections {
         return hashCode
     }
 
+    /**
+     * Returns true if [a] and [b] are the same object, or if they have the same size and every
+     * element at the same iterator position is equal (order-sensitive, using [FooObjects.equals]).
+     *
+     * Returns false if either collection is null (but not both — reference equality is checked
+     * first).
+     *
+     * @param a the first collection, or null
+     * @param b the second collection, or null
+     * @param T the element type
+     * @return true if [a] and [b] are identical in size and element order
+     */
     @JvmStatic
     fun <T> identical(
         a: Collection<T>?,
@@ -42,13 +64,16 @@ object FooCollections {
     }
 
     /**
-     * Order and duplicate independent comparison of two collections
+     * Returns true if [a] and [b] contain the same elements regardless of order or duplicates.
      *
-     * @param a
-     * @param b
-     * @param <T>
-     * @return
-     </T> */
+     * Implemented by converting both collections to [LinkedHashSet] and comparing for equality,
+     * so duplicate elements within a single collection are treated as one.
+     *
+     * @param a the first collection
+     * @param b the second collection
+     * @param T the element type
+     * @return true if the two collections are set-equivalent
+     */
     @JvmStatic
     fun <T> equivalent(
         a: Collection<T>,

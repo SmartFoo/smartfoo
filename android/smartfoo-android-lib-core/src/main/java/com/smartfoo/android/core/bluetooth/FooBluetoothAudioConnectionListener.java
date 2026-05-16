@@ -85,28 +85,61 @@ public class FooBluetoothAudioConnectionListener
         mBluetoothConnectionBroadcastReceiver = new FooBluetoothAudioConnectionBroadcastReceiver(context);
     }
 
+    /**
+     * Returns true if at least one Bluetooth audio device (headset or A2DP) is currently
+     * connected.
+     *
+     * @return true if one or more audio devices are connected
+     */
     public boolean isBluetoothAudioConnected()
     {
         return mBluetoothConnectionBroadcastReceiver.isBluetoothAudioConnected();
     }
 
+    /**
+     * Returns true if the Bluetooth audio device with the given MAC address is currently
+     * connected.
+     *
+     * @param deviceMacAddress the colon-separated MAC address to look up (e.g.
+     *                         {@code "AA:BB:CC:DD:EE:FF"})
+     * @return true if that specific device is connected
+     */
     public boolean isBluetoothAudioConnected(String deviceMacAddress)
     {
         return mBluetoothConnectionBroadcastReceiver.isBluetoothAudioConnected(deviceMacAddress);
     }
 
+    /**
+     * Returns a snapshot of all currently connected Bluetooth audio devices keyed by their MAC
+     * address.
+     *
+     * @return an unmodifiable copy of the connected-device map; never null
+     */
     @NonNull
     public Map<String, BluetoothDevice> getConnectedBluetoothAudioDevices()
     {
         return mBluetoothConnectionBroadcastReceiver.getConnectedBluetoothAudioDevices();
     }
 
+    /**
+     * Registers a callbacks object to receive Bluetooth audio connection events. The first
+     * listener to be attached triggers the underlying broadcast receiver to start listening for
+     * system intents.
+     *
+     * @param callbacks the callbacks to register; must not be null
+     */
     public void attach(@NonNull OnBluetoothAudioConnectionCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         mListenerManager.attach(callbacks);
     }
 
+    /**
+     * Unregisters a previously added callbacks object. When the last callbacks object is
+     * removed, the underlying broadcast receiver stops listening.
+     *
+     * @param callbacks the callbacks to unregister; must not be null
+     */
     public void detach(@NonNull OnBluetoothAudioConnectionCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");

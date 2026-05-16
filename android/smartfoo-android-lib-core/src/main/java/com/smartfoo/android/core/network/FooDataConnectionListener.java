@@ -108,6 +108,14 @@ public class FooDataConnectionListener
             return mSubtype;
         }
 
+        /**
+         * Returns the SSID of the Wi-Fi network when the connection type is
+         * {@link android.net.ConnectivityManager#TYPE_WIFI}, or an empty string for other
+         * connection types. Returns {@link #SSID_NOT_CONNECTED} when connected to Wi-Fi but the
+         * SSID cannot be determined.
+         *
+         * @return the SSID string, never null
+         */
         public String getSSID()
         {
             return mSSID;
@@ -156,11 +164,22 @@ public class FooDataConnectionListener
             mIsConnected = value;
         }
 
+        /**
+         * Returns whether the device currently has an active data connection.
+         *
+         * @return {@code true} if connected; {@code false} if disconnected or in airplane mode
+         */
         public boolean isConnected()
         {
             return mIsConnected;
         }
 
+        /**
+         * Returns a debug-friendly representation of this connection info including connection
+         * state, network type, and (for Wi-Fi) the SSID or (for other types) the subtype.
+         *
+         * @return a non-null string suitable for logging
+         */
         @Override
         public String toString()
         {
@@ -302,12 +321,22 @@ public class FooDataConnectionListener
         mNetworkReceiver = new NetworkConnectivityReceiver();
     }
 
+    /**
+     * Returns a debug-friendly string representation of the current connection info.
+     *
+     * @return a non-null string suitable for logging
+     */
     @Override
     public String toString()
     {
         return "{ mDataConnectionInfo=" + mDataConnectionInfo + " }";
     }
 
+    /**
+     * Returns whether this listener is currently active and receiving connectivity broadcasts.
+     *
+     * @return {@code true} if {@link #start} has been called and {@link #stop} has not yet been called
+     */
     public boolean isStarted()
     {
         synchronized (mSyncLock)
@@ -316,6 +345,12 @@ public class FooDataConnectionListener
         }
     }
 
+    /**
+     * Returns the current data connection info. If the listener is not started, the info is
+     * refreshed from the system before being returned.
+     *
+     * @return the current {@link FooDataConnectionInfo}; never null
+     */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     @NonNull
     public FooDataConnectionInfo getDataConnectionInfo()
@@ -337,6 +372,15 @@ public class FooDataConnectionListener
         }
     }
 
+    /**
+     * Starts listening for connectivity changes by registering a broadcast receiver for
+     * {@link android.net.wifi.WifiManager#NETWORK_STATE_CHANGED_ACTION} and
+     * {@link android.net.ConnectivityManager#CONNECTIVITY_ACTION}.
+     * The initial connection state is refreshed immediately. Idempotent — calling while already
+     * started has no effect.
+     *
+     * @param callbacks the callbacks to notify on connect/disconnect events; must not be null
+     */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     public void start(@NonNull FooDataConnectionListenerCallbacks callbacks)
     {
@@ -370,6 +414,10 @@ public class FooDataConnectionListener
         FooLog.v(TAG, "-start(...)");
     }
 
+    /**
+     * Stops listening for connectivity changes by unregistering the broadcast receiver.
+     * Idempotent — calling while not started has no effect.
+     */
     public void stop()
     {
         FooLog.v(TAG, "+stop()");

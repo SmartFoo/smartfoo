@@ -116,6 +116,16 @@ object FooTextToSpeechHelper {
         sNormalizeCountry = Collections.unmodifiableMap(normalizeCountry)
     }
 
+    /**
+     * Parses a locale string in old-style (`"eng-usa"`) or new-style (`"en_US"`) format into a
+     * [Locale] object.
+     *
+     * Returns null if the string cannot be converted to a valid locale (e.g. too many separators,
+     * missing ISO 3-letter codes, or an invalid combination).
+     *
+     * @param localeString the locale string to parse
+     * @return a [Locale] if parsing succeeds, or null on failure
+     */
     fun parseLocaleString(localeString: String): Locale? {
         var language = ""
         var country = ""

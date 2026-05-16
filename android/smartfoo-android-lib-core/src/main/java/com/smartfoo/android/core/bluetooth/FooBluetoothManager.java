@@ -49,21 +49,43 @@ public class FooBluetoothManager
         mBluetoothAudioConnectionListener = new FooBluetoothAudioConnectionListener(applicationContext);
     }
 
+    /**
+     * Returns true if the device hardware supports Bluetooth Classic
+     * ({@link android.content.pm.PackageManager#FEATURE_BLUETOOTH}).
+     *
+     * @return true if Bluetooth Classic is supported
+     */
     public boolean isBluetoothSupported()
     {
         return mIsBluetoothSupported;
     }
 
+    /**
+     * Returns true if the device hardware supports Bluetooth Low Energy
+     * ({@link android.content.pm.PackageManager#FEATURE_BLUETOOTH_LE}).
+     *
+     * @return true if BLE is supported
+     */
     public boolean isBluetoothLowEnergySupported()
     {
         return mIsBluetoothLowEnergySupported;
     }
 
+    /**
+     * Returns the system {@link BluetoothManager}.
+     *
+     * @return the manager, or null if Bluetooth is not supported on this device
+     */
     public BluetoothManager getBluetoothManager()
     {
         return mBluetoothManager;
     }
 
+    /**
+     * Returns the {@link BluetoothAdapter} for the local Bluetooth radio.
+     *
+     * @return the adapter, or null if Bluetooth is not supported on this device
+     */
     public BluetoothAdapter getBluetoothAdapter()
     {
         return mBluetoothAdapter;
@@ -92,7 +114,11 @@ public class FooBluetoothManager
     }
 
     /**
-     * @return true if successfully toggled
+     * Toggles the Bluetooth adapter on or off by inverting the current state.
+     * Handles the known {@code DeadObjectException} that the framework may throw.
+     *
+     * @return true if the toggle call succeeded; false if the adapter is null or an exception
+     *         was thrown
      * @see <ul>
      * <li><a href="https://code.google.com/p/android/issues/detail?id=67272">https://code.google.com/p/android/issues/detail?id=67272</a></li>
      * <li><a href="https://github.com/RadiusNetworks/android-ibeacon-service/issues/16">https://github.com/RadiusNetworks/android-ibeacon-service/issues/16</a></li>
@@ -105,8 +131,13 @@ public class FooBluetoothManager
     }
 
     /**
-     * @param on on
-     * @return true if successfully set; false if the set failed
+     * Enables or disables the Bluetooth adapter.
+     * Handles the known {@code DeadObjectException} that the framework may throw.
+     *
+     * @param on true to enable Bluetooth, false to disable it
+     * @return true if the call to {@link BluetoothAdapter#enable()} or
+     *         {@link BluetoothAdapter#disable()} succeeded; false if the adapter is null or an
+     *         exception was thrown
      * @see <ul>
      * <li><a href="https://code.google.com/p/android/issues/detail?id=67272">https://code.google.com/p/android/issues/detail?id=67272</a></li>
      * <li><a href="https://github.com/RadiusNetworks/android-ibeacon-service/issues/16">https://github.com/RadiusNetworks/android-ibeacon-service/issues/16</a></li>

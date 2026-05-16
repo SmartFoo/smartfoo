@@ -25,6 +25,14 @@ class FooNotificationService
         private const val EXTRA_NOTIFICATION_FOREGROUND_SERVICE_TYPE =
             "EXTRA_NOTIFICATION_FOREGROUND_SERVICE_TYPE"
 
+        /**
+         * Starts [FooNotificationService] and displays [notification] as a foreground service
+         * notification.
+         *
+         * @param context      the application context
+         * @param notification the [FooNotification] to display
+         * @return true if the service was started successfully, false otherwise
+         */
         @JvmStatic
         fun showNotification(
             context: Context,
@@ -39,6 +47,17 @@ class FooNotificationService
             return FooService.startService(context, intent)
         }
 
+        /**
+         * Starts [FooNotificationService] and displays a raw [Notification] as a foreground
+         * service notification.
+         *
+         * @param context               the application context
+         * @param notification          the [Notification] to display
+         * @param requestCode           the notification ID
+         * @param foregroundServiceType the foreground service type; use
+         *                              [FooNotification.FOREGROUND_SERVICE_TYPE_NONE] if not needed
+         * @return true if the service was started successfully, false otherwise
+         */
         @Suppress("unused")
         @JvmStatic
         fun showNotification(

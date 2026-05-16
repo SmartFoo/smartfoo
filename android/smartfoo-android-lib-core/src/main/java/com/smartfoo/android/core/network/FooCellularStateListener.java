@@ -20,6 +20,13 @@ public class FooCellularStateListener
 {
     private static final String TAG = FooLog.TAG(FooCellularStateListener.class);
 
+    /**
+     * Checks whether {@link Manifest.permission#READ_PHONE_STATE} has been granted to the
+     * calling application.
+     *
+     * @param context any context; must not be null
+     * @return {@code true} if the permission is granted
+     */
     public static boolean hasPermission(@NonNull Context context)
     {
         return FooPermissionsChecker.isPermissionGranted(context, Manifest.permission.READ_PHONE_STATE);
@@ -73,17 +80,34 @@ public class FooCellularStateListener
         return mTelephonyManager.getCallState();
     }
 
+    /**
+     * Returns the current mobile data connection state.
+     *
+     * @return one of the {@link android.telephony.TelephonyManager#DATA_DISCONNECTED},
+     *         {@code DATA_CONNECTING}, {@code DATA_CONNECTED}, or {@code DATA_SUSPENDED} constants
+     */
     public int getDataConnectionState()
     {
         return mTelephonyManager.getDataState();
     }
 
+    /**
+     * Returns the current data network type.
+     * Requires {@link Manifest.permission#READ_PHONE_STATE}.
+     *
+     * @return one of the {@link android.telephony.TelephonyManager}{@code .NETWORK_TYPE_*} constants
+     */
     @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     public int getDataConnectionType()
     {
         return mTelephonyManager.getDataNetworkType();
     }
 
+    /**
+     * Returns whether this listener is currently active and receiving telephony events.
+     *
+     * @return {@code true} if {@link #start} has been called and {@link #stop} has not yet been called
+     */
     public boolean isStarted()
     {
         synchronized (mSyncLock)
@@ -92,6 +116,18 @@ public class FooCellularStateListener
         }
     }
 
+    /**
+     * Starts listening for telephony events. At least one of the callback parameters must be
+     * non-null; if both are null this method is a no-op. Idempotent — calling while already
+     * started has no effect.
+     *
+     * <p>The current call state is sampled immediately to initialise the hook-state machine.</p>
+     *
+     * @param callbacksHookState      callbacks for off-hook / on-hook transitions; may be null
+     *                                to skip call-state monitoring
+     * @param callbacksDataConnection callbacks for data-connection state changes; may be null
+     *                                to skip data-state monitoring
+     */
     public void start(FooCellularHookStateCallbacks callbacksHookState,
                       FooCellularDataConnectionCallbacks callbacksDataConnection)
     {

@@ -22,10 +22,25 @@ import com.smartfoo.android.core.platform.FooPlatformUtils;
  */
 public class FooWiredHeadsetConnectionListener
 {
+    /**
+     * Callback interface for wired-headset plug/unplug events.
+     */
     public interface OnWiredHeadsetConnectionCallbacks
     {
+        /**
+         * Called when a wired headset is plugged in.
+         *
+         * @param name           the human-readable headset type, as reported by the system
+         * @param hasMicrophone  {@code true} if the headset includes a microphone
+         */
         void onWiredHeadsetConnected(String name, boolean hasMicrophone);
 
+        /**
+         * Called when a wired headset is unplugged.
+         *
+         * @param name           the human-readable headset type, as reported by the system
+         * @param hasMicrophone  {@code true} if the headset included a microphone
+         */
         void onWiredHeadsetDisconnected(String name, boolean hasMicrophone);
     }
 
@@ -81,17 +96,36 @@ public class FooWiredHeadsetConnectionListener
         mWiredHeadsetBroadcastReceiver = new WiredHeadsetBroadcastReceiver(context);
     }
 
+    /**
+     * Returns the current wired-headset connection state, as last reported by the system.
+     * If no callbacks have been attached yet the state is determined from the sticky broadcast
+     * received at construction time.
+     *
+     * @return {@code true} if a wired headset is currently connected
+     */
     public boolean isWiredHeadsetConnected()
     {
         return mWiredHeadsetBroadcastReceiver.isWiredHeadsetConnected();
     }
 
+    /**
+     * Registers a callback to receive wired-headset connection and disconnection events.
+     * The broadcast receiver is started automatically when the first callback is attached.
+     *
+     * @param callbacks the callbacks to register; must not be null
+     */
     public void attach(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
         mListenerManager.attach(callbacks);
     }
 
+    /**
+     * Unregisters a previously attached callback. The broadcast receiver is stopped
+     * automatically when the last callback is detached.
+     *
+     * @param callbacks the callbacks to remove; must not be null
+     */
     public void detach(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
@@ -132,6 +166,12 @@ public class FooWiredHeadsetConnectionListener
             }
         }
 
+        /**
+         * Registers this receiver with the system to listen for headset plug/unplug events.
+         * Does nothing if already started.
+         *
+         * @param callbacks the callbacks to notify on headset events; must not be null
+         */
         public void start(@NonNull OnWiredHeadsetConnectionCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
@@ -158,6 +198,9 @@ public class FooWiredHeadsetConnectionListener
             FooLog.v(TAG, "-start(...)");
         }
 
+        /**
+         * Unregisters this receiver from the system. Does nothing if not currently started.
+         */
         public void stop()
         {
             FooLog.v(TAG, "+stop()");

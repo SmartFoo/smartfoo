@@ -148,9 +148,21 @@ object FooPlatformUtils {
         toast.show()
     }
 
+    /**
+     * Returns the [PackageManager] for the given context.
+     *
+     * @param context the context
+     * @return the package manager
+     */
     @JvmStatic
     fun getPackageManager(context: Context): PackageManager = context.packageManager
 
+    /**
+     * Returns the package name of the given context's application.
+     *
+     * @param context the context
+     * @return the package name string (e.g. `"com.example.myapp"`)
+     */
     @JvmStatic
     fun getPackageName(context: Context): String = context.packageName
 
@@ -276,6 +288,12 @@ object FooPlatformUtils {
         return packageInfo?.longVersionCode ?: defaultValue
     }
 
+    /**
+     * Returns a human-readable device name combining the manufacturer and model.
+     *
+     * If the model string already starts with the manufacturer name, only the model is returned;
+     * otherwise the result is `"Manufacturer - Model"`.
+     */
     @JvmStatic
     val deviceName: String
         get() {
@@ -319,6 +337,10 @@ object FooPlatformUtils {
         return deviceId
     }
 
+    /**
+     * Returns a human-readable OS version string including the Android release name, API-level
+     * constant name, and API number (e.g. `"Android 14 UPSIDE_DOWN_CAKE (API level 34)"`).
+     */
     @JvmStatic
     val osVersion: String
         get() {
@@ -352,21 +374,52 @@ object FooPlatformUtils {
             return builder.toString()
         }
 
+    /**
+     * Returns true if the device supports the given system feature.
+     *
+     * @param context the context
+     * @param name    the feature name (e.g. [PackageManager.FEATURE_AUTOMOTIVE])
+     * @return true if the feature is available
+     */
     @JvmStatic
     fun hasSystemFeature(
         context: Context,
         name: String,
     ) = getPackageManager(context).hasSystemFeature(name)
 
+    /**
+     * Returns true if the device is an Android Automotive platform.
+     *
+     * @param context the context
+     * @return true if [PackageManager.FEATURE_AUTOMOTIVE] is present
+     */
     @JvmStatic
     fun hasSystemFeatureAutomotive(context: Context) = hasSystemFeature(context, PackageManager.FEATURE_AUTOMOTIVE)
 
+    /**
+     * Returns true if the device has telephony hardware.
+     *
+     * @param context the context
+     * @return true if [PackageManager.FEATURE_TELEPHONY] is present
+     */
     @JvmStatic
     fun hasSystemFeatureTelephony(context: Context) = hasSystemFeature(context, PackageManager.FEATURE_TELEPHONY)
 
+    /**
+     * Returns true if the device is an Android TV / Leanback platform.
+     *
+     * @param context the context
+     * @return true if [PackageManager.FEATURE_LEANBACK] is present
+     */
     @JvmStatic
     fun hasSystemFeatureTelevision(context: Context) = hasSystemFeature(context, PackageManager.FEATURE_LEANBACK)
 
+    /**
+     * Returns true if the device is a Wear OS watch.
+     *
+     * @param context the context
+     * @return true if [PackageManager.FEATURE_WATCH] is present
+     */
     @JvmStatic
     fun hasSystemFeatureWatch(context: Context) = hasSystemFeature(context, PackageManager.FEATURE_WATCH)
 
@@ -405,6 +458,15 @@ object FooPlatformUtils {
         return metaDataBundle
     }
 
+    /**
+     * Returns the string value stored in the application's `<meta-data>` block for [key],
+     * or [defaultValue] if the bundle is absent or the key is not found.
+     *
+     * @param context      the context
+     * @param key          the meta-data key
+     * @param defaultValue value returned when the key is absent or the bundle is null
+     * @return the meta-data string value, or [defaultValue]
+     */
     @JvmStatic
     fun getMetaDataString(
         context: Context,
@@ -419,6 +481,15 @@ object FooPlatformUtils {
         return value
     }
 
+    /**
+     * Returns the integer value stored in the application's `<meta-data>` block for [key],
+     * or [defaultValue] if the bundle is absent or the key is not found.
+     *
+     * @param context      the context
+     * @param key          the meta-data key
+     * @param defaultValue value returned when the key is absent or the bundle is null
+     * @return the meta-data integer value, or [defaultValue]
+     */
     @JvmStatic
     fun getMetaDataInt(
         context: Context,
@@ -433,6 +504,15 @@ object FooPlatformUtils {
         return value
     }
 
+    /**
+     * Returns the boolean value stored in the application's `<meta-data>` block for [key],
+     * or [defaultValue] if the bundle is absent or the key is not found.
+     *
+     * @param context      the context
+     * @param key          the meta-data key
+     * @param defaultValue value returned when the key is absent or the bundle is null
+     * @return the meta-data boolean value, or [defaultValue]
+     */
     @JvmStatic
     fun getMetaDataBoolean(
         context: Context,
@@ -562,6 +642,13 @@ object FooPlatformUtils {
         return parts.joinToString(", ", "{ ", " }")
     }
 
+    /**
+     * Starts an activity for the given class, optionally passing extra data.
+     *
+     * @param context       the context from which to start the activity
+     * @param activityClass the activity class to launch
+     * @param bundle        optional extra bundle passed to [Context.startActivity]; may be null
+     */
     @JvmOverloads
     @JvmStatic
     fun startActivity(
@@ -572,6 +659,13 @@ object FooPlatformUtils {
         startActivity(context, Intent(context, activityClass), bundle)
     }
 
+    /**
+     * Starts an activity for the given intent, optionally passing extra data.
+     *
+     * @param context the context from which to start the activity
+     * @param intent  the intent describing the activity to start
+     * @param bundle  optional extra bundle passed to [Context.startActivity]; may be null
+     */
     @JvmOverloads
     @JvmStatic
     fun startActivity(
@@ -687,6 +781,15 @@ object FooPlatformUtils {
         startActivity(context, intent)
     }
 
+    /**
+     * Opens the Google Play Store listing for the given package name.
+     *
+     * Tries the native Play Store app first; falls back to the web browser if the app is not
+     * installed.
+     *
+     * @param context     the context from which to start the activity
+     * @param packageName the package whose Play Store page should be shown
+     */
     @JvmStatic
     fun showGooglePlay(
         context: Context,
@@ -721,15 +824,36 @@ object FooPlatformUtils {
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
+    /**
+     * Returns an [Intent] that opens the system application-details settings page for the
+     * calling app's package.
+     *
+     * @param context the context whose package name is used
+     * @return an intent targeting [Settings.ACTION_APPLICATION_DETAILS_SETTINGS]
+     */
     @JvmStatic
     fun intentShowAppSettings(context: Context) =
         intentShowAppSettings(context.packageName)
 
+    /**
+     * Returns an [Intent] that opens the system application-details settings page for the
+     * given package name.
+     *
+     * @param packageName the package whose settings page should be shown
+     * @return an intent targeting [Settings.ACTION_APPLICATION_DETAILS_SETTINGS]
+     */
     @JvmStatic
     fun intentShowAppSettings(packageName: String) =
         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             "package:$packageName".toUri())
 
+    /**
+     * Opens the system application-details settings page for the given package.
+     *
+     * @param context     the context from which to start the activity
+     * @param packageName the package whose settings page should be shown; defaults to the
+     *                    calling app's package name
+     */
     @JvmOverloads
     @JvmStatic
     fun showAppSettings(
@@ -738,6 +862,13 @@ object FooPlatformUtils {
         startActivity(context, intentShowAppSettings(packageName))
     }
 
+    /**
+     * Opens the system battery/power usage settings activity, if available.
+     *
+     * <p>Does nothing if the activity cannot be resolved on this device.</p>
+     *
+     * @param context the context from which to start the activity
+     */
     @JvmStatic
     fun showBatterySettings(context: Context) {
         val intent = Intent(Intent.ACTION_POWER_USAGE_SUMMARY)
@@ -757,6 +888,13 @@ object FooPlatformUtils {
             putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         }
 
+    /**
+     * Opens the system per-app notification settings page for the given package.
+     *
+     * @param context     the context from which to start the activity
+     * @param packageName the package whose notification settings should be shown; defaults to the
+     *                    calling app's package name
+     */
     @JvmOverloads
     @JvmStatic
     fun showAppNotificationSettings(
@@ -765,14 +903,29 @@ object FooPlatformUtils {
         startActivity(context, intentAppNotificationSettings(packageName))
     }
 
+    /**
+     * Returns an [Intent] that opens the system Notification Listener settings screen.
+     *
+     * @return an intent targeting [Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS]
+     */
     @JvmStatic
     fun intentNotificationListenerSettings() =
         Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
 
+    /**
+     * Returns an [Intent] that opens the system Accessibility settings screen.
+     *
+     * @return an intent targeting [Settings.ACTION_ACCESSIBILITY_SETTINGS]
+     */
     @JvmStatic
     fun intentAccessibilitySettings() =
         Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
+    /**
+     * Opens the system Accessibility settings screen.
+     *
+     * @param context the context from which to start the activity
+     */
     @JvmStatic
     fun showAccessibilitySettings(context: Context) {
         startActivity(context, intentAccessibilitySettings())
@@ -783,11 +936,26 @@ object FooPlatformUtils {
      */
     const val ACTION_ACCESSIBILITY_DETAILS_SETTINGS = "android.settings.ACCESSIBILITY_DETAILS_SETTINGS"
 
+    /**
+     * Returns an [Intent] that deep-links to the per-service accessibility details settings
+     * for the given component.
+     *
+     * @param componentName the [ComponentName] of the accessibility service
+     * @return an intent targeting [ACTION_ACCESSIBILITY_DETAILS_SETTINGS]
+     */
     @JvmStatic
     fun intentAccessibilityDetailsSettings(componentName: ComponentName) =
         Intent(ACTION_ACCESSIBILITY_DETAILS_SETTINGS)
             .putExtra(Intent.EXTRA_COMPONENT_NAME, componentName)
 
+    /**
+     * Returns an [Intent] that deep-links to the per-service accessibility details settings
+     * for the given service class.
+     *
+     * @param context      the context used to build the [ComponentName]
+     * @param serviceClass the accessibility service class
+     * @return an intent targeting [ACTION_ACCESSIBILITY_DETAILS_SETTINGS]
+     */
     @JvmStatic
     fun intentAccessibilityDetailsSettings(context: Context, serviceClass: Class<out AccessibilityService>) =
         intentAccessibilityDetailsSettings(ComponentName(context, serviceClass))
@@ -815,6 +983,14 @@ object FooPlatformUtils {
         serviceClass: Class<out AccessibilityService>) =
         showAccessibilityDetailsSettings(context, ComponentName(context, serviceClass))
 
+    /**
+     * Returns true if the given accessibility service is currently enabled in system settings.
+     *
+     * @param context       the context
+     * @param componentName the [ComponentName] of the accessibility service to check
+     * @return true if accessibility is globally on and the service's component name appears in the
+     *         enabled-services list
+     */
     @JvmStatic
     fun isAccessibilityServiceEnabled(
         context: Context,
@@ -831,6 +1007,13 @@ object FooPlatformUtils {
         return false
     }
 
+    /**
+     * Returns true if the given accessibility service class is currently enabled in system settings.
+     *
+     * @param context      the context
+     * @param serviceClass the accessibility service class to check
+     * @return true if the service is enabled
+     */
     @JvmStatic
     fun isAccessibilityServiceEnabled(
         context: Context,
@@ -863,6 +1046,12 @@ object FooPlatformUtils {
     }
     */
 
+    /**
+     * Shows or hides the soft keyboard for the given view.
+     *
+     * @param view the view that owns the window token (must not be null)
+     * @param show true to show the keyboard; false to hide it
+     */
     @JvmStatic
     fun showSoftInput(view: View, show: Boolean) {
         requireNotNull(view) { "view must not be null" }
@@ -981,11 +1170,22 @@ object FooPlatformUtils {
         }
     }
 
+    /**
+     * Returns true if the current API level supports view elevation (shadows), i.e. API 21+.
+     *
+     * @return true on Lollipop and above
+     */
     @JvmStatic
     fun supportsViewElevation(): Boolean {
         return (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP)
     }
 
+    /**
+     * Returns a human-readable name for a [View] visibility constant.
+     *
+     * @param visibility one of [View.VISIBLE], [View.INVISIBLE], or [View.GONE]
+     * @return a string such as `"VISIBLE(0)"`, `"INVISIBLE(4)"`, `"GONE(8)"`, or `"UNKNOWN(n)"`
+     */
     @JvmStatic
     fun viewVisibilityToString(visibility: Int): String {
         val name = when (visibility) {
@@ -1000,6 +1200,14 @@ object FooPlatformUtils {
     //
     //
     //
+    /**
+     * Returns a formatted, right-aligned multi-line string of platform information suitable for
+     * display or logging.
+     *
+     * @param context the context used to resolve app metadata
+     * @param extras  additional key-value pairs appended after the standard fields; may be null
+     * @return a multi-line string with each line of the form `"    Key: Value\n"`
+     */
     @JvmStatic
     fun getPlatformInfoString(context: Context, extras: LinkedHashMap<String, String?>?): String {
         val platformInfo = getPlatformInfo(context, extras)
@@ -1031,6 +1239,14 @@ object FooPlatformUtils {
         return sb.toString()
     }
 
+    /**
+     * Returns an ordered map of platform information entries (package, name, version, OS, device,
+     * locale) plus any caller-supplied [extras].
+     *
+     * @param context the context used to resolve app metadata
+     * @param extras  additional key-value pairs merged at the end; may be null
+     * @return a [MutableMap] preserving insertion order
+     */
     @JvmStatic
     fun getPlatformInfo(
         context: Context,

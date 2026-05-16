@@ -73,8 +73,11 @@ public class FooBluetoothUtils
     }
 
     /**
-     * @param context context
-     * @return null if Bluetooth is not supported
+     * Returns the system {@link BluetoothManager} service, or null if Bluetooth is not supported
+     * on this device.
+     *
+     * @param context context used to retrieve the system service; must not be null
+     * @return the {@link BluetoothManager}, or null if Bluetooth is not supported
      */
     @TargetApi(VERSION_CODES.JELLY_BEAN_MR2)
     @Nullable
@@ -186,16 +189,38 @@ public class FooBluetoothUtils
         return macAddressStringToLong(device.getAddress());
     }
 
+    /**
+     * Returns the remote device address from a {@link BluetoothGatt} as a colon-separated
+     * uppercase hex string (e.g. {@code "AA:BB:CC:DD:EE:FF"}).
+     *
+     * @param gatt the GATT connection; must not be null
+     * @return the pretty-printed MAC address, never null
+     */
     public static String gattDeviceAddressToPrettyString(@NonNull BluetoothGatt gatt)
     {
         return bluetoothDeviceAddressToPrettyString(gatt.getDevice());
     }
 
+    /**
+     * Returns the address of a {@link BluetoothDevice} as a colon-separated uppercase hex string
+     * (e.g. {@code "AA:BB:CC:DD:EE:FF"}).
+     *
+     * @param device the Bluetooth device; must not be null
+     * @return the pretty-printed MAC address, never null
+     */
     public static String bluetoothDeviceAddressToPrettyString(@NonNull BluetoothDevice device)
     {
         return macAddressStringToPrettyString(device.getAddress());
     }
 
+    /**
+     * Returns the last four hexadecimal characters of a device address as an uppercase string
+     * suitable for short display labels (e.g. {@code "FF"} for {@code "AA:BB:CC:DD:EE:FF"}).
+     * Returns {@code "null"} if the address is null or empty.
+     *
+     * @param deviceAddress a colon-separated MAC address string; may be null
+     * @return the short address string, never null
+     */
     public static String getShortDeviceAddressString(String deviceAddress)
     {
         if (deviceAddress != null)
@@ -212,16 +237,37 @@ public class FooBluetoothUtils
         return deviceAddress;
     }
 
+    /**
+     * Returns the last four hexadecimal characters of a {@code long} device address as an
+     * uppercase string.
+     *
+     * @param deviceAddress the MAC address as a {@code long}
+     * @return the short address string, never null
+     */
     public static String getShortDeviceAddressString(long deviceAddress)
     {
         return getShortDeviceAddressString(macAddressLongToString(deviceAddress));
     }
 
+    /**
+     * Strips colons from a MAC address and converts it to a lowercase hex string
+     * (e.g. {@code "AA:BB:CC:DD:EE:FF"} → {@code "aabbccddeeff"}).
+     *
+     * @param macAddress the colon-separated MAC address; must not be null
+     * @return the stripped lowercase string, never null
+     */
     public static String macAddressStringToStrippedLowerCaseString(@NonNull String macAddress)
     {
         return macAddress.replace(":", "").toLowerCase();
     }
 
+    /**
+     * Converts a colon-separated MAC address string to a {@code long}.
+     *
+     * @param macAddress the colon-separated or bare hex MAC address string; must not be null
+     * @return the address as a {@code long}
+     * @throws NumberFormatException if the string cannot be parsed as a hex number
+     */
     public static long macAddressStringToLong(@NonNull String macAddress)
     {
         /*
@@ -234,11 +280,25 @@ public class FooBluetoothUtils
         return Long.parseLong(macAddressStringToStrippedLowerCaseString(macAddress), 16);
     }
 
+    /**
+     * Normalises a MAC address string to a colon-separated uppercase hex string
+     * (e.g. {@code "aabbccddeeff"} → {@code "AA:BB:CC:DD:EE:FF"}).
+     *
+     * @param macAddress the MAC address in any common format; must not be null
+     * @return the pretty-printed address string, never null
+     */
     public static String macAddressStringToPrettyString(@NonNull String macAddress)
     {
         return macAddressLongToPrettyString(macAddressStringToLong(macAddress));
     }
 
+    /**
+     * Formats a {@code long} MAC address as a colon-separated uppercase hex string
+     * (e.g. {@code "AA:BB:CC:DD:EE:FF"}).
+     *
+     * @param macAddress the MAC address as a {@code long}
+     * @return the formatted address string, never null
+     */
     public static String macAddressLongToPrettyString(long macAddress)
     {
         //noinspection PointlessBitwiseExpression
@@ -251,6 +311,13 @@ public class FooBluetoothUtils
                 (byte) ((macAddress >> 0) & 0xff));
     }
 
+    /**
+     * Formats a {@code long} MAC address as a zero-padded 12-character lowercase hex string
+     * without colons (e.g. {@code "aabbccddeeff"}).
+     *
+     * @param macAddressLong the MAC address as a {@code long}
+     * @return a 12-character lowercase hex string, never null
+     */
     public static String macAddressLongToString(long macAddressLong)
     {
         return String.format(Locale.US, "%012x", macAddressLong);

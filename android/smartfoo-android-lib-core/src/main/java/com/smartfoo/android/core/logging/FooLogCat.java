@@ -64,6 +64,10 @@ public class FooLogCat
     public static final String HEADER_DEV_LOG_MAIN1 = "--------- beginning of /dev/log/main";
     public static final String HEADER_DEV_LOG_MAIN2 = "--------- beginning of main";
 
+    /**
+     * Clears the Android logcat ring-buffer by executing {@code logcat -c}.
+     * Errors are logged via {@link FooLog} and silently swallowed.
+     */
     public static void clear()
     {
         try
@@ -121,9 +125,14 @@ public class FooLogCat
     }
 
     /**
-     * @param limitBytes &gt; 0 to limit the length of the String returned, &lt;= 0 to not limit the length of the
-     *                   String returned
-     * @return String of the logcat output
+     * Reads the current logcat output using the {@code threadtime} format.
+     * A synthetic summary line is appended so consumers can detect when the load finished.
+     *
+     * @param limitBytes the maximum number of bytes to return ({@code > 0} to limit,
+     *                   {@code <= 0} for no limit); the <em>tail</em> of the log is returned
+     *                   when the raw output exceeds this value
+     * @return the logcat output as a string, or {@code null} if an {@link java.io.IOException}
+     *         occurs
      */
     public static String load(int limitBytes)
     {
@@ -133,10 +142,16 @@ public class FooLogCat
     private static final FooLogAndroidFormatter FAKE_LAST_LINE_FORMATTER = new FooLogAndroidFormatter();
 
     /**
-     * @param limitBytes &gt; 0 to limit the length of the String returned, &lt;= 0 to not limit the length of the
-     *                   String returned
-     * @param terminator Ending content of last line to stop reading at (NOTE: be as specific as possible)
-     * @return String of the logcat output
+     * Reads the current logcat output using the {@code threadtime} format and stops early when
+     * the optional terminator is found.
+     *
+     * @param limitBytes the maximum number of bytes to return ({@code > 0} to limit,
+     *                   {@code <= 0} for no limit); the <em>tail</em> of the log is returned
+     *                   when the raw output exceeds this value
+     * @param terminator if non-null and non-empty, reading stops at the first line whose content
+     *                   ends with this string; be as specific as possible to avoid false matches
+     * @return the logcat output as a string (the tail when limited), or {@code null} if an
+     *         {@link java.io.IOException} occurs
      */
     public static String load(int limitBytes, String terminator)
     {
@@ -242,6 +257,23 @@ public class FooLogCat
         void onLogLines(List<Spanned> logLines);
     }
 
+    /**
+     * Parses a raw logcat string and converts matching lines into colour-coded
+     * {@link android.text.Spanned} objects, streaming them to the caller via
+     * {@link LogProcessCallbacks#onLogLines}.
+     *
+     * <p>Lines belonging to a different PID are coloured with the "other" colour. Lines that
+     * match one of the {@code HEADER_DEV_LOG_MAIN*} markers trigger a full list reset so that
+     * only the content after the most recent log-start header is retained.</p>
+     *
+     * @param pid       the process ID whose lines should be colour-coded by log level;
+     *                  lines from other PIDs receive the "other" colour
+     * @param logRaw    the raw logcat output to parse; if null or empty the method uses
+     *                  {@link #HEADER_DEV_LOG_MAIN2} as a placeholder
+     * @param callbacks callback object supplying colour values, typeface info, batch size, and
+     *                  the {@link LogProcessCallbacks#onLogLines} sink; must not be null
+     * @return the last un-flushed accumulator list (may be null if everything was flushed)
+     */
     public static List<Spanned> process(
             int pid,
             String logRaw,
@@ -352,6 +384,11 @@ public class FooLogCat
         return accumulator;
     }
 
+    /**
+     * Returns the PID of the current process.
+     *
+     * @return the process ID
+     */
     public static int getMyPid()
     {
         return android.os.Process.myPid();
@@ -398,6 +435,13 @@ public class FooLogCat
     public static final  DateFormat LOGCAT_DATE_TIME_FORMAT_THREADTIME = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US);
     private static final Calendar   sCalendar                          = Calendar.getInstance();
 
+    /**
+     * Parses a logcat date-time token (format {@code MM-dd HH:mm:ss.SSS}) into a {@link Date},
+     * prepending the current calendar year because logcat does not include it.
+     *
+     * @param logDateTime the date-time portion of a logcat line, e.g. {@code "05-15 13:42:00.123"}
+     * @return the parsed {@link Date}, or {@code null} if parsing fails
+     */
     public static Date getDateTime(String logDateTime)
     {
         String year = Integer.toString(sCalendar.get(Calendar.YEAR));
@@ -413,8 +457,11 @@ public class FooLogCat
     }
 
     /**
-     * @param logLevel logLevel
-     * @return -1 if unknown, otherwise PbLogLevel.*
+     * Converts a single logcat level character to a {@link FooLog.FooLogLevel} constant.
+     *
+     * @param logLevel the logcat level character ({@code 'V'}, {@code 'D'}, {@code 'I'},
+     *                 {@code 'W'}, {@code 'E'}, or {@code 'A'})
+     * @return the matching {@link FooLog.FooLogLevel} constant, or {@code -1} if unknown
      */
     public static int getLogLevel(char logLevel)
     {
@@ -437,6 +484,15 @@ public class FooLogCat
         }
     }
 
+    /**
+     * Parses a single logcat {@code threadtime}-format line and returns a {@link LogInfo} only
+     * if the PID in the line matches the given {@code pid}.
+     *
+     * @param pid     the process ID to filter by
+     * @param logLine a raw logcat line in {@code threadtime} format
+     * @return the parsed {@link LogInfo}, or {@code null} if the line does not match the regex
+     *         or belongs to a different process
+     */
     public static LogInfo getLogInfo(int pid, String logLine)
     {
         LogInfo logInfo = null;

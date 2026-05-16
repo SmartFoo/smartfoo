@@ -51,6 +51,14 @@ public abstract class CallbackFragment<T>
         mCallback = mDummyCallback;
     }
 
+    /**
+     * Resolves the callback target by inspecting the fragment itself, its parent fragment, and
+     * its host activity in that order. The first object that implements {@code T} is stored in
+     * {@link #mCallback}.
+     *
+     * @param context the host context; not used directly but required by the super-class contract
+     * @throws IllegalStateException if none of the candidates implement the callback interface
+     */
     @Override
     public void onAttach(Context context)
     {
@@ -89,6 +97,10 @@ public abstract class CallbackFragment<T>
         }
     }
 
+    /**
+     * Resets {@link #mCallback} to the no-op dummy instance so that any callback invocations
+     * after detachment are safely ignored.
+     */
     @Override
     public void onDetach()
     {

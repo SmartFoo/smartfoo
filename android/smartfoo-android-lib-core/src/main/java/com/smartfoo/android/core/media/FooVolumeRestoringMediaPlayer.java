@@ -45,11 +45,18 @@ public class FooVolumeRestoringMediaPlayer
     }
 
     /**
-     * @param mediaUri            mediaUri
-     * @param streamType          streamType
-     * @param streamVolumePercent 0.0 to 1.0 to set respective min to max volume, or &lt; 0 to use the current volume
-     * @param looping             looping
-     * @return true if successful, otherwise false
+     * Prepares and starts playback of the given media URI at the specified volume.
+     * The original stream volume is captured before playback begins and restored by
+     * {@link #stop()} unless the user changes the volume manually during playback.
+     *
+     * @param mediaUri            the URI of the media to play; must not be null or empty
+     * @param streamType          the audio stream to use (e.g. {@link android.media.AudioManager#STREAM_MUSIC})
+     * @param streamVolumePercent the desired playback volume as a fraction of the stream maximum
+     *                            (0.0 = silent, 1.0 = maximum); pass a value {@code < 0} to keep
+     *                            the current volume unchanged
+     * @param looping             {@code true} to loop until {@link #stop()} is called
+     * @return {@code true} if playback was started successfully; {@code false} if media is already
+     *         playing, the URI is empty, or an error occurs while preparing the player
      */
     public boolean play(
             @NonNull final Uri mediaUri,
@@ -161,6 +168,17 @@ public class FooVolumeRestoringMediaPlayer
         return true;
     }
 
+    /**
+     * Tracks whether the stream volume has been changed externally (i.e. not by this player).
+     * If the volume at any point differs from the value this player requested,
+     * {@code mWasStreamVolumeUnchanged} is set to {@code false}, and the original volume will
+     * <em>not</em> be restored when {@link #stop()} is called.
+     *
+     * @param audioStreamType the stream whose volume changed
+     * @param volume          the new absolute volume level
+     * @param volumeMax       the maximum possible volume for this stream
+     * @param volumePercent   the new volume as a percentage of the maximum (0–100)
+     */
     private void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent)
     {
         FooLog.v(TAG, "onAudioStreamVolumeChanged(audioStreamType=" + audioStreamType +
@@ -171,6 +189,11 @@ public class FooVolumeRestoringMediaPlayer
         FooLog.i(TAG, "onAudioStreamVolumeChanged: mWasStreamVolumeUnchanged=" + mWasStreamVolumeUnchanged);
     }
 
+    /**
+     * Stops and releases the media player. If the stream volume was not changed externally
+     * during playback, the volume is restored to the value it had before {@link #play} was called.
+     * Does nothing if no media is currently playing.
+     */
     public void stop()
     {
         FooLog.v(TAG, "stop()");

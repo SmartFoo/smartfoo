@@ -162,9 +162,15 @@ public class FooBluetoothAdapterStateListener
         }
 
         /**
-         * @param callbacks
-         * @return true if started, otherwise false
+         * Registers callbacks, starts listening for adapter state broadcasts, and immediately
+         * emits the current adapter state so the caller never misses the initial value.
+         *
+         * @param callbacks the callbacks to notify on adapter state changes; may be null to
+         *                  suppress notifications while still monitoring state
+         * @return true if the receiver was successfully registered, false if Bluetooth is not
+         *         supported on this device
          */
+        @SuppressWarnings("UnusedReturnValue")
         public boolean start(FooBluetoothAdapterStateCallbacks callbacks)
         {
             if (mBluetoothAdapter == null)

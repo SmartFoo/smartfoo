@@ -76,6 +76,14 @@ public class FooAudioStreamVolumeObserver
 
             mContentObserver = new ContentObserver(mHandler)
             {
+                /**
+                 * Invoked by the system when any row under
+                 * {@link android.provider.Settings.System#CONTENT_URI} changes.
+                 * Delegates to {@link OnSystemSettingsChangedCallbacks#onSystemSettingsChanged}.
+                 *
+                 * @param selfChange {@code true} if the change was triggered by this observer
+                 * @param uri        the URI of the changed content
+                 */
                 @Override
                 public void onChange(boolean selfChange, Uri uri)
                 {

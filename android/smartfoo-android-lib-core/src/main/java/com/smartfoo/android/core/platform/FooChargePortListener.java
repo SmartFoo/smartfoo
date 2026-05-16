@@ -40,22 +40,46 @@ public class FooChargePortListener
             mResId = resId;
         }
 
+        /**
+         * Returns the string resource ID associated with this charge-port type.
+         *
+         * @return a {@link androidx.annotation.StringRes} resource ID
+         */
         @StringRes
         public int getStringRes()
         {
             return mResId;
         }
 
+        /**
+         * Returns a localised display name for the given {@code chargePort}, or null if
+         * {@code chargePort} is null.
+         *
+         * @param context    context used to resolve the string resource
+         * @param chargePort the port to name; may be null
+         * @return the localised string, or null
+         */
         public static String toString(@NonNull Context context, ChargePort chargePort)
         {
             return chargePort != null ? FooRes.getString(context, chargePort.getStringRes()) : null;
         }
     }
 
+    /** Callback interface for charge-port connection events. */
     public interface FooChargePortListenerCallbacks
     {
+        /**
+         * Called when a new charge port is connected.
+         *
+         * @param chargePort the type of port that was connected
+         */
         void onChargePortConnected(ChargePort chargePort);
 
+        /**
+         * Called when an existing charge port is disconnected.
+         *
+         * @param chargePort the type of port that was disconnected
+         */
         void onChargePortDisconnected(ChargePort chargePort);
     }
 
@@ -68,6 +92,12 @@ public class FooChargePortListener
         return context.registerReceiver(null, intentFilter);
     }
 
+    /**
+     * Returns true if the device is currently charging or the battery is full.
+     *
+     * @param context the application context
+     * @return true if charging or full
+     */
     public static boolean isCharging(@NonNull Context context)
     {
         return isCharging(getBatteryChargingIntent(context));
@@ -147,6 +177,12 @@ public class FooChargePortListener
     private final FooListenerAutoStartManager<FooChargePortListenerCallbacks> mListenerManager;
     private final FooScreenBroadcastReceiver                                  mScreenBroadcastReceiver;
 
+    /**
+     * Constructs a new listener bound to the given context.
+     *
+     * @param context the application context used to register/unregister the broadcast receiver
+     * @throws IllegalArgumentException if {@code context} is null
+     */
     public FooChargePortListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
@@ -191,6 +227,11 @@ public class FooChargePortListener
         mScreenBroadcastReceiver = new FooScreenBroadcastReceiver(context);
     }
 
+    /**
+     * Returns true if the device is currently charging or the battery is full.
+     *
+     * @return true if charging or full
+     */
     public boolean isCharging()
     {
         return isCharging(mContext);
@@ -201,11 +242,27 @@ public class FooChargePortListener
         return getChargingPorts(mContext);
     }
 
+    /**
+     * Registers {@code callbacks} to receive charge-port connection events.
+     *
+     * <p>The underlying broadcast receiver is registered automatically when the first callbacks
+     * instance is attached.</p>
+     *
+     * @param callbacks the listener to register; no-op if already registered
+     */
     public void attach(FooChargePortListenerCallbacks callbacks)
     {
         mListenerManager.attach(callbacks);
     }
 
+    /**
+     * Unregisters previously registered {@code callbacks}.
+     *
+     * <p>The underlying broadcast receiver is unregistered automatically when the last callbacks
+     * instance is detached.</p>
+     *
+     * @param callbacks the listener to remove; no-op if not registered
+     */
     public void detach(FooChargePortListenerCallbacks callbacks)
     {
         mListenerManager.detach(callbacks);

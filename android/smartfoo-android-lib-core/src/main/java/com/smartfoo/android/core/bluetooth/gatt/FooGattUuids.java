@@ -86,6 +86,13 @@ public class FooGattUuids
     {
     }
 
+    /**
+     * Extracts the 16-bit Bluetooth SIG assigned number from the most-significant bits of a
+     * standard 128-bit GATT UUID (bits 32–47 of the full UUID).
+     *
+     * @param uuid a Bluetooth GATT UUID; must not be null
+     * @return the 16-bit assigned number, e.g. {@code 0x180F} for Battery Service
+     */
     public static int getAssignedNumber(UUID uuid)
     {
         return (int) ((uuid.getMostSignificantBits() & 0x0000FFFF00000000L) >> 32);
@@ -93,6 +100,14 @@ public class FooGattUuids
 
     private static final long GATT_LEAST_SIGNIFICANT_BITS = 0x800000805f9b34fbL;
 
+    /**
+     * Converts a 16-bit Bluetooth SIG assigned number to the corresponding 128-bit UUID by
+     * substituting it into the standard Bluetooth base UUID
+     * ({@code XXXX0000-0000-1000-8000-00805F9B34FB}).
+     *
+     * @param assignedNumber the 16-bit assigned number
+     * @return the corresponding 128-bit {@link java.util.UUID}, never null
+     */
     public static UUID assignedNumberToUUID(int assignedNumber)
     {
         return new UUID(((long) assignedNumber << 32) | 0x1000, GATT_LEAST_SIGNIFICANT_BITS);
@@ -133,21 +148,49 @@ public class FooGattUuids
         return lookup.get(uuid);
     }
 
+    /**
+     * Returns a human-readable string for the UUID of the given service, or null if the service
+     * is null or the UUID is not a registered GATT UUID.
+     *
+     * @param service a GATT service; may be null
+     * @return a string such as {@code "\"Battery Service\"(0x180F)"}, or null
+     */
     public static String toString(BluetoothGattService service)
     {
         return (service == null) ? null : toString(service.getUuid());
     }
 
+    /**
+     * Returns a human-readable string for the UUID of the given characteristic, or null if the
+     * characteristic is null or the UUID is not a registered GATT UUID.
+     *
+     * @param characteristic a GATT characteristic; may be null
+     * @return a string such as {@code "\"Battery Level\"(0x2A19)"}, or null
+     */
     public static String toString(BluetoothGattCharacteristic characteristic)
     {
         return (characteristic == null) ? null : toString(characteristic.getUuid());
     }
 
+    /**
+     * Returns a human-readable string for the UUID of the given descriptor, or null if the
+     * descriptor is null or the UUID is not a registered GATT UUID.
+     *
+     * @param descriptor a GATT descriptor; may be null
+     * @return a human-readable string, or null
+     */
     public static String toString(BluetoothGattDescriptor descriptor)
     {
         return (descriptor == null) ? null : toString(descriptor.getUuid());
     }
 
+    /**
+     * Returns a human-readable string for the given UUID if it matches a registered GATT UUID,
+     * or null if no match is found.
+     *
+     * @param uuid a UUID to look up; may be null (returns null)
+     * @return a string such as {@code "\"Battery Service\"(0x180F)"}, or null if not found
+     */
     public static String toString(UUID uuid)
     {
         String s = null;

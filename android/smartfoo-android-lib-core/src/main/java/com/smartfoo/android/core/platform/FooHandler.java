@@ -11,6 +11,12 @@ public class FooHandler
 {
     private final FooIncrementingIntegerValue mMessageCodes;
 
+    /**
+     * Returns the next unique message code from the associated {@link FooIncrementingIntegerValue},
+     * then increments the counter.
+     *
+     * @return the message code before incrementing
+     */
     public int getNextMessageCode()
     {
         return mMessageCodes.getNextMessageCode();
@@ -59,11 +65,28 @@ public class FooHandler
         this(null, looper, callback);
     }
 
+    /**
+     * Associates this handler with the given message-code counter and a callback, using the
+     * main looper.
+     *
+     * @param messageCodes the counter used to generate unique message codes; a new default instance
+     *                     is created if null
+     * @param callback     the callback interface in which to handle messages, or null
+     */
     public FooHandler(FooIncrementingIntegerValue messageCodes, Callback callback)
     {
         this(messageCodes, null, callback);
     }
 
+    /**
+     * Full constructor. Associates this handler with the given looper, message-code counter, and
+     * callback.
+     *
+     * @param messageCodes the counter used to generate unique message codes; a new default instance
+     *                     is created if null
+     * @param looper       the looper to use; falls back to {@link Looper#getMainLooper()} if null
+     * @param callback     the callback interface in which to handle messages, or null
+     */
     public FooHandler(FooIncrementingIntegerValue messageCodes, Looper looper, Callback callback)
     {
         super(looper != null ? looper : Looper.getMainLooper(), callback);
@@ -76,6 +99,12 @@ public class FooHandler
         mMessageCodes = messageCodes;
     }
 
+    /**
+     * Returns a human-readable description of this handler that includes the associated looper's
+     * thread name, useful for logging and diagnostics.
+     *
+     * @return a string of the form {@code "FooHandler@XXXXXXXX { getLooper().getThread().getName()="name" }"}
+     */
     @Override
     public String toString()
     {
@@ -94,41 +123,109 @@ public class FooHandler
                " }";
     }
 
+    /**
+     * Obtains a {@link Message} from the pool and immediately sends it to this handler's queue.
+     *
+     * @param what the message identifier
+     * @param obj  the optional arbitrary object to attach
+     * @return the sent message
+     */
     public Message obtainAndSendMessage(int what, Object obj)
     {
         return obtainAndSendMessage(what, 0, 0, obj);
     }
 
+    /**
+     * Obtains a {@link Message} from the pool and immediately sends it to this handler's queue.
+     *
+     * @param what the message identifier
+     * @param arg1 first integer argument
+     * @param obj  the optional arbitrary object to attach
+     * @return the sent message
+     */
     public Message obtainAndSendMessage(int what, int arg1, Object obj)
     {
         return obtainAndSendMessage(what, arg1, 0, obj);
     }
 
+    /**
+     * Obtains a {@link Message} from the pool and immediately sends it to this handler's queue.
+     *
+     * @param what the message identifier
+     * @param arg1 first integer argument
+     * @param arg2 second integer argument
+     * @return the sent message
+     */
     public Message obtainAndSendMessage(int what, int arg1, int arg2)
     {
         return obtainAndSendMessage(what, arg1, arg2, null);
     }
 
+    /**
+     * Obtains a {@link Message} from the pool and immediately sends it to this handler's queue.
+     *
+     * @param what the message identifier
+     * @param arg1 first integer argument
+     * @param arg2 second integer argument
+     * @param obj  the optional arbitrary object to attach
+     * @return the sent message
+     */
     public Message obtainAndSendMessage(int what, int arg1, int arg2, Object obj)
     {
         return obtainAndSendMessageDelayed(what, arg1, arg2, obj, 0);
     }
 
+    /**
+     * Obtains a {@link Message} and posts it to this handler's queue with a delay.
+     *
+     * @param what         the message identifier
+     * @param obj          the optional arbitrary object to attach
+     * @param delayMillis  delay in milliseconds before delivery
+     * @return the sent message
+     */
     public Message obtainAndSendMessageDelayed(int what, Object obj, long delayMillis)
     {
         return obtainAndSendMessageDelayed(what, 0, 0, obj, delayMillis);
     }
 
+    /**
+     * Obtains a {@link Message} and posts it to this handler's queue with a delay.
+     *
+     * @param what         the message identifier
+     * @param arg1         first integer argument
+     * @param obj          the optional arbitrary object to attach
+     * @param delayMillis  delay in milliseconds before delivery
+     * @return the sent message
+     */
     public Message obtainAndSendMessageDelayed(int what, int arg1, Object obj, long delayMillis)
     {
         return obtainAndSendMessageDelayed(what, arg1, 0, obj, delayMillis);
     }
 
+    /**
+     * Obtains a {@link Message} and posts it to this handler's queue with a delay.
+     *
+     * @param what         the message identifier
+     * @param arg1         first integer argument
+     * @param arg2         second integer argument
+     * @param delayMillis  delay in milliseconds before delivery
+     * @return the sent message
+     */
     public Message obtainAndSendMessageDelayed(int what, int arg1, int arg2, long delayMillis)
     {
         return obtainAndSendMessageDelayed(what, arg1, arg2, null, delayMillis);
     }
 
+    /**
+     * Obtains a {@link Message} and posts it to this handler's queue with a delay.
+     *
+     * @param what         the message identifier
+     * @param arg1         first integer argument
+     * @param arg2         second integer argument
+     * @param obj          the optional arbitrary object to attach
+     * @param delayMillis  delay in milliseconds before delivery
+     * @return the sent message
+     */
     public Message obtainAndSendMessageDelayed(int what, int arg1, int arg2, Object obj, long delayMillis)
     {
         Message message = obtainMessage(what, arg1, arg2, obj);
@@ -136,6 +233,14 @@ public class FooHandler
         return message;
     }
 
+    /**
+     * Posts a runnable to this handler's queue with an associated token object, with no delay.
+     *
+     * @param r     the runnable to post
+     * @param token an object that can be used to cancel the posted runnable via
+     *              {@link android.os.Handler#removeCallbacksAndMessages(Object)}
+     * @return true if the message was successfully placed in the queue
+     */
     public boolean post(Runnable r, Object token)
     {
         return postDelayed(r, token, 0);

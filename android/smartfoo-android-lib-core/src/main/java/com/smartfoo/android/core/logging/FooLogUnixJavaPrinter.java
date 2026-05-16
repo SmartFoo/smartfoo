@@ -35,6 +35,16 @@ public class FooLogUnixJavaPrinter
         mFormatter = formatter;
     }
 
+    /**
+     * Formats the log record with the configured {@link FooLogFormatter} and writes it to
+     * {@link System#out}.
+     *
+     * @param tag   the log tag
+     * @param level the log level (one of {@link FooLog.FooLogLevel} constants)
+     * @param msg   the log message
+     * @param e     an optional throwable; may be null
+     * @return always {@code true}
+     */
     @Override
     protected boolean printlnInternal(String tag, int level, String msg, Throwable e)
     {
@@ -42,6 +52,9 @@ public class FooLogUnixJavaPrinter
         return true;
     }
 
+    /**
+     * No-op; console output cannot be cleared programmatically.
+     */
     @Override
     public void clear()
     {

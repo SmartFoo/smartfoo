@@ -68,35 +68,67 @@ public class FooGattHandler
     private static int sDefaultOperationTimeoutMillis  = DEFAULT_OPERATION_TIMEOUT_MILLIS;
     private static int sDefaultDisconnectTimeoutMillis = DEFAULT_DISCONNECT_TIMEOUT_MILLIS;
 
+    /**
+     * Returns the current process-wide default timeout for GATT connect operations.
+     *
+     * @return timeout in milliseconds
+     */
     public static int getDefaultConnectTimeoutMillis()
     {
         return sDefaultConnectTimeoutMillis;
     }
 
+    /**
+     * Sets the process-wide default timeout for GATT connect operations.
+     *
+     * @param timeoutMillis timeout in milliseconds; must be positive
+     */
     @SuppressWarnings("unused")
     public static void setDefaultConnectTimeoutMillis(int timeoutMillis)
     {
         sDefaultConnectTimeoutMillis = timeoutMillis;
     }
 
+    /**
+     * Returns the current process-wide default timeout for GATT characteristic read, write, and
+     * set-notification operations.
+     *
+     * @return timeout in milliseconds
+     */
     @SuppressWarnings("unused")
     public static int getDefaultOperationTimeoutMillis()
     {
         return sDefaultOperationTimeoutMillis;
     }
 
+    /**
+     * Sets the process-wide default timeout for GATT characteristic operations.
+     *
+     * @param timeoutMillis timeout in milliseconds; must be positive
+     */
     @SuppressWarnings("unused")
     public static void setDefaultOperationTimeoutMillis(int timeoutMillis)
     {
         sDefaultOperationTimeoutMillis = timeoutMillis;
     }
 
+    /**
+     * Returns the current process-wide default timeout to wait for a solicited disconnect to
+     * complete before forcing closure.
+     *
+     * @return timeout in milliseconds
+     */
     @SuppressWarnings("unused")
     public static int getDefaultDisconnectTimeoutMillis()
     {
         return sDefaultDisconnectTimeoutMillis;
     }
 
+    /**
+     * Sets the process-wide default timeout to wait for a solicited disconnect to complete.
+     *
+     * @param timeoutMillis timeout in milliseconds; must be positive
+     */
     @SuppressWarnings("unused")
     public static void setDefaultDisconnectTimeoutMillis(int timeoutMillis)
     {
@@ -371,12 +403,24 @@ public class FooGattHandler
     //
     //
 
+    /**
+     * Returns the {@link BluetoothAdapter} used by this handler.
+     *
+     * @return the adapter, or null if Bluetooth is not supported on this device
+     */
     @SuppressWarnings("unused")
     public BluetoothAdapter getBluetoothAdapter()
     {
         return mBluetoothAdapter;
     }
 
+    /**
+     * Returns true if the Bluetooth adapter is present and currently enabled.
+     * Logs a warning and returns false if the adapter is null or disabled.
+     *
+     * @param callerName a label used in log messages to identify the calling method
+     * @return true if the Bluetooth adapter is enabled
+     */
     public boolean isBluetoothAdapterEnabled(String callerName)
     {
         if (mBluetoothAdapter == null)
@@ -394,23 +438,45 @@ public class FooGattHandler
         return true;
     }
 
+    /**
+     * Returns the remote device's Bluetooth MAC address as a {@code long}.
+     *
+     * @return the device address
+     */
     public long getDeviceAddressLong()
     {
         return mDeviceAddressLong;
     }
 
+    /**
+     * Returns the remote device's Bluetooth MAC address as a colon-separated hex string
+     * (e.g. {@code "AA:BB:CC:DD:EE:FF"}).
+     *
+     * @return the device address string, never null
+     */
     @SuppressWarnings("unused")
     public String getDeviceAddressString()
     {
         return mDeviceAddressString;
     }
 
+    /**
+     * Returns the {@link BluetoothDevice} for the remote device if a GATT connection is active
+     * and not in the process of disconnecting.
+     *
+     * @return the device, or null if not connected
+     */
     public BluetoothDevice getBluetoothDevice()
     {
         BluetoothGatt gatt = getBluetoothGatt(true);
         return gatt != null ? gatt.getDevice() : null;
     }
 
+    /**
+     * Disconnects from the remote device and removes this handler from the owning
+     * {@link FooGattManager}. Equivalent to calling {@link FooGattManager#close()} for a single
+     * device.
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public void close()
     {
@@ -442,6 +508,13 @@ public class FooGattHandler
         return mBackgroundThreadId == Process.myTid();
     }
 
+    /**
+     * Returns true if a GATT connection is currently being established or is fully established
+     * and a solicited disconnect has not yet been initiated.
+     *
+     * @param callerName a label used in log messages to identify the calling method
+     * @return true if connecting or connected and not in the process of disconnecting
+     */
     @SuppressWarnings("unused")
     public boolean isConnectingOrConnectedAndNotDisconnecting(String callerName)
     {
@@ -466,12 +539,25 @@ public class FooGattHandler
         return true;
     }
 
+    /**
+     * Returns true if no GATT connection is active or a solicited disconnect is in progress.
+     *
+     * @param callerName a label used in log messages to identify the calling method
+     * @return true if disconnecting or already disconnected
+     */
     @SuppressWarnings("unused")
     public boolean isDisconnectingOrDisconnected(String callerName)
     {
         return internalIsDisconnectingOrDisconnected(callerName, null);
     }
 
+    /**
+     * Returns true if no GATT connection is active or a solicited disconnect is in progress,
+     * and logs a warning with "ignoring" appended when that is the case.
+     *
+     * @param callerName a label used in log messages to identify the calling method
+     * @return true if disconnecting or already disconnected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean ignoreIfIsDisconnectingOrDisconnected(String callerName)
     {
@@ -491,12 +577,22 @@ public class FooGattHandler
         return true;
     }
 
+    /**
+     * Returns true if a solicited disconnect has been initiated and is still in progress.
+     *
+     * @return true if currently disconnecting
+     */
     @SuppressWarnings("unused")
     public boolean isDisconnecting()
     {
         return mIsSolicitedDisconnecting;
     }
 
+    /**
+     * Returns true if there is no active GATT connection (neither connecting nor connected).
+     *
+     * @return true if disconnected
+     */
     public boolean isDisconnected()
     {
         return getBluetoothGatt(false) == null;
@@ -526,18 +622,33 @@ public class FooGattHandler
     //
     //
 
+    /**
+     * Registers a {@link GattHandlerListener} to receive GATT callbacks for this device.
+     * Safe to call from any thread.
+     *
+     * @param listener the listener to add; must not be null
+     */
     public void addListener(GattHandlerListener listener)
     {
         FooLog.e(TAG, logPrefix("addListener " + listener));
         mListenerManager.attach(listener);
     }
 
+    /**
+     * Unregisters a previously added {@link GattHandlerListener}.
+     * Safe to call from any thread.
+     *
+     * @param listener the listener to remove
+     */
     public void removeListener(GattHandlerListener listener)
     {
         FooLog.e(TAG, logPrefix("removeListener " + listener));
         mListenerManager.detach(listener);
     }
 
+    /**
+     * Removes all registered {@link GattHandlerListener} instances.
+     */
     @SuppressWarnings("unused")
     public void clearListeners()
     {
@@ -580,7 +691,11 @@ public class FooGattHandler
     //
 
     /**
-     * @return true if the connect request was enqueued, otherwise false
+     * Initiates a GATT connection to the remote device using the default connect timeout and
+     * without auto-connect. The connection attempt is queued on the background handler thread.
+     *
+     * @return true if the connect request was enqueued, false if the adapter is disabled or a
+     *         connection is already active
      */
     public boolean connect()
     {
@@ -588,7 +703,13 @@ public class FooGattHandler
     }
 
     /**
-     * @return true if the connect request was enqueued, otherwise false
+     * Initiates a GATT connection and executes {@code runAfterConnect} on the main looper once
+     * services have been successfully discovered.
+     *
+     * @param runAfterConnect optional runnable to post after a successful connection and service
+     *                        discovery; may be null
+     * @return true if the connect request was enqueued, false if the adapter is disabled or a
+     *         connection is already active
      */
     public boolean connect(Runnable runAfterConnect)
     {
@@ -596,8 +717,13 @@ public class FooGattHandler
     }
 
     /**
-     * @param timeoutMillis long
-     * @return true if the connect request was enqueued, otherwise false
+     * Initiates a GATT connection without auto-connect using the specified timeout.
+     *
+     * @param timeoutMillis   maximum time in milliseconds to wait for service discovery to complete
+     *                        before firing an operation-timeout callback
+     * @param runAfterConnect optional runnable to post after a successful connection; may be null
+     * @return true if the connect request was enqueued, false if the adapter is disabled or a
+     *         connection is already active
      */
     public boolean connect(long timeoutMillis, Runnable runAfterConnect)
     {
@@ -605,8 +731,13 @@ public class FooGattHandler
     }
 
     /**
-     * @param autoConnect boolean
-     * @return true if the connect request was enqueued, otherwise false
+     * Initiates a GATT connection using the default connect timeout.
+     *
+     * @param autoConnect     true to use the OS background auto-connect mechanism; false for a
+     *                        direct connection attempt
+     * @param runAfterConnect optional runnable to post after a successful connection; may be null
+     * @return true if the connect request was enqueued, false if the adapter is disabled or a
+     *         connection is already active
      */
     public boolean connect(boolean autoConnect, Runnable runAfterConnect)
     {
@@ -614,10 +745,19 @@ public class FooGattHandler
     }
 
     /**
-     * @param autoConnect     boolean
-     * @param timeoutMillis   long
-     * @param runAfterConnect Runnable
-     * @return true if already connecting/connected and *NOT* disconnecting, or the connect request was enqueued, otherwise false
+     * Initiates a GATT connection with full control over auto-connect, timeout, and
+     * post-connect callback.
+     *
+     * <p>If a connection is already active and not in the process of disconnecting, this method
+     * returns {@code true} without starting a new connection attempt. Otherwise the attempt is
+     * enqueued on the background handler thread.</p>
+     *
+     * @param autoConnect     true to use the OS background auto-connect mechanism
+     * @param timeoutMillis   maximum time in milliseconds to wait for service discovery
+     * @param runAfterConnect optional runnable to post on the main looper after success; may be null
+     * @return true if already connecting/connected and not disconnecting, or if the connect
+     *         request was enqueued; false if the adapter is disabled or the request could not be
+     *         enqueued
      */
     public boolean connect(final boolean autoConnect, final long timeoutMillis, final Runnable runAfterConnect)
     {
@@ -707,6 +847,12 @@ public class FooGattHandler
         return true;
     }
 
+    /**
+     * Initiates a solicited GATT disconnect using the default disconnect timeout.
+     * Safe to call from any thread; if not on the background thread the call is forwarded there.
+     *
+     * @return true if the disconnect was initiated, false if already disconnected or disconnecting
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressWarnings("UnusedReturnValue")
     public boolean disconnect()
@@ -714,6 +860,13 @@ public class FooGattHandler
         return disconnect(sDefaultDisconnectTimeoutMillis);
     }
 
+    /**
+     * Initiates a solicited GATT disconnect and waits up to {@code timeoutMillis} for the OS
+     * {@code onConnectionStateChange} callback before forcing closure.
+     *
+     * @param timeoutMillis maximum time in milliseconds to wait for the OS disconnect callback
+     * @return true if the disconnect was initiated, false if already disconnected or disconnecting
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressWarnings("WeakerAccess")
     public boolean disconnect(final long timeoutMillis)
@@ -1140,18 +1293,46 @@ public class FooGattHandler
     //
     //
 
+    /**
+     * Reads a GATT characteristic using the default operation timeout.
+     * The result is delivered via {@link GattHandlerListener#onDeviceCharacteristicRead}.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to read
+     * @return true if the read request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicRead(UUID serviceUuid, UUID characteristicUuid)
     {
         return characteristicRead(serviceUuid, characteristicUuid, sDefaultOperationTimeoutMillis, null);
     }
 
+    /**
+     * Reads a GATT characteristic and executes {@code runAfterSuccess} on success.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to read
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful read;
+     *                           may be null
+     * @return true if the read request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicRead(UUID serviceUuid, UUID characteristicUuid, Runnable runAfterSuccess)
     {
         return characteristicRead(serviceUuid, characteristicUuid, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
+    /**
+     * Reads a GATT characteristic with a custom timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic; must not be null
+     * @param characteristicUuid UUID of the characteristic to read; must not be null
+     * @param timeoutMillis      maximum time in milliseconds to wait for the read callback before
+     *                           firing an operation-timeout event
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful read;
+     *                           may be null
+     * @return true if the read request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicRead(final UUID serviceUuid, final UUID characteristicUuid,
                                       final long timeoutMillis,
@@ -1704,6 +1885,24 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, timeoutMillis, null);
     }
 
+    /**
+     * Writes a byte array to a GATT characteristic with full control over write type and timeout.
+     *
+     * <p>The write is performed on the background handler thread. On completion,
+     * {@link GattHandlerListener#onDeviceCharacteristicWrite} is called on the main looper. If the
+     * write fails or times out, the device will be disconnected unless a listener returns
+     * {@code false} from the timeout callback.</p>
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic; must not be null
+     * @param characteristicUuid      UUID of the characteristic to write; must not be null
+     * @param value                   the byte array to write; must not be null
+     * @param characteristicWriteType controls the GATT write type (with/without response, signed);
+     *                                pass null to use the characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(final UUID serviceUuid, final UUID characteristicUuid,
                                        final byte[] value,
@@ -1958,6 +2157,27 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, timeoutMillis, null);
     }
 
+    /**
+     * Enables or disables GATT characteristic notifications/indications with full control over
+     * all parameters.
+     *
+     * <p>Calls {@link android.bluetooth.BluetoothGatt#setCharacteristicNotification} and, when
+     * {@code setDescriptorClientCharacteristicConfig} is true, also writes the appropriate value
+     * to the Client Characteristic Configuration descriptor. On completion,
+     * {@link GattHandlerListener#onDeviceCharacteristicSetNotification} is called on the main looper.</p>
+     *
+     * @param serviceUuid                            UUID of the service; must not be null
+     * @param characteristicUuid                     UUID of the characteristic; must not be null
+     * @param characteristicNotificationDescriptorType the notification mode to set; must not be null
+     * @param setDescriptorClientCharacteristicConfig true to also write the Client Characteristic
+     *                                               Configuration descriptor (required for most
+     *                                               peripherals); false to skip the descriptor write
+     * @param timeoutMillis                          maximum time in milliseconds to wait for the
+     *                                               descriptor write callback
+     * @param runAfterSuccess                        optional runnable posted on the main looper after
+     *                                               success; may be null
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicSetNotification(final UUID serviceUuid, final UUID characteristicUuid,
                                                  final CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
@@ -2293,18 +2513,39 @@ public class FooGattHandler
         return false;
     }
 
+    /**
+     * Reads the remote device's RSSI value using the default operation timeout.
+     * The result is delivered via {@link GattHandlerListener#onDeviceReadRemoteRssi}.
+     *
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean readRemoteRssi()
     {
         return readRemoteRssi(sDefaultOperationTimeoutMillis, null);
     }
 
+    /**
+     * Reads the remote device's RSSI value and executes {@code runAfterSuccess} on success.
+     *
+     * @param runAfterSuccess optional runnable posted on the main looper after a successful read;
+     *                        may be null
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean readRemoteRssi(Runnable runAfterSuccess)
     {
         return readRemoteRssi(sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
+    /**
+     * Reads the remote device's RSSI value with a custom timeout.
+     *
+     * @param timeoutMillis   maximum time in milliseconds to wait for the RSSI callback
+     * @param runAfterSuccess optional runnable posted on the main looper after a successful read;
+     *                        may be null
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean readRemoteRssi(final long timeoutMillis, final Runnable runAfterSuccess)
     {

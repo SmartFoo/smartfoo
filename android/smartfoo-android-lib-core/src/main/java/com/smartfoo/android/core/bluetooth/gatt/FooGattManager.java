@@ -61,6 +61,11 @@ public class FooGattManager
         mGattHandlers = new FooLongSparseArray<>();
     }
 
+    /**
+     * Returns the application context supplied at construction time.
+     *
+     * @return the context, never null
+     */
     public Context getContext()
     {
         return mContext;

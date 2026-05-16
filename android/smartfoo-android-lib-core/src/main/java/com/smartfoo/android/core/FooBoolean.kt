@@ -109,6 +109,12 @@ object FooBoolean {
         throw IllegalArgumentException("value must be an integer, \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\"")
     }
 
+    /**
+     * Converts [value] to the string `"true"` or `"false"`.
+     *
+     * @param value the boolean to convert
+     * @return `"true"` if [value] is true, `"false"` otherwise
+     */
     fun toString(value: Boolean): String {
         return if (value) "true" else "false"
     }
