@@ -82,7 +82,7 @@ tasks.withType(JavaCompile) {
 */
 
 // Credentials are read from ~/.gradle/gradle.properties (local) or env vars (CI).
-// See publishing setup docs in the project README.
+// See publishing setup docs in CONTRIBUTING.md.
 nmcp {
     centralPortal {
         username.set(providers.gradleProperty("mavenCentralUsername")
@@ -144,7 +144,11 @@ afterEvaluate {
     signing {
         val signingKey: String?      by project
         val signingPassword: String? by project
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications["release"])
+        val skipSigning = signingKey == "SKIP" && signingPassword == "SKIP"
+        if (!skipSigning)
+        {
+            useInMemoryPgpKeys(signingKey, signingPassword)
+            sign(publishing.publications["release"])
+        }
     }
 }

@@ -2,7 +2,8 @@
 # SmartFoo
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.smartfoo/smartfoo-android-lib-core)](https://central.sonatype.com/artifact/com.smartfoo/smartfoo-android-lib-core)
-[![CI](https://github.com/SmartFoo/smartfoo/actions/workflows/build.yml/badge.svg)](https://github.com/SmartFoo/smartfoo/actions/workflows/build.yml)
+[![CI](https://github.com/SmartFoo/smartfoo/actions/workflows/android.yml/badge.svg)](https://github.com/SmartFoo/smartfoo/actions/workflows/android.yml)
+[![Publish](https://github.com/SmartFoo/smartfoo/actions/workflows/publish.yml/badge.svg)](https://github.com/SmartFoo/smartfoo/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This project was started 2016/01 to [try to] be a pseudo cross-platform library
@@ -62,15 +63,28 @@ Eventually other platforms could be abstracted out (yes, possibly even Qt).
 
 ## What's Included
 
+The Android artifact is organized around small packages that wrap common
+platform APIs behind SmartFoo-style helpers and callback managers:
+
 | Package | Key Classes | Purpose |
 |---|---|---|
-| core | `FooString`, `FooLog`, `FooListenerManager` | Core utilities, logging facade, listener pattern |
-| bluetooth | `FooBluetoothManager` | Bluetooth adapter state management |
-| bluetooth.gatt | `FooGattManager`, `FooGattHandler` | BLE GATT connection lifecycle |
-| media | `FooAudioFocusController`, `FooTextToSpeech` | Audio focus, TTS, volume control |
-| network | `FooDataConnectionManager` | Data connection state monitoring |
-| notification | `FooNotificationBuilder`, `FooNotificationService` | Notification construction and listening |
-| platform | `FooHandler`, `FooHandlerThread`, `FooService` | Android platform primitives |
+| `core` | `FooString`, `FooListenerManager`, `FooListenerAutoStartManager`, `FooBoolean`, `FooObjects`, `FooArrays`, `FooRandom`, `FooBitSet`, `FooException`, `FooAssert`, `FooMemoryStream`, `FooReflection`, `FooTest` | Foundation utilities for string handling, listener management, common data-type helpers, assertions, in-memory byte I/O, reflection helpers, and test bootstrapping. |
+| `annotations` | `NonNullNonEmpty` | AndroidX-based annotation for values that must be both non-null and non-empty. |
+| `app` | `FooDebugActivity`, `FooDebugApplication`, `FooDebugConfiguration`, `CallbackFragment`, `CallbackDialogFragment`, `GenericPromptPositiveNegativeDialogFragment`, `GenericPromptSingleButtonDialogFragment` | App-level debug scaffolding and reusable fragment/dialog base classes that route UI events back through typed callbacks. |
+| `bluetooth` | `FooBluetoothManager`, `FooBluetoothAdapterStateListener`, `FooBluetoothAudioConnectionListener`, `FooBluetoothUtils` | Classic Bluetooth and BLE capability checks, adapter state callbacks, Bluetooth audio connection monitoring, and adapter utility functions. |
+| `bluetooth.gatt` | `FooGattManager`, `FooGattHandler`, `FooGattUtils`, `FooGattUuid`, `FooGattUuids`, `BluetoothGattCompat` | BLE GATT connection lifecycle management, per-device handlers, service discovery/read/write/notify state handling, UUID constants, and compatibility helpers. |
+| `collections` | `FooCollections`, `FooBundleBuilder`, `FooLongSparseArray` | Collection equality/hash helpers, fluent Android `Bundle` construction, and a long-keyed sparse array implementation. |
+| `content` | `FooPreferences` | `SharedPreferences` convenience wrapper with app/user preference files, typed accessors, and backup-change notifications. |
+| `crypto` | `FooCrypto` | Hashing, HMAC-SHA-256, AES helper operations, secure-random bytes, and shared algorithm-name constants. |
+| `logging` | `FooLog`, `FooLogPrinter`, `FooLogFormatter`, `FooLogAdbPrinter`, `FooLogFilePrinter`, `FooLogConsolePrinter`, `FooLogAndroidFormatter`, `FooLogUnixJavaFormatter`, `SetLogLimitDialogFragment` | Pluggable logging facade with ADB, file, and console printers, configurable formatters, and runtime log-size controls. |
+| `media` | `FooAudioFocusController`, `FooAudioStreamVolumeObserver`, `FooAudioUtils`, `FooVolumeRestoringMediaPlayer`, `FooWiredHeadsetConnectionListener` | Audio-focus reference counting, stream-volume observation, audio attribute/stream helpers, volume-restoring playback, and wired headset events. |
+| `network` | `FooDataConnectionManager`, `FooDataConnectionListener`, `FooCellularStateListener` | Connectivity and cellular call-state monitoring, including a combined data-availability manager that blocks use while disconnected or in a voice call. |
+| `notification` | `FooNotification`, `FooNotificationBuilder`, `FooNotificationService`, `FooNotificationListenerManager`, `FooNotificationListener`, `FooNotificationReceiver` | Notification construction, notification listener service plumbing, posted/removed callback dispatch, and broadcast receiver integration. |
+| `permission` | `FooPermission` | Individual runtime-permission checks plus battery-optimization exemption intents and launch helpers. |
+| `permissions` | `FooPermissionsChecker` | Activity/fragment permission request orchestration with granted, denied, and rationale callbacks. |
+| `platform` | `FooHandler`, `FooHandlerThread`, `FooService`, `FooBootListener`, `FooScreenListener`, `FooChargePortListener`, `FooPlatformUtils`, `FooRes` | Android primitive wrappers for handlers, services, boot/screen/charging broadcasts, platform inspection, and resource helpers. |
+| `texttospeech` | `FooTextToSpeech`, `FooTextToSpeechBuilder`, `FooTextToSpeechHelper` | Singleton TTS engine wrapper with queued utterance sequencing, audio-focus integration, composite speech/silence/earcon builders, and convenience speak helpers. |
+| `view` | `FooViewHolder`, `FooViewUtils` | ViewHolder caching for adapter views and logging/debug helpers for Android view visibility constants. |
 
 ## Using the Library
 
@@ -87,43 +101,12 @@ The artifact is published to [Maven Central](https://central.sonatype.com/artifa
 
 See the [Releases](https://github.com/SmartFoo/smartfoo/releases) page for the changelog and version history.
 
+Maintainer publishing instructions are in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Requirements
 
 - Android minSdk **34** (Android 14)
 - Java **21** / Kotlin **2.x**
-
----
-
-## Publishing a New Release
-
-> This section is for maintainers only.
-
-### One-time setup
-
-> One-time setup instructions (Sonatype account, GPG key, Gradle properties, CI secrets) are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Publishing
-
-1. Choose the new version number. The version is derived automatically from the Git tag during CI publishing, so no file edits are required for a tag-triggered release. The fallback version in `android/smartfoo-android-lib-core/build.gradle.kts` can be kept in sync for reference.
-
-2. Verify the publication locally (no credentials required, signing is skipped):
-   ```bash
-   cd android
-   ./gradlew :smartfoo-android-lib-core:publishToMavenLocal
-   ```
-
-3. Publish to Maven Central:
-   ```bash
-   ./gradlew :smartfoo-android-lib-core:publishAllPublicationsToCentralPortal
-   ```
-
-4. Log in to [central.sonatype.com](https://central.sonatype.com) → Deployments, verify the artifacts, then click **Publish**. The release appears on Maven Central within ~15 minutes.
-
-5. Tag the release:
-   ```bash
-   git tag v<version> && git push origin v<version>
-   ```
-   Pushing a `v*` tag also triggers the [publish GitHub Actions workflow](.github/workflows/publish.yml), which performs step 3 automatically using repository secrets (`MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `GPG_SIGNING_KEY`, `GPG_SIGNING_PASSWORD`).
 
 ---
 
