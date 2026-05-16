@@ -47,18 +47,15 @@ object FooReflection {
      */
     @JvmStatic
     @JvmOverloads
-    fun getClassName(o: Any?, short: Boolean = true): String =
-        getClassName(getClass(o)?.name, short)
+    fun getClassName(o: Any?, short: Boolean = true) = getClassName(getClass(o)?.name, short)
 
     @JvmStatic
     @JvmOverloads
-    fun getClassName(c: Class<*>?, short: Boolean = true): String =
-        getClassName(c?.name, short)
+    fun getClassName(c: Class<*>?, short: Boolean = true) = getClassName(c?.name, short)
 
     @JvmStatic
     @JvmOverloads
-    fun getClassName(c: KClass<*>?, short: Boolean = true): String =
-        getClassName(c?.java?.name, short)
+    fun getClassName(c: KClass<*>?, short: Boolean = true) = getClassName(c?.java?.name, short)
 
     /**
      * Base logic for string manipulation
@@ -74,16 +71,16 @@ object FooReflection {
      * and maintain a clean API.
      */
     @JvmStatic
-    fun getShortClassName(o: Any?): String = getClassName(o, true)
+    fun getShortClassName(o: Any?) = getClassName(o, true)
 
     @JvmStatic
-    fun getShortClassName(c: Class<*>?): String = getClassName(c, true)
+    fun getShortClassName(c: Class<*>?) = getClassName(c, true)
 
     @JvmStatic
-    fun getShortClassName(c: KClass<*>?): String = getClassName(c, true)
+    fun getShortClassName(c: KClass<*>?) = getClassName(c, true)
 
     @JvmStatic
-    fun getShortClassName(className: String?): String = getClassName(className, true)
+    fun getShortClassName(className: String?) = getClassName(className, true)
 
     /**
      * Formats a method name for use in log output.
@@ -117,7 +114,7 @@ object FooReflection {
     fun getShortClassAndMethodName(
         o: Any?,
         methodName: String?,
-    ): String = getShortClassName(o) + getMethodName(methodName)
+    ) = getShortClassName(o) + getMethodName(methodName)
 
     /**
      * Returns a string describing the superclasses and interfaces implemented by [instance].
@@ -136,7 +133,6 @@ object FooReflection {
         return sb
             .toString()
             // Remove any unspeakable/unprintable characters
-            //noinspection TrimLambda
             .trim { it <= ' ' }
     }
 
@@ -272,9 +268,7 @@ object FooReflection {
     fun getFieldValueString(
         o: Any?,
         fieldName: String,
-    ): String? = getFieldValue(o, fieldName) as String?
-
-
+    ) = getFieldValue(o, fieldName) as String?
 
     /**
      * Kotlin-friendly overload of [mapConstants] that accepts a [KClass].
@@ -284,8 +278,7 @@ object FooReflection {
      * @return a map from integer constant value to field name
      */
     @JvmStatic
-    fun mapConstants(clazz: KClass<*>, vararg prefixes: String): Map<Int, String> =
-        mapConstants(clazz.java, *prefixes)
+    fun mapConstants(clazz: KClass<*>, vararg prefixes: String) = mapConstants(clazz.java, *prefixes)
 
     /***
      * Dynamically maps integer constant values to their field names using reflection.
@@ -294,17 +287,15 @@ object FooReflection {
      * @param prefixes The constant prefix to look for (e.g., "REASON_")
      */
     @JvmStatic
-    fun mapConstants(clazz: Class<*>, vararg prefixes: String): Map<Int, String> {
-        return clazz.fields
+    fun mapConstants(clazz: Class<*>, vararg prefixes: String) =
+        clazz.fields
             .filter { field ->
                 prefixes.any { prefix -> field.name.startsWith(prefix) } &&
                         field.type == Int::class.javaPrimitiveType
             }
             .associate { field ->
-                val value = runCatching { field.get(null) as Int }.getOrDefault(-1)
-                value to field.name
+                runCatching { field.get(null) as Int }.getOrDefault(-1) to field.name
             }
-    }
 
     /**
      * Converts an integer [value] to its symbolic name using a constant map produced by
@@ -317,14 +308,13 @@ object FooReflection {
      * @return a string such as `"REASON_FOO(3)"` or `"FLAG_A(1)|FLAG_B(2)"`
      */
     @JvmStatic
-    fun toString(map: Map<Int, String>, value: Int, asFlags: Boolean = false): String {
+    fun toString(map: Map<Int, String>, value: Int, asFlags: Boolean = false) =
         if (asFlags) {
-            val joined = map.entries
+            map.entries
                 .filter { (key, _) -> (value and key) != 0 }
                 .joinToString("|") { (key, name) -> "$name($key)" }
-            return joined.ifEmpty { "0($value)" }
+                .ifEmpty { "0($value)" }
         } else {
-            return (map[value] ?: "UNKNOWN").let { "$it($value)" }
+            "${map[value] ?: "UNKNOWN"}($value)"
         }
-    }
 }
