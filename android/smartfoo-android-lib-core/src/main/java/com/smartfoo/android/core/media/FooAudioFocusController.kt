@@ -11,11 +11,18 @@ import com.smartfoo.android.core.logging.FooLog
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * FooAudioFocusController
+ * Singleton controller for Android audio focus with reference-counted ownership.
  *
- * Single controller for system AudioFocus with multi-caller safety.
- * - Only the first acquire() requests focus from the system.
- * - Only the final release() abandons focus.
+ * Wraps [android.media.AudioManager.requestAudioFocus] so that multiple independent callers
+ * can each acquire a [FocusHandle] without triggering redundant system requests:
+ * - Only the **first** [acquire] call requests focus from the system.
+ * - Only the **last** [FocusHandle.release] (or [FocusHandle.close]) abandons focus.
+ *
+ * Callers attach an optional [Callbacks] instance to receive gain/loss events for the lifetime
+ * of their handle. Use `acquire(...)` in a `try-with-resources` or Kotlin `use {}` block for
+ * safe automatic release.
+ *
+ * Obtain the singleton via [instance].
  */
 class FooAudioFocusController private constructor() {
     companion object {

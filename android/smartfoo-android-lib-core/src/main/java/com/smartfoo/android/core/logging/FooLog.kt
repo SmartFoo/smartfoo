@@ -7,6 +7,20 @@ import com.smartfoo.android.core.FooString
 import com.smartfoo.android.core.texttospeech.FooTextToSpeech
 import kotlin.reflect.KClass
 
+/**
+ * Central logging facade for the smartfoo-android-lib-core library.
+ *
+ * Supports multiple registered [FooLogPrinter] backends (ADB LogCat, console, file, …).
+ * Logging is enabled automatically in debug builds and can be toggled at runtime via
+ * [isEnabled]. The ADB printer is registered by default.
+ *
+ * Use [TAG] helpers to create tag strings that comply with Android's 23-character tag limit.
+ * Use [v], [d], [i], [w], [e], and [f] to emit log messages at the corresponding levels.
+ * Use [s] for text-to-speech log announcements (requires [initializeSpeech] first).
+ *
+ * Printers are stored in a [LinkedHashSet] so registration order is preserved and duplicate
+ * registrations are silently ignored.
+ */
 @Suppress("unused")
 object FooLog {
     //private val TAG = TAG(FooLog::class)
@@ -77,6 +91,11 @@ object FooLog {
         }
     }
 
+    /**
+     * Removes a previously registered [FooLogPrinter]. Harmless if the printer was never added.
+     *
+     * @param logPrinter the printer to remove; ignored if null
+     */
     @JvmStatic
     fun removePrinter(logPrinter: FooLogPrinter?) {
         if (logPrinter == null) {
@@ -87,6 +106,12 @@ object FooLog {
         }
     }
 
+    /**
+     * Returns true if the given printer has been registered with this logger.
+     *
+     * @param logPrinter the printer to check; returns false if null
+     * @return true if the printer is currently registered
+     */
     @JvmStatic
     fun isAdded(logPrinter: FooLogPrinter?): Boolean {
         if (logPrinter == null) {
@@ -97,6 +122,10 @@ object FooLog {
         }
     }
 
+    /**
+     * Removes all registered printers. After this call no log output is produced until
+     * at least one printer is added again via [addPrinter].
+     */
     @JvmStatic
     fun clearPrinters() {
         synchronized(FooLog::class.java) {
@@ -104,6 +133,10 @@ object FooLog {
         }
     }
 
+    /**
+     * Requests every registered [FooLogPrinter] to clear its stored log data (e.g. flush a
+     * ring buffer). The semantics of "clear" are defined by each individual printer.
+     */
     @JvmStatic
     fun clear() {
         synchronized(FooLog::class.java) {
@@ -277,6 +310,12 @@ object FooLog {
 
     private var sTextToSpeech: FooTextToSpeech? = null
 
+    /**
+     * Initialises the text-to-speech engine used by [s]. Must be called before [s] is used.
+     * Safe to call multiple times; only the first call has any effect.
+     *
+     * @param context used to initialise the [FooTextToSpeech] singleton
+     */
     @JvmStatic
     fun initializeSpeech(context: Context) {
         if (sTextToSpeech == null) {
@@ -288,11 +327,26 @@ object FooLog {
         }
     }
 
+    /**
+     * Speaks [text] via the text-to-speech engine (if [isEnabled] is true and text is non-empty).
+     * Prepends the tag as camel-case-separated words for context. Requires [initializeSpeech]
+     * to have been called first.
+     *
+     * @param tag  log tag, prepended to [text] when non-empty
+     * @param text the text to speak
+     */
     @JvmStatic
     fun s(tag: String?, text: String?) {
         s(tag, text, false)
     }
 
+    /**
+     * Speaks [text] via the text-to-speech engine (if [isEnabled] is true and text is non-empty).
+     *
+     * @param tag   log tag, prepended to [text] when non-empty
+     * @param text  the text to speak
+     * @param clear if true, clears the TTS queue before speaking
+     */
     @JvmStatic
     fun s(tag: String?, text: String?, clear: Boolean) {
         var text = text
@@ -307,6 +361,16 @@ object FooLog {
         }
     }
 
+    /**
+     * Logs a byte array at the given level, printing byte-index reference rows (1s, 10s, 100s)
+     * alongside the hex-encoded array for easy visual alignment.
+     *
+     * @param tag   log tag
+     * @param level one of the [FooLogLevel] constants
+     * @param text  prefix text for each log line
+     * @param name  label for the data row (used for padding alignment)
+     * @param bytes the byte array to log; does nothing if null
+     */
     @JvmStatic
     fun logBytes(tag: String?, level: Int, text: String?, name: String, bytes: ByteArray?) {
         if (bytes != null) {

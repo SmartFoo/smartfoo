@@ -19,12 +19,33 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * Observes changes to audio stream volumes and notifies registered callbacks.
+ *
+ * <p>Registers a {@link android.database.ContentObserver} on
+ * {@link android.provider.Settings.System#CONTENT_URI} to detect volume changes for one or more
+ * audio stream types. Multiple listeners may be attached for the same or different stream types;
+ * the content observer is registered lazily on the first {@link #attach} call and unregistered
+ * after the last {@link #detach} call.</p>
+ */
 public class FooAudioStreamVolumeObserver
 {
     private static final String TAG = FooLog.TAG(FooAudioStreamVolumeObserver.class);
 
+    /**
+     * Callback interface for audio stream volume change events.
+     */
     public interface OnAudioStreamVolumeChangedCallbacks
     {
+        /**
+         * Called when the volume of a monitored audio stream changes.
+         *
+         * @param audioStreamType the stream type (one of the {@link android.media.AudioManager}
+         *                        {@code STREAM_*} constants)
+         * @param volume          the new absolute volume level
+         * @param volumeMax       the maximum possible volume for this stream
+         * @param volumePercent   the new volume as a percentage of the maximum (0–100)
+         */
         void onAudioStreamVolumeChanged(int audioStreamType, int volume, int volumeMax, int volumePercent);
     }
 
@@ -92,6 +113,13 @@ public class FooAudioStreamVolumeObserver
         mAudioStreamTypeToLastVolume = new LinkedHashMap<>();
     }
 
+    /**
+     * Attaches a callback for the given audio stream type. If this is the first callback across
+     * all stream types, the system content observer is registered automatically.
+     *
+     * @param audioStreamType the audio stream to monitor (e.g. {@link android.media.AudioManager#STREAM_MUSIC})
+     * @param callbacks       the callbacks to notify; must not be null
+     */
     public void attach(int audioStreamType, @NonNull OnAudioStreamVolumeChangedCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");
@@ -152,6 +180,13 @@ public class FooAudioStreamVolumeObserver
         }
     }
 
+    /**
+     * Detaches a previously attached callback. If this was the last callback across all stream
+     * types, the system content observer is unregistered automatically.
+     *
+     * @param audioStreamType the audio stream type that was passed to {@link #attach}
+     * @param callbacks       the callbacks to remove; must not be null
+     */
     public void detach(int audioStreamType, @NonNull OnAudioStreamVolumeChangedCallbacks callbacks)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(callbacks, "callbacks");

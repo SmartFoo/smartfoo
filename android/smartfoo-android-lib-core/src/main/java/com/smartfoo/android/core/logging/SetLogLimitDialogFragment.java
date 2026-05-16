@@ -18,15 +18,34 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.smartfoo.android.core.R;
 
+/**
+ * A dialog fragment that lets the user configure two log size limits via seekbars:
+ * the overall log size limit (0–1024 KB) and the email-attachment log size limit (0–128 KB).
+ *
+ * <p>The host {@link android.app.Activity} must implement
+ * {@link SetLogLimitDialogFragmentCallbacks}. Create instances via
+ * {@link #newInstance(int, int, int)} and show them through the fragment manager.</p>
+ */
 public class SetLogLimitDialogFragment
         extends DialogFragment
 {
+    /** Marker interface for optional per-dialog configuration (currently unused). */
     public interface SetLogLimitDialogConfiguration
     {
     }
 
+    /**
+     * Callback interface that the hosting Activity must implement to receive the confirmed
+     * log limit values.
+     */
     public interface SetLogLimitDialogFragmentCallbacks
     {
+        /**
+         * Called when the user confirms the dialog.
+         *
+         * @param logLimitKb      the selected overall log size limit in kilobytes (0 = unlimited)
+         * @param logEmailLimitKb the selected email-attachment size limit in kilobytes (0 = unlimited)
+         */
         void onSetLogLimit(int logLimitKb, int logEmailLimitKb);
     }
 
@@ -34,6 +53,14 @@ public class SetLogLimitDialogFragment
     private static final String ARG_LOG_LIMIT_KB         = "ARG_LOG_LIMIT_KB";
     private static final String ARG_LOG_EMAIL_LIMIT_KB   = "ARG_LOG_EMAIL_LIMIT_KB";
 
+    /**
+     * Creates a new instance of the dialog with the given initial seekbar positions.
+     *
+     * @param logLimitKbDefault the default overall log limit in KB, restored when Reset is tapped
+     * @param logLimitKb        the current overall log limit in KB shown in the seekbar
+     * @param logEmailLimitKb   the current email-attachment limit in KB shown in the seekbar
+     * @return a configured {@code SetLogLimitDialogFragment} ready to be shown
+     */
     public static SetLogLimitDialogFragment newInstance(int logLimitKbDefault, int logLimitKb, int logEmailLimitKb)
     {
         Bundle arguments = new Bundle();

@@ -8,6 +8,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Formats log records into a human-readable string for use by {@link FooLogPrinter} implementations.
+ *
+ * <p>The default format mirrors Android LogCat:
+ * {@code MM-DD HH:mm:ss.SSS PID-TID L/TAG: message [: throwable=stacktrace]}.</p>
+ *
+ * <p>Subclasses must implement {@link #getPid()} and {@link #getTid()} to supply the
+ * process/thread IDs appropriate for their runtime environment (Android vs. plain JVM).</p>
+ */
 public abstract class FooLogFormatter
 {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US);
@@ -28,6 +37,15 @@ public abstract class FooLogFormatter
 
     protected abstract int getTid();
 
+    /**
+     * Formats a log record using the current date/time.
+     *
+     * @param level the log level (one of {@link FooLog.FooLogLevel} constants)
+     * @param tag   the log tag
+     * @param msg   the log message
+     * @param e     an optional throwable whose stack trace is appended; may be null
+     * @return the formatted log line, never null
+     */
     public String format(int level, String tag, String msg, Throwable e)
     {
         return format(new Date(), level, tag, msg, e);

@@ -62,6 +62,16 @@ import java.util.Locale;
  * TODO:(pv) Search backward and forward in log
  * TODO:(pv) Ignore everything up the first PID?
  */
+/**
+ * A full-screen debug activity that loads, displays, and shares the application logcat output.
+ *
+ * <p>Displays log lines in a colour-coded {@link RecyclerView}, supports in-line search,
+ * log-to-file toggling, and email sharing of the captured log. Launch extras can inject a
+ * pre-captured log string or a custom header message; see {@link #makeExtras} for details.</p>
+ *
+ * <p>The host {@link android.app.Application} must implement {@link FooDebugApplication} so that
+ * this activity can retrieve its {@link FooDebugConfiguration}.</p>
+ */
 public class FooDebugActivity
         extends AppCompatActivity//PbPermisoActivity //
         implements OnQueryTextListener, //
@@ -69,12 +79,30 @@ public class FooDebugActivity
 {
     private static final String TAG = FooLog.TAG(FooDebugActivity.class);
 
+    /**
+     * Populates (or creates) an extras {@link Bundle} with the current process PID and username.
+     *
+     * @param extras   an existing bundle to augment, or {@code null} to create a new one
+     * @param username the display name of the current user; ignored if null or empty
+     * @return the populated bundle
+     */
     public static Bundle makeExtras(Bundle extras,
                                     String username)
     {
         return makeExtras(extras, username, null, null, android.os.Process.myPid());
     }
 
+    /**
+     * Populates (or creates) an extras {@link Bundle} with all debug activity launch parameters.
+     *
+     * @param extras   an existing bundle to augment, or {@code null} to create a new one
+     * @param username the display name of the current user; ignored if null or empty
+     * @param message  an optional message to prepend to the log header; ignored if null or empty
+     * @param logRaw   a pre-captured raw logcat string to display instead of loading from logcat;
+     *                 ignored if null or empty
+     * @param logPid   the PID used to filter the log; pass {@code -1} to omit
+     * @return the populated bundle
+     */
     public static Bundle makeExtras(Bundle extras,
                                     String username,
                                     String message,
@@ -160,6 +188,11 @@ public class FooDebugActivity
     private int mLogLimitKb;
     private int mLogEmailLimitKb;
 
+    /**
+     * Shows or hides the progress indicator overlay.
+     *
+     * @param text the message to display; pass {@code null} or empty to hide the overlay
+     */
     public void showProgressIndicator(String text)
     {
         if (FooString.isNullOrEmpty(text))
@@ -208,6 +241,15 @@ public class FooDebugActivity
     }
     */
 
+    /**
+     * Returns the {@link FooDebugApplication} for the given context.
+     *
+     * @param context any context; the application context is used internally
+     * @return the {@link FooDebugApplication} implementation
+     * @throws IllegalArgumentException if {@code context} is null
+     * @throws IllegalStateException    if the application context does not implement
+     *                                  {@link FooDebugApplication}
+     */
     public static FooDebugApplication getFooDebugApplication(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");

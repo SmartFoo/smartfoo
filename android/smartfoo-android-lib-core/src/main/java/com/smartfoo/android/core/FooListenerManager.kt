@@ -3,6 +3,16 @@ package com.smartfoo.android.core
 import com.smartfoo.android.core.logging.FooLog
 import java.util.Collections
 
+/**
+ * A thread-safe set of typed listeners supporting safe addition and removal during traversal.
+ *
+ * Listeners added or removed while [beginTraversing]/[endTraversing] is active are deferred
+ * until [endTraversing] is called, preventing [ConcurrentModificationException]. Override
+ * [onListenersUpdated] to react when the listener count changes.
+ *
+ * @param T the listener type; may be nullable
+ * @param name a descriptive name used in debug logging
+ */
 @Suppress("unused")
 open class FooListenerManager<T>(name: String) {
     companion object {
@@ -23,6 +33,11 @@ open class FooListenerManager<T>(name: String) {
 
     override fun toString() = "{ name=$name, size()=${size()} }"
 
+    /**
+     * Returns the effective number of listeners, accounting for any pending additions and removals.
+     *
+     * @return the current listener count
+     */
     fun size(): Int {
         val size: Int
         synchronized(listeners) {
@@ -43,6 +58,12 @@ open class FooListenerManager<T>(name: String) {
     val isEmpty: Boolean
         get() = size() == 0
 
+    /**
+     * Returns true if [listener] is currently registered, pending addition, or pending removal.
+     *
+     * @param listener the listener to look up
+     * @return true if the listener is known to this manager
+     */
     fun hasListener(listener: T): Boolean {
         synchronized(listeners) {
             return listenersToAdd.contains(listener) ||
@@ -51,6 +72,12 @@ open class FooListenerManager<T>(name: String) {
         }
     }
 
+    /**
+     * Adds [listener] to the set. If a traversal is in progress the addition is deferred until
+     * [endTraversing] is called. Null listeners and duplicate registrations are silently ignored.
+     *
+     * @param listener the listener to add; no-op if null or already registered
+     */
     fun attach(listener: T?) {
         if (VERBOSE_LOG) {
             FooLog.v(TAG, "$name attach(...)")
@@ -73,6 +100,12 @@ open class FooListenerManager<T>(name: String) {
         }
     }
 
+    /**
+     * Removes [listener] from the set. If a traversal is in progress the removal is deferred
+     * until [endTraversing] is called. Null listeners and unknown listeners are silently ignored.
+     *
+     * @param listener the listener to remove; no-op if null
+     */
     fun detach(listener: T?) {
         if (VERBOSE_LOG) {
             FooLog.v(TAG, "$name detach(...)")
@@ -92,6 +125,10 @@ open class FooListenerManager<T>(name: String) {
         }
     }
 
+    /**
+     * Removes all listeners. If a traversal is in progress, current listeners are queued for
+     * removal and applied when [endTraversing] is called.
+     */
     fun clear() {
         if (VERBOSE_LOG) {
             FooLog.v(TAG, "$name clear()")
@@ -107,6 +144,14 @@ open class FooListenerManager<T>(name: String) {
         }
     }
 
+    /**
+     * Marks the start of a traversal and returns an unmodifiable snapshot of the current
+     * listener set. Any [attach] or [detach] calls made during traversal are deferred.
+     *
+     * Must be paired with a corresponding call to [endTraversing].
+     *
+     * @return an unmodifiable view of the current listeners
+     */
     fun beginTraversing(): Set<T> {
         if (VERBOSE_LOG) {
             FooLog.v(TAG, "$name beginTraversing()")
@@ -117,6 +162,11 @@ open class FooListenerManager<T>(name: String) {
         }
     }
 
+    /**
+     * Marks the end of a traversal and applies any deferred [attach] or [detach] operations.
+     *
+     * Must be called after every [beginTraversing] call.
+     */
     fun endTraversing() {
         if (VERBOSE_LOG) {
             FooLog.v(TAG, "$name endTraversing()")
@@ -146,6 +196,13 @@ open class FooListenerManager<T>(name: String) {
         }
     }
 
+    /**
+     * Called after the listener set changes (addition, removal, or clear).
+     *
+     * Override to react to transitions such as the set becoming empty or non-empty.
+     *
+     * @param listenersSize the new size of the listener set
+     */
     protected open fun onListenersUpdated(listenersSize: Int) {
     }
 }

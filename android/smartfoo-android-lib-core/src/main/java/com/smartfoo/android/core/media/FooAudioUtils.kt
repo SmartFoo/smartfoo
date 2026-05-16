@@ -11,6 +11,14 @@ import com.smartfoo.android.core.R
 import com.smartfoo.android.core.logging.FooLog
 import kotlin.math.roundToInt
 
+/**
+ * Static utility methods for audio stream and audio focus operations.
+ *
+ * Provides string representations of [android.media.AudioManager] stream types, audio focus
+ * gain/loss constants, and audio focus request results. Also includes helpers to convert
+ * between absolute and percentage volume values and to retrieve [android.media.Ringtone]
+ * instances from a URI.
+ */
 @Suppress("unused")
 object FooAudioUtils {
     private val TAG = FooLog.TAG(FooAudioUtils::class)
@@ -77,6 +85,14 @@ object FooAudioUtils {
     fun audioFocusRequestToString(audioFocusRequest: Int) =
         FooReflection.toString(audioFocusRequestMap, audioFocusRequest)
 
+    /**
+     * Converts an absolute stream volume level to a [0.0, 1.0] fraction.
+     *
+     * @param audioManager    the audio manager used to query the stream maximum
+     * @param audioStreamType the stream type (e.g. [android.media.AudioManager.STREAM_MUSIC])
+     * @param volume          the absolute volume level to convert
+     * @return volume as a fraction of the stream maximum
+     */
     @JvmStatic
     fun getVolumePercentFromAbsolute(
         audioManager: AudioManager,
@@ -87,6 +103,14 @@ object FooAudioUtils {
         return volume / volumeMax.toFloat()
     }
 
+    /**
+     * Converts a [0.0, 1.0] volume fraction to an absolute stream volume level.
+     *
+     * @param audioManager    the audio manager used to query the stream maximum
+     * @param audioStreamType the stream type (e.g. [android.media.AudioManager.STREAM_MUSIC])
+     * @param volumePercent   the target volume as a fraction of the maximum
+     * @return the nearest integer absolute volume level
+     */
     @JvmStatic
     fun getVolumeAbsoluteFromPercent(
         audioManager: AudioManager,
@@ -112,6 +136,13 @@ object FooAudioUtils {
         return getVolumePercentFromAbsolute(audioManager, audioStreamType, volume)
     }
 
+    /**
+     * Returns a [android.media.Ringtone] for the given URI, or null if the URI is null/empty.
+     *
+     * @param context     context used to resolve the ringtone; may be null (returns null)
+     * @param ringtoneUri URI of the ringtone to load; returns null if null/empty
+     * @return the [android.media.Ringtone] or null
+     */
     @JvmStatic
     fun getRingtone(
         context: Context?,

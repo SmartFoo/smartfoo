@@ -21,6 +21,13 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * String manipulation, formatting, and conversion utilities.
+ *
+ * Covers null-safe checks, hex/bit string formatting, null-terminated byte array encoding,
+ * time-duration formatting, camel-case splitting, and [SpannableString] creation for Android
+ * text views. UTF-8 is the assumed character set for all byte–string conversions.
+ */
 @Suppress("unused")
 object FooString {
     @JvmField
@@ -34,6 +41,12 @@ object FooString {
     @JvmField
     val EMPTY_BYTES = byteArrayOf(0)
 
+    /**
+     * Encodes [value] as a UTF-8 [ByteArray].
+     *
+     * @param value the string to encode
+     * @return the UTF-8 encoded bytes
+     */
     @JvmStatic
     fun getBytes(value: String): ByteArray {
         try {
@@ -43,6 +56,14 @@ object FooString {
         }
     }
 
+    /**
+     * Decodes [length] bytes from [bytes] starting at [offset] as a UTF-8 string.
+     *
+     * @param bytes the source byte array
+     * @param offset starting index in [bytes]
+     * @param length number of bytes to decode
+     * @return the decoded string
+     */
     @JvmStatic
     fun getString(
         bytes: ByteArray?,
@@ -64,9 +85,21 @@ object FooString {
     @JvmStatic
     fun isNullOrEmpty(value: String?): Boolean = value.isNullOrEmpty()
 
+    /**
+     * Returns true if [value] is null or has zero length.
+     *
+     * @param value the CharSequence to test
+     * @return true if null or empty
+     */
     @JvmStatic
     fun isNullOrEmpty(value: CharSequence?): Boolean = value.isNullOrEmpty()
 
+    /**
+     * Returns [value]`.toString()`, or null if [value] is null.
+     *
+     * @param value the object to convert
+     * @return string representation, or null
+     */
     @JvmStatic
     fun toString(value: Any?): String? = value?.toString()
 
@@ -115,6 +148,12 @@ object FooString {
         return bytes
     }
 
+    /**
+     * Returns an uppercase hex string representation of [bytes] in byte-array format (e.g. `"AA-BB-CC"`).
+     *
+     * @param bytes the bytes to format, or null
+     * @return hex string, or `"null"` if [bytes] is null
+     */
     @JvmStatic
     fun toHexString(bytes: ByteArray?): String = toHexString(bytes, true)
 
@@ -271,9 +310,23 @@ object FooString {
         spaceEvery: Int = 8,
     ) = toBitString(FooMemoryStream.newBytes(value), maxBits, spaceEvery)
 
+    /**
+     * Returns `'1'` if [value] is true, `'0'` otherwise.
+     *
+     * @param value the boolean to convert
+     * @return `'1'` or `'0'`
+     */
     @JvmStatic
     fun toChar(value: Boolean) = if (value) '1' else '0'
 
+    /**
+     * Pads [number] on the left with [ch] until the result is at least [minimumLength] characters.
+     *
+     * @param number the number to format
+     * @param ch the padding character
+     * @param minimumLength the minimum width of the resulting string
+     * @return the padded string
+     */
     @JvmStatic
     fun padNumber(
         number: Long,
@@ -293,6 +346,17 @@ object FooString {
         minimumLength: Int,
     ) = padNumber(number, '0', minimumLength)
 
+    /**
+     * Formats [number] with [leading] digits before the decimal and [trailing] digits after,
+     * zero-padding as needed and truncating trailing decimal places to [trailing].
+     *
+     * Returns [number].toString() directly for NaN and infinite values.
+     *
+     * @param number the value to format
+     * @param leading minimum number of digits before the decimal point
+     * @param trailing exact number of digits after the decimal point
+     * @return formatted string
+     */
     @JvmStatic
     fun formatNumber(
         number: Double,
@@ -315,6 +379,13 @@ object FooString {
         return parts[0] + '.' + parts[1]
     }
 
+    /**
+     * Joins [parts] with [delimiter] using [TextUtils.join].
+     *
+     * @param delimiter the string to insert between parts
+     * @param parts the strings to join; individual elements may be null
+     * @return the joined string, or null if [parts] is empty
+     */
     @JvmStatic
     fun join(
         delimiter: String,
@@ -351,6 +422,14 @@ object FooString {
         return source.split(separator ?: "", limit = kotlinLimit).toTypedArray()
     }
 
+    /**
+     * Replaces the first occurrence of [pattern] in [source] with [replacement].
+     *
+     * @param source the string to search; returns empty string if null
+     * @param pattern the literal substring to find
+     * @param replacement the replacement string; null is treated as empty
+     * @return the resulting string
+     */
     @JvmStatic
     fun replaceFirst(
         source: String?,
@@ -358,6 +437,15 @@ object FooString {
         replacement: String?,
     ) = replace(source, pattern, replacement, 1)
 
+    /**
+     * Replaces occurrences of [pattern] in [source] with [replacement].
+     *
+     * @param source the string to search; returns empty string if null
+     * @param pattern the literal substring to find
+     * @param replacement the replacement string; null is treated as empty
+     * @param limit maximum number of replacements; -1 for unlimited
+     * @return the resulting string, never null
+     */
     @JvmOverloads
     @JvmStatic
     fun replace(
@@ -487,6 +575,12 @@ object FooString {
         return sb.toString()
     }
 
+    /**
+     * Returns [s] with its first character uppercased. Returns an empty string if [s] is null or empty.
+     *
+     * @param s the string to capitalise
+     * @return the capitalised string
+     */
     @JvmStatic
     fun capitalize(s: String?): String {
         if (s.isNullOrEmpty()) {
@@ -744,6 +838,12 @@ object FooString {
                 formatNumber(msElapsed, 3)
     }
 
+    /**
+     * Splits a camelCase or PascalCase string into space-separated words and trims the result.
+     *
+     * @param s the string to split; null produces an empty string
+     * @return the separated, trimmed string
+     */
     @JvmStatic
     fun separateCamelCaseWords(s: String?): String {
         val sb = StringBuilder()
@@ -784,6 +884,13 @@ object FooString {
         return s
     }
 
+    /**
+     * Returns true if [s] starts with any character in [vowels].
+     *
+     * @param vowels a string whose characters are each treated as a potential starting vowel
+     * @param s the string to test; null returns false
+     * @return true if [s] starts with one of the specified characters
+     */
     @JvmStatic
     fun startsWithVowel(
         vowels: String?,

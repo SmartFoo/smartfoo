@@ -9,12 +9,25 @@ import android.content.IntentFilter;
 import com.smartfoo.android.core.FooString;
 import com.smartfoo.android.core.logging.FooLog;
 
+/**
+ * Monitors the Bluetooth adapter power state and notifies a single registered
+ * {@link FooBluetoothAdapterStateCallbacks} listener when the adapter transitions between
+ * enabled and disabled.
+ *
+ * <p>Call {@link #start(FooBluetoothAdapterStateCallbacks)} to begin receiving callbacks and
+ * {@link #stop()} to unregister. Duplicate state transitions (e.g. ON→ON) are suppressed.</p>
+ */
 public class FooBluetoothAdapterStateListener
 {
+    /**
+     * Callback interface for Bluetooth adapter enable/disable events.
+     */
     public interface FooBluetoothAdapterStateCallbacks
     {
+        /** Called when the Bluetooth adapter transitions to the {@code STATE_ON} state. */
         void onBluetoothAdapterEnabled();
 
+        /** Called when the Bluetooth adapter leaves the {@code STATE_ON} state. */
         void onBluetoothAdapterDisabled();
     }
 
@@ -25,24 +38,47 @@ public class FooBluetoothAdapterStateListener
         mBluetoothAdapterStateReceiver = new FooBluetoothAdapterStateBroadcastReceiver(context);
     }
 
+    /**
+     * Returns true if the Bluetooth adapter is currently in the {@code STATE_ON} state.
+     *
+     * @return true if Bluetooth is enabled
+     */
     public boolean isBluetoothAdapterEnabled()
     {
         return mBluetoothAdapterStateReceiver.isBluetoothAdapterEnabled();
     }
 
+    /**
+     * Returns the current raw Bluetooth adapter state.
+     *
+     * @return one of {@link android.bluetooth.BluetoothAdapter#STATE_OFF},
+     *         {@link android.bluetooth.BluetoothAdapter#STATE_TURNING_ON},
+     *         {@link android.bluetooth.BluetoothAdapter#STATE_ON},
+     *         {@link android.bluetooth.BluetoothAdapter#STATE_TURNING_OFF},
+     *         or {@code -1} if Bluetooth is not supported on this device
+     */
     public int getBluetoothAdapterState()
     {
         return mBluetoothAdapterStateReceiver.getBluetoothAdapterState();
     }
 
+    /**
+     * Returns true if this listener has been started and is actively monitoring the adapter state.
+     *
+     * @return true if started
+     */
     public boolean isStarted()
     {
         return mBluetoothAdapterStateReceiver.isStarted();
     }
 
     /**
-     * @param callbacks callbacks
-     * @return {@link #isBluetoothAdapterEnabled()}
+     * Registers the given callbacks and begins monitoring Bluetooth adapter state changes.
+     * The receiver immediately emits the current adapter state so the caller never misses
+     * the initial value.
+     *
+     * @param callbacks the callbacks to notify; may be null to suppress notifications
+     * @return {@link #isBluetoothAdapterEnabled()} at the moment start is called
      */
     public boolean start(FooBluetoothAdapterStateCallbacks callbacks)
     {
@@ -51,6 +87,10 @@ public class FooBluetoothAdapterStateListener
         return mBluetoothAdapterStateReceiver.isBluetoothAdapterEnabled();
     }
 
+    /**
+     * Unregisters the broadcast receiver and stops monitoring Bluetooth adapter state changes.
+     * Safe to call even if {@link #start(FooBluetoothAdapterStateCallbacks)} was never called.
+     */
     public void stop()
     {
         mBluetoothAdapterStateReceiver.stop();

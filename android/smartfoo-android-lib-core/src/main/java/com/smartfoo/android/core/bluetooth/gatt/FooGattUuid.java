@@ -8,12 +8,28 @@ import com.smartfoo.android.core.FooString;
 
 import java.util.UUID;
 
+/**
+ * Represents a named Bluetooth GATT UUID with its Bluetooth SIG assigned number.
+ *
+ * <p>Provides equality comparisons against {@link UUID}, {@link android.os.ParcelUuid},
+ * {@link android.bluetooth.BluetoothGattService}, and
+ * {@link android.bluetooth.BluetoothGattCharacteristic} for convenient use in switch/lookup
+ * scenarios. Instances are created by {@link FooGattUuids} and should not be constructed
+ * directly outside the SDK.</p>
+ */
 public class FooGattUuid
 {
     private final int    mAssignedNumber;
     private final String mName;
     private final UUID   mUuid;
 
+    /**
+     * Creates a {@code FooGattUuid} from a Bluetooth SIG assigned number.
+     * The 128-bit UUID is derived via {@link FooGattUuids#assignedNumberToUUID(int)}.
+     *
+     * @param assignedNumber the 16-bit Bluetooth SIG assigned number
+     * @param name           a human-readable name; must not be null or empty
+     */
     public FooGattUuid(int assignedNumber, String name)
     {
         this(FooGattUuids.assignedNumberToUUID(assignedNumber), name);

@@ -15,6 +15,16 @@ import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+/**
+ * Central facade for Bluetooth functionality in an application.
+ *
+ * <p>Provides convenient access to the platform {@link BluetoothManager} and
+ * {@link BluetoothAdapter}, exposes enable/disable helpers with known-bug workarounds, and
+ * owns pre-constructed listeners for adapter state changes and Bluetooth audio connections.</p>
+ *
+ * <p>Construct once with an application {@link android.content.Context} and keep the instance
+ * for the application lifetime.</p>
+ */
 public class FooBluetoothManager
 {
     private static final String TAG = FooLog.TAG(FooBluetoothManager.class);
@@ -59,6 +69,12 @@ public class FooBluetoothManager
         return mBluetoothAdapter;
     }
 
+    /**
+     * Returns true if the Bluetooth adapter is currently enabled.
+     * Handles the known {@code DeadObjectException} that the framework may throw.
+     *
+     * @return true if Bluetooth is enabled, false if disabled or if an exception occurs
+     */
     public boolean isBluetoothAdapterEnabled()
     {
         try
@@ -136,6 +152,12 @@ public class FooBluetoothManager
         }
     }
 
+    /**
+     * Returns the {@link FooBluetoothAdapterStateListener} associated with this manager.
+     * The listener can be used to register for adapter enable/disable callbacks.
+     *
+     * @return never null
+     */
     @NonNull
     public FooBluetoothAdapterStateListener getBluetoothAdapterStateListener()
     {
@@ -152,6 +174,11 @@ public class FooBluetoothManager
         }
     };
 
+    /**
+     * Returns the set of currently bonded Bluetooth devices sorted by device name.
+     *
+     * @return a name-sorted set of bonded devices, or null if Bluetooth is not supported
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public SortedSet<BluetoothDevice> getBondedDevices()
     {
@@ -165,6 +192,11 @@ public class FooBluetoothManager
         return bondedDevices;
     }
 
+    /**
+     * Returns the {@link FooBluetoothAudioConnectionListener} associated with this manager.
+     *
+     * @return never null
+     */
     @NonNull
     public FooBluetoothAudioConnectionListener getBluetoothAudioConnectionListener()
     {

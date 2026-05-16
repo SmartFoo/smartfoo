@@ -1,0 +1,3 @@
+# Package com.smartfoo.android.core
+
+Foundation utilities for the SmartFoo Android library. Provides general-purpose helpers including `FooString` for string manipulation and quoting, `FooListenerManager` for thread-safe observer/listener management with add-during-iteration safety, `FooListenerAutoStartManager` for auto-start/stop lifecycle coupling, `FooBoolean`, `FooObjects`, `FooArrays`, `FooRandom`, and `FooBitSet` for common data-type operations, `FooException` and `FooAssert` for error handling, `FooMemoryStream` for in-memory byte I/O, and `FooReflection` for class-name and constant-map utilities used throughout the library.

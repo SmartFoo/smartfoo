@@ -3,6 +3,11 @@ package com.smartfoo.android.core
 import androidx.annotation.FloatRange
 import java.util.Random
 
+/**
+ * Random number generation helpers with configurable minimum bounds.
+ *
+ * All results are normalized to the range [0.0, 1.0] or a caller-specified sub-range.
+ */
 object FooRandom {
     /**
      * @return double from 0.0 to 1.0

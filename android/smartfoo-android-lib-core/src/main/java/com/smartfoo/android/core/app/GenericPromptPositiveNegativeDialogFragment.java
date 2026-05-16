@@ -19,25 +19,45 @@ import com.smartfoo.android.core.app.GenericPromptPositiveNegativeDialogFragment
 import com.smartfoo.android.core.logging.FooLog;
 import com.smartfoo.android.core.platform.FooRes;
 
+/**
+ * A reusable {@link androidx.fragment.app.DialogFragment} that shows a prompt with a positive
+ * and a negative button, and optionally a checkbox.
+ *
+ * <p>Create instances via one of the {@code newInstance} factory methods. The dialog result is
+ * reported through {@link GenericPromptPositiveNegativeDialogFragmentCallbacks}.
+ * The result value is available via {@link #getResult()} after the dialog is dismissed.</p>
+ */
 public class GenericPromptPositiveNegativeDialogFragment
         extends CallbackDialogFragment<GenericPromptPositiveNegativeDialogFragmentCallbacks>
 {
     private static final String TAG = FooLog.TAG(GenericPromptPositiveNegativeDialogFragment.class);
 
+    /**
+     * Callback interface delivered when the user dismisses the dialog.
+     */
     public interface GenericPromptPositiveNegativeDialogFragmentCallbacks
     {
         /**
-         * @param dialogFragment dialogFragment
-         * @return true if handled, false if not handled
+         * Called when the dialog has been dismissed with any result (positive, negative, or cancelled).
+         *
+         * @param dialogFragment the dialog that was dismissed; call {@link #getResult()} to read the outcome
+         * @return {@code true} if the event was handled, {@code false} otherwise
          */
         boolean onGenericPromptPositiveNegativeDialogFragmentResult(@NonNull GenericPromptPositiveNegativeDialogFragment dialogFragment);
     }
 
+    /**
+     * The outcome of a {@link GenericPromptPositiveNegativeDialogFragment} interaction.
+     */
     public enum Result
     {
+        /** The dialog was cancelled (back press or touch-outside). */
         Canceled,
+        /** The user tapped the positive button without the optional checkbox checked. */
         Positive,
+        /** The user tapped the positive button while the optional checkbox was checked. */
         PositiveChecked,
+        /** The user tapped the negative button. */
         Negative,
     }
 

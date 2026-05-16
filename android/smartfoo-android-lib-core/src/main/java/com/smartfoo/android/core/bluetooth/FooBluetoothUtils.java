@@ -37,17 +37,36 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+/**
+ * Static utility methods for common Bluetooth operations.
+ *
+ * <p>Covers adapter and connection state string conversion, MAC address parsing and formatting,
+ * GATT characteristic/service descriptions, device audio classification, and BLE scan error
+ * decoding. This class is not instantiable.</p>
+ */
 public class FooBluetoothUtils
 {
     private FooBluetoothUtils()
     {
     }
 
+    /**
+     * Returns true if the device hardware supports Bluetooth Classic.
+     *
+     * @param context context
+     * @return true if the {@link PackageManager#FEATURE_BLUETOOTH} system feature is present
+     */
     public static boolean isBluetoothSupported(@NonNull Context context)
     {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
     }
 
+    /**
+     * Returns true if the device hardware supports Bluetooth Low Energy (BLE).
+     *
+     * @param context context
+     * @return true if the {@link PackageManager#FEATURE_BLUETOOTH_LE} system feature is present
+     */
     public static boolean isBluetoothLowEnergySupported(@NonNull Context context)
     {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
@@ -107,6 +126,14 @@ public class FooBluetoothUtils
         return bluetoothAdapter;
     }
 
+    /**
+     * Returns true if the given Bluetooth device is classified as an audio output device
+     * (headset, handsfree, loudspeaker, headphones, car audio, or hi-fi audio) with the
+     * {@link android.bluetooth.BluetoothClass.Service#RENDER} service bit set.
+     *
+     * @param bluetoothDevice the device to inspect; returns false if null
+     * @return true if the device is an audio output
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean isAudioOutput(BluetoothDevice bluetoothDevice)
     {
@@ -136,11 +163,24 @@ public class FooBluetoothUtils
         return false;
     }
 
+    /**
+     * Extracts the remote device's MAC address from a {@link BluetoothGatt} and returns it
+     * as a {@code long}.
+     *
+     * @param gatt the GATT connection whose device address is to be converted
+     * @return the device MAC address as a {@code long}
+     */
     public static long gattDeviceAddressToLong(@NonNull BluetoothGatt gatt)
     {
         return bluetoothDeviceAddressToLong(gatt.getDevice());
     }
 
+    /**
+     * Returns the MAC address of a {@link BluetoothDevice} as a {@code long}.
+     *
+     * @param device the device whose address is to be converted
+     * @return the device MAC address as a {@code long}
+     */
     public static long bluetoothDeviceAddressToLong(@NonNull BluetoothDevice device)
     {
         return macAddressStringToLong(device.getAddress());
@@ -216,6 +256,12 @@ public class FooBluetoothUtils
         return String.format(Locale.US, "%012x", macAddressLong);
     }
 
+    /**
+     * Returns a human-readable string for a Bluetooth adapter state constant.
+     *
+     * @param bluetoothAdapterState one of the {@code BluetoothAdapter.STATE_*} constants
+     * @return a string such as {@code "STATE_ON(12)"}
+     */
     public static String bluetoothAdapterStateToString(int bluetoothAdapterState)
     {
         String name;
@@ -240,6 +286,12 @@ public class FooBluetoothUtils
         return name + '(' + bluetoothAdapterState + ')';
     }
 
+    /**
+     * Returns a human-readable string for a Bluetooth profile connection state constant.
+     *
+     * @param bluetoothConnectionState one of the {@link android.bluetooth.BluetoothProfile} {@code STATE_*} constants
+     * @return a string such as {@code "STATE_CONNECTED(2)"}
+     */
     public static String bluetoothConnectionStateToString(int bluetoothConnectionState)
     {
         String name;
@@ -264,6 +316,12 @@ public class FooBluetoothUtils
         return name + '(' + bluetoothConnectionState + ')';
     }
 
+    /**
+     * Returns a human-readable string for a Bluetooth headset audio state constant.
+     *
+     * @param bluetoothAudioState one of the {@link android.bluetooth.BluetoothHeadset} {@code STATE_AUDIO_*} constants
+     * @return a string such as {@code "STATE_AUDIO_CONNECTED(12)"}
+     */
     public static String bluetoothAudioStateToString(int bluetoothAudioState)
     {
         String name;
@@ -285,6 +343,13 @@ public class FooBluetoothUtils
         return name + '(' + bluetoothAudioState + ')';
     }
 
+    /**
+     * Returns a human-readable string for a BLE {@link android.bluetooth.le.ScanCallback}
+     * error code.
+     *
+     * @param value one of the {@code ScanCallback.SCAN_FAILED_*} constants
+     * @return a string such as {@code "SCAN_FAILED_ALREADY_STARTED(1)"}
+     */
     public static String scanCallbackErrorToString(int value)
     {
         String name;
@@ -309,6 +374,15 @@ public class FooBluetoothUtils
         return name + '(' + value + ')';
     }
 
+    /**
+     * Returns a formatted string describing a GATT service/characteristic pair and an associated
+     * value, using the friendly name from {@link FooGattUuids} where available.
+     *
+     * @param service        the GATT service
+     * @param characteristic the GATT characteristic within that service
+     * @param value          the value to include in the string (may be null)
+     * @return a quoted, back-slash-delimited description string
+     */
     public static String toString(@NonNull BluetoothGattService service, @NonNull BluetoothGattCharacteristic characteristic, Object value)
     {
         return toString(service.getUuid(), characteristic.getUuid(), value);
@@ -377,6 +451,13 @@ public class FooBluetoothUtils
         return buffer.toString();
     }
 
+    /**
+     * Returns a human-readable description of a GATT service, using the friendly name from
+     * {@link FooGattUuids} where available.
+     *
+     * @param service the GATT service to describe; returns {@code "null"} if null
+     * @return a description string, never null
+     */
     public static String getDescription(BluetoothGattService service)
     {
         if (service == null)
@@ -386,6 +467,13 @@ public class FooBluetoothUtils
         return getDescription(service.getUuid());
     }
 
+    /**
+     * Returns a human-readable description of a GATT characteristic, using the friendly name
+     * from {@link FooGattUuids} where available.
+     *
+     * @param characteristic the GATT characteristic to describe; returns {@code "null"} if null
+     * @return a description string, never null
+     */
     public static String getDescription(BluetoothGattCharacteristic characteristic)
     {
         if (characteristic == null)
@@ -395,6 +483,13 @@ public class FooBluetoothUtils
         return getDescription(characteristic.getUuid());
     }
 
+    /**
+     * Returns a human-readable description for a Bluetooth UUID, using the registered
+     * name from {@link FooGattUuids} when available, or the UUID string otherwise.
+     *
+     * @param uuid the UUID to describe
+     * @return a description string, never null
+     */
     public static String getDescription(UUID uuid)
     {
         FooGattUuid gattUuid = FooGattUuids.get(uuid);

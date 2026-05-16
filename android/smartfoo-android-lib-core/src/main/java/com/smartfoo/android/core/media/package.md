@@ -1,0 +1,3 @@
+# Package com.smartfoo.android.core.media
+
+Audio management utilities. `FooAudioFocusController` is a singleton that serialises `AudioFocus` acquire/release across multiple callers — only the first caller requests focus from the system, and only the last releases it. `FooAudioStreamVolumeObserver` monitors stream-volume changes via a `ContentObserver`. `FooAudioUtils` provides helper functions for audio attribute and stream-type conversions. `FooVolumeRestoringMediaPlayer` saves and restores stream volume around playback. `FooWiredHeadsetConnectionListener` delivers plug/unplug events for wired headsets.

@@ -1,6 +1,10 @@
 
 # SmartFoo
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.smartfoo/smartfoo-android-lib-core)](https://central.sonatype.com/artifact/com.smartfoo/smartfoo-android-lib-core)
+[![CI](https://github.com/SmartFoo/smartfoo/actions/workflows/build.yml/badge.svg)](https://github.com/SmartFoo/smartfoo/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 This project was started 2016/01 to [try to] be a pseudo cross-platform library
 interface/implementation.
 
@@ -56,6 +60,18 @@ cross-platform classes in Android, iOS, .NET, and Win32, starting with Android.
 
 Eventually other platforms could be abstracted out (yes, possibly even Qt).
 
+## What's Included
+
+| Package | Key Classes | Purpose |
+|---|---|---|
+| core | `FooString`, `FooLog`, `FooListenerManager` | Core utilities, logging facade, listener pattern |
+| bluetooth | `FooBluetoothManager` | Bluetooth adapter state management |
+| bluetooth.gatt | `FooGattManager`, `FooGattHandler` | BLE GATT connection lifecycle |
+| media | `FooAudioFocusController`, `FooTextToSpeech` | Audio focus, TTS, volume control |
+| network | `FooDataConnectionManager` | Data connection state monitoring |
+| notification | `FooNotificationBuilder`, `FooNotificationService` | Notification construction and listening |
+| platform | `FooHandler`, `FooHandlerThread`, `FooService` | Android platform primitives |
+
 ## Using the Library
 
 Add the dependency to your Android project:
@@ -69,6 +85,13 @@ dependencies {
 
 The artifact is published to [Maven Central](https://central.sonatype.com/artifact/com.smartfoo/smartfoo-android-lib-core), which is included in Android projects by default. No extra repository configuration is needed.
 
+See the [Releases](https://github.com/SmartFoo/smartfoo/releases) page for the changelog and version history.
+
+## Requirements
+
+- Android minSdk **34** (Android 14)
+- Java **21** / Kotlin **2.x**
+
 ---
 
 ## Publishing a New Release
@@ -77,31 +100,7 @@ The artifact is published to [Maven Central](https://central.sonatype.com/artifa
 
 ### One-time setup
 
-1. **Sonatype Central Portal account** — register at [central.sonatype.com](https://central.sonatype.com) and verify the `com.smartfoo` namespace.
-
-2. **Central Portal token** — go to Account → Generate User Token. Keep the username and password it gives you.
-
-3. **GPG key** — the signing key fingerprint is `68A9F48759586BD553B0A2FA95B723E3101ED163` (`publish@smartfoo.com`). The public key is published to `keys.openpgp.org`. Export the armored private key with:
-   ```bash
-   gpg --armor --export-secret-keys publish@smartfoo.com
-   ```
-
-4. **Local credentials** — add to `~/.gradle/gradle.properties` (never commit this file):
-   ```properties
-   mavenCentralUsername=<Central Portal token username>
-   mavenCentralPassword=<Central Portal token password>
-   signingKey=<armored GPG private key>
-   signingPassword=<GPG passphrase>
-   ```
-
-5. **GitHub Actions secrets** — go to the repository → Settings → Secrets and variables → Actions, and add the following repository secrets:
-
-   | Secret | Value |
-   |---|---|
-   | `MAVEN_CENTRAL_USERNAME` | Central Portal token username |
-   | `MAVEN_CENTRAL_PASSWORD` | Central Portal token password |
-   | `GPG_SIGNING_KEY` | Armored GPG private key (same value as `signingKey` above) |
-   | `GPG_SIGNING_PASSWORD` | GPG passphrase (same value as `signingPassword` above) |
+> One-time setup instructions (Sonatype account, GPG key, Gradle properties, CI secrets) are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Publishing
 

@@ -2,6 +2,13 @@ package com.smartfoo.android.core.logging;
 
 import android.util.Log;
 
+/**
+ * A {@link FooLogPrinter} that writes log messages to Android LogCat via {@link Log#println}.
+ *
+ * <p>Maps {@link FooLog.FooLogLevel} values to the corresponding {@link Log} level constants and
+ * appends exception stack traces inline so they appear in the same LogCat entry as the message.
+ * Use {@link #getInstance()} to obtain the shared singleton.</p>
+ */
 public class FooLogAdbPrinter
         extends FooLogPrinter
 {

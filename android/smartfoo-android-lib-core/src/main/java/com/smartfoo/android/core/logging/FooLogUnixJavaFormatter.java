@@ -4,6 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * A {@link FooLogFormatter} that resolves the process ID by reading {@code $PPID} from the Unix
+ * shell and uses {@link Thread#getId()} for the thread ID.
+ *
+ * <p>Intended for use in plain-JVM (non-Android) test or tool contexts where
+ * {@code android.os.Process} is unavailable. On failure to read the PID, {@code -1} is used.</p>
+ */
 public class FooLogUnixJavaFormatter
         extends FooLogFormatter
 {

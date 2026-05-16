@@ -16,6 +16,16 @@ import com.smartfoo.android.core.logging.FooLog;
 import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Static utility methods for GATT-level Bluetooth LE operations.
+ *
+ * <p>Includes device-address conversion between string and {@code long} forms, safe wrappers
+ * around {@link android.bluetooth.BluetoothGatt#disconnect()} and
+ * {@link android.bluetooth.BluetoothGatt#close()} that handle known exceptions, connection
+ * state name formatting, and byte-array serialisation helpers that mirror the hidden
+ * {@link android.bluetooth.BluetoothGattCharacteristic} encoding methods.
+ * This class is not instantiable.</p>
+ */
 public class FooGattUtils
 {
     private static final String TAG = FooLog.TAG(FooGattUtils.class);
@@ -24,6 +34,14 @@ public class FooGattUtils
     {
     }
 
+    /**
+     * Extracts the remote device address string from a {@link android.bluetooth.BluetoothGatt}.
+     * Returns {@code "00:00:00:00:00:00"} if {@code gatt} is null.
+     *
+     * @param gatt the GATT connection, or null
+     * @return the device MAC address string, never null
+     * @throws IllegalStateException if the device or its address string is unexpectedly null
+     */
     @NonNull
     public static String gattDeviceAddressString(BluetoothGatt gatt)
     {
@@ -47,12 +65,26 @@ public class FooGattUtils
         return bluetoothDeviceAddressString;
     }
 
+    /**
+     * Returns the remote device address of a {@link android.bluetooth.BluetoothGatt} as a {@code long}.
+     *
+     * @param gatt the GATT connection
+     * @return the device MAC address as a {@code long}
+     */
     public static long gattDeviceAddressLong(BluetoothGatt gatt)
     {
         String bluetoothDeviceAddressString = gattDeviceAddressString(gatt);
         return deviceAddressStringToLong(bluetoothDeviceAddressString);
     }
 
+    /**
+     * Converts a colon-separated MAC address string (e.g. {@code "AA:BB:CC:DD:EE:FF"}) to a
+     * {@code long}.
+     *
+     * @param deviceAddressString the MAC address string; must not be null or empty
+     * @return the address as a {@code long}
+     * @throws IllegalArgumentException if the string is null or empty
+     */
     public static long deviceAddressStringToLong(String deviceAddressString)
     {
         if (FooString.isNullOrEmpty(deviceAddressString))
@@ -63,6 +95,13 @@ public class FooGattUtils
         return Long.parseLong(deviceAddressString, 16);
     }
 
+    /**
+     * Formats a {@code long} MAC address as a colon-separated uppercase hex string
+     * (e.g. {@code "AA:BB:CC:DD:EE:FF"}).
+     *
+     * @param deviceAddressLong the MAC address as a {@code long}
+     * @return the formatted address string, never null
+     */
     @NonNull
     public static String deviceAddressLongToString(long deviceAddressLong)
     {
@@ -76,6 +115,12 @@ public class FooGattUtils
                 (byte) ((deviceAddressLong >> 0) & 0xff));
     }
 
+    /**
+     * Returns a human-readable string for a Bluetooth profile connection state.
+     *
+     * @param state one of the {@link android.bluetooth.BluetoothProfile} {@code STATE_*} constants
+     * @return a string such as {@code "STATE_CONNECTED(2)"}
+     */
     public static String bluetoothProfileStateToString(int state)
     {
         String text;
@@ -100,6 +145,13 @@ public class FooGattUtils
         return text + '(' + state + ')';
     }
 
+    /**
+     * Throws an {@link IllegalArgumentException} if {@code deviceAddress} is {@code 0} or
+     * {@code -1}, which indicate an unset or invalid Bluetooth address.
+     *
+     * @param deviceAddress the address to validate
+     * @throws IllegalArgumentException if the address is 0 or -1
+     */
     public static void throwExceptionIfInvalidBluetoothAddress(long deviceAddress)
     {
         if (!(deviceAddress != 0 && deviceAddress != -1))
@@ -195,6 +247,15 @@ public class FooGattUtils
         return true;
     }
 
+    /**
+     * Creates a {@link android.bluetooth.BluetoothGattCharacteristic} attached to a new
+     * primary {@link android.bluetooth.BluetoothGattService} with the given UUIDs.
+     * Useful for constructing test/mock objects.
+     *
+     * @param serviceUuid        UUID of the enclosing service
+     * @param characteristicUuid UUID of the characteristic
+     * @return a newly created characteristic already added to its service
+     */
     public static BluetoothGattCharacteristic createBluetoothGattCharacteristic(UUID serviceUuid, UUID characteristicUuid)
     {
         BluetoothGattService service = new BluetoothGattService(serviceUuid, BluetoothGattService.SERVICE_TYPE_PRIMARY);

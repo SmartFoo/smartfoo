@@ -11,6 +11,14 @@ import com.smartfoo.android.core.logging.FooLog;
 
 import java.util.Iterator;
 
+/**
+ * Manages a pool of {@link FooGattHandler} instances keyed by remote device address.
+ *
+ * <p>Callers obtain a handler via {@link #getGattHandler(long)}, which creates one on first
+ * request and reuses it for subsequent requests to the same address. Call
+ * {@link FooGattHandler#close()} on the returned handler to release it from the pool, or call
+ * {@link #close()} to disconnect and release all handlers at once.</p>
+ */
 public class FooGattManager
 {
     private static final String TAG = FooLog.TAG(FooGattManager.class);
@@ -19,11 +27,22 @@ public class FooGattManager
     private final Looper                             mLooper;
     private final FooLongSparseArray<FooGattHandler> mGattHandlers;
 
+    /**
+     * Creates a manager that dispatches GATT callbacks on the main looper.
+     *
+     * @param context application or activity context; must not be null
+     */
     public FooGattManager(Context context)
     {
         this(context, null);
     }
 
+    /**
+     * Creates a manager that dispatches GATT callbacks on the given looper.
+     *
+     * @param context application or activity context; must not be null
+     * @param looper  the looper to use for GATT callbacks; if null, the main looper is used
+     */
     public FooGattManager(Context context, Looper looper)
     {
         if (context == null)
@@ -88,6 +107,10 @@ public class FooGattManager
         mGattHandlers.remove(deviceAddress);
     }
 
+    /**
+     * Disconnects and closes all managed {@link FooGattHandler} instances, removing them from
+     * the pool. Safe to call even if no handlers are open.
+     */
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public void close()
     {
