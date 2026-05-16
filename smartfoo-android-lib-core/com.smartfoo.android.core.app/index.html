@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>com.smartfoo.android.core.app</title>
+    <link href="../../images/logo-icon.svg" rel="icon" type="image/svg">
+        <script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../styles/style.css" rel="Stylesheet">
+<link href="../../styles/main.css" rel="Stylesheet">
+<link href="../../styles/prism.css" rel="Stylesheet">
+<link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer="defer"></script>
+</head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+            <a class="library-name--link" href="../../index.html" tabindex="1">
+                    smartfoo-android-lib-core
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+1.0.0        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true"
+                        data-filter=":smartfoo-android-lib-core/release">release</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":smartfoo-android-lib-core/release"
+                                       data-filter=":smartfoo-android-lib-core/release"/>
+                                <span class="checkbox--icon"></span>
+                                release
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config='{"defaultSize": 280, "minSize": 200, "maxSize": 400}'>
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                    data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    smartfoo-android-lib-core
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="package" id="content" pageIds="smartfoo-android-lib-core::com.smartfoo.android.core.app////PointingToDeclaration//-508671435">
+  <div class="breadcrumbs"><a href="../../index.html">smartfoo-android-lib-core</a><span class="delimiter">/</span><span class="current">com.smartfoo.android.core.app</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-952395654%2FClasslikes%2F-508671435" anchor-label="CallbackDialogFragment" id="-952395654%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-callback-dialog-fragment/index.html"><span>Callback</span><wbr></wbr><span>Dialog</span><wbr></wbr><span><span>Fragment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-952395654%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-callback-dialog-fragment/index.html">CallbackDialogFragment</a><span class="token operator">&lt;</span><a href="-callback-dialog-fragment/index.html">T</a><span class="token operator">&gt;</span> : <a href="https://developer.android.com/reference/kotlin/androidx/appcompat/app/AppCompatDialogFragment.html">AppCompatDialogFragment</a></div><div class="brief "> TODO:(pv) Get this to work for non-interface class instances  Usage: <div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">public class MyDialogFragment extends CallbackDialogFragment&lt;MyDialogFragmentListener&gt;
+{
+    public interface MyDialogFragmentListener
+    {
+        SomeObject getSomeObject();
+    }
+
+    public MyDialogFragment()
+    {
+        super(new MyDialogFragmentListener()
+        {
+            @Override
+            public SomeObject getSomeObject()
+            {
+                return null;
+            }
+        });
+    }
+}
+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-418782814%2FClasslikes%2F-508671435" anchor-label="CallbackFragment" id="-418782814%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-callback-fragment/index.html"><span>Callback</span><wbr></wbr><span><span>Fragment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-418782814%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-callback-fragment/index.html">CallbackFragment</a><span class="token operator">&lt;</span><a href="-callback-fragment/index.html">T</a><span class="token operator">&gt;</span> : <a href="https://developer.android.com/reference/kotlin/androidx/fragment/app/Fragment.html">Fragment</a></div><div class="brief "> TODO:(pv) Get this to work for non-interface class instances  Usage: <div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">public class MyFragment extends CallbackFragment&lt;MyFragmentListener&gt;
+{
+    public interface MyFragmentListener
+    {
+        SomeObject getSomeObject();
+    }
+
+    public MyFragment()
+    {
+        super(new MyFragmentListener()
+        {
+            @Override
+            public SomeObject getSomeObject()
+            {
+                return null;
+            }
+        });
+    }
+}
+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="594218459%2FClasslikes%2F-508671435" anchor-label="FooDebugActivity" id="594218459%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-foo-debug-activity/index.html"><span>Foo</span><wbr></wbr><span>Debug</span><wbr></wbr><span><span>Activity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="594218459%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-foo-debug-activity/index.html">FooDebugActivity</a> : <a href="https://developer.android.com/reference/kotlin/androidx/appcompat/app/AppCompatActivity.html">AppCompatActivity</a>, <a href="https://developer.android.com/reference/kotlin/android/widget/SearchView.OnQueryTextListener.html">SearchView.OnQueryTextListener</a>, <a href="../com.smartfoo.android.core.logging/-set-log-limit-dialog-fragment/-set-log-limit-dialog-fragment-callbacks/index.html">SetLogLimitDialogFragment.SetLogLimitDialogFragmentCallbacks</a></div><div class="brief ">A full-screen debug activity that loads, displays, and shares the application logcat output.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="166544488%2FClasslikes%2F-508671435" anchor-label="FooDebugApplication" id="166544488%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-foo-debug-application/index.html"><span>Foo</span><wbr></wbr><span>Debug</span><wbr></wbr><span><span>Application</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="166544488%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-foo-debug-application/index.html">FooDebugApplication</a></div><div class="brief ">Marker interface that the application's <a href="https://developer.android.com/reference/kotlin/android/app/Application.html">android.app.Application</a> class must implement to provide a <a href="-foo-debug-configuration/index.html">FooDebugConfiguration</a> to <a href="-foo-debug-activity/index.html">FooDebugActivity</a>.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1639688766%2FClasslikes%2F-508671435" anchor-label="FooDebugConfiguration" id="-1639688766%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-foo-debug-configuration/index.html"><span>Foo</span><wbr></wbr><span>Debug</span><wbr></wbr><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1639688766%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-foo-debug-configuration/index.html">FooDebugConfiguration</a></div><div class="brief ">Configuration contract for the debug log activity.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-27239318%2FClasslikes%2F-508671435" anchor-label="GenericPromptPositiveNegativeDialogFragment" id="-27239318%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-generic-prompt-positive-negative-dialog-fragment/index.html"><span>Generic</span><wbr></wbr><span>Prompt</span><wbr></wbr><span>Positive</span><wbr></wbr><span>Negative</span><wbr></wbr><span>Dialog</span><wbr></wbr><span><span>Fragment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-27239318%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-generic-prompt-positive-negative-dialog-fragment/index.html">GenericPromptPositiveNegativeDialogFragment</a> : <a href="-callback-dialog-fragment/index.html">CallbackDialogFragment</a><span class="token operator">&lt;</span><a href="-generic-prompt-positive-negative-dialog-fragment/-generic-prompt-positive-negative-dialog-fragment-callbacks/index.html">GenericPromptPositiveNegativeDialogFragment.GenericPromptPositiveNegativeDialogFragmentCallbacks</a><span class="token operator">&gt; </span></div><div class="brief ">A reusable <a href="https://developer.android.com/reference/kotlin/androidx/fragment/app/DialogFragment.html">androidx.fragment.app.DialogFragment</a> that shows a prompt with a positive and a negative button, and optionally a checkbox.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1686600162%2FClasslikes%2F-508671435" anchor-label="GenericPromptSingleButtonDialogFragment" id="-1686600162%2FClasslikes%2F-508671435" data-filterable-set=":smartfoo-android-lib-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":smartfoo-android-lib-core/release" data-filterable-set=":smartfoo-android-lib-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-generic-prompt-single-button-dialog-fragment/index.html"><span>Generic</span><wbr></wbr><span>Prompt</span><wbr></wbr><span>Single</span><wbr></wbr><span>Button</span><wbr></wbr><span>Dialog</span><wbr></wbr><span><span>Fragment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1686600162%2FClasslikes%2F-508671435"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":smartfoo-android-lib-core/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">class </span><a href="-generic-prompt-single-button-dialog-fragment/index.html">GenericPromptSingleButtonDialogFragment</a> : <a href="-callback-dialog-fragment/index.html">CallbackDialogFragment</a><span class="token operator">&lt;</span><a href="-generic-prompt-single-button-dialog-fragment/-generic-prompt-single-button-dialog-fragment-callbacks/index.html">GenericPromptSingleButtonDialogFragment.GenericPromptSingleButtonDialogFragmentCallbacks</a><span class="token operator">&gt; </span></div><div class="brief ">A reusable <a href="https://developer.android.com/reference/kotlin/androidx/fragment/app/DialogFragment.html">androidx.fragment.app.DialogFragment</a> that shows a prompt with a single acknowledgement button.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

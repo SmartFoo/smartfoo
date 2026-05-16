@@ -1,0 +1,1 @@
+sourceset_dependencies='{":smartfoo-android-lib-core/release":[]}'
