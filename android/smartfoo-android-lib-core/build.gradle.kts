@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.library)
     `maven-publish`
     signing
-    alias(libs.plugins.nmcp)
     alias(libs.plugins.dokka)
 }
 
@@ -10,9 +9,14 @@ base.archivesName = "smartfoo-android-lib-core"
 description = "SmartFoo Core Library for Android"
 group = "com.smartfoo"
 version = providers.gradleProperty("releaseVersion").getOrElse("1.0.0")
-
-//def siteUrl = "https://github.com/SmartFoo/smartfoo"
-//def gitUrl = "https://github.com/SmartFoo/smartfoo.git"
+val pomName = "SmartFoo Android Core Library"
+val pomDeveloperId = "smartfoo"
+val pomDeveloperName = "SmartFoo"
+val pomDeveloperEmail = "publish@smartfoo.com"
+val pomSiteUrl = "https://github.com/SmartFoo/smartfoo"
+val pomGitUrl = "${pomSiteUrl.removePrefix("https://")}.git"
+val pomLicenseUrl = "https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE"
+val pomLicenseName = "The MIT License"
 
 dependencies {
     //implementation(libs.androidx.core.ktx)
@@ -83,17 +87,6 @@ tasks.withType(JavaCompile) {
 
 // Credentials are read from ~/.gradle/gradle.properties (local) or env vars (CI).
 // See publishing setup docs in CONTRIBUTING.md.
-nmcp {
-    centralPortal {
-        username.set(providers.gradleProperty("mavenCentralUsername")
-            .orElse(providers.environmentVariable("MAVEN_CENTRAL_USERNAME")))
-        password.set(providers.gradleProperty("mavenCentralPassword")
-            .orElse(providers.environmentVariable("MAVEN_CENTRAL_PASSWORD")))
-        // USER_MANAGED lets you review the deployment in the Central Portal UI before publishing.
-        // Switch to AUTOMATIC once you've confirmed the first upload looks correct.
-        publishingType.set("USER_MANAGED")
-    }
-}
 
 val dokkaJavadocJar by tasks.registering(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
@@ -111,30 +104,30 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
                 artifact(dokkaJavadocJar)
-                groupId    = "com.smartfoo"
-                artifactId = "smartfoo-android-lib-core"
+                groupId    = project.group.toString()
+                artifactId = base.archivesName.get()
                 version    = project.version.toString()
                 pom {
-                    name        = "SmartFoo Android Core Library"
-                    description = "Cross-platform abstraction layer for Android"
-                    url         = "https://github.com/SmartFoo/smartfoo"
+                    name        = pomName
+                    description = project.description
+                    url         = pomSiteUrl
                     licenses {
                         license {
-                            name = "The MIT License"
-                            url  = "https://raw.githubusercontent.com/SmartFoo/smartfoo/master/LICENSE"
+                            name = pomLicenseName
+                            url  = pomLicenseUrl
                         }
                     }
                     developers {
                         developer {
-                            id    = "paulpv"
-                            name  = "Paul Peavyhouse"
-                            email = "pv@swooby.com"
+                            id    = pomDeveloperId
+                            name  = pomDeveloperName
+                            email = pomDeveloperEmail
                         }
                     }
                     scm {
-                        connection          = "scm:git:git://github.com/SmartFoo/smartfoo.git"
-                        developerConnection = "scm:git:ssh://github.com/SmartFoo/smartfoo.git"
-                        url                 = "https://github.com/SmartFoo/smartfoo"
+                        connection          = "scm:git:git://$pomGitUrl"
+                        developerConnection = "scm:git:ssh://$pomGitUrl"
+                        url                 = pomSiteUrl
                     }
                 }
             }
