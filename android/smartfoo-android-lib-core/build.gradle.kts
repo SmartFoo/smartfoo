@@ -94,7 +94,7 @@ val dokkaJavadocJar by tasks.registering(Jar::class) {
     val dokkaHtml = tasks.named("dokkaGeneratePublicationHtml")
     dependsOn(dokkaHtml)
     from(dokkaHtml.map { it.outputs.files })
-    archiveClassifier.set("javadoc")
+    archiveClassifier = "javadoc"
 }
 
 // afterEvaluate required because the Android "release" component isn't available until after evaluation.

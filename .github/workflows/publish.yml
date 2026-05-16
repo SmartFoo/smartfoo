@@ -33,7 +33,7 @@ jobs:
       - run: chmod +x gradlew
 
       - name: Publish to Maven Central
-        run: ./gradlew :smartfoo-android-lib-core:publishAllPublicationsToCentralPortal -PreleaseVersion=${GITHUB_REF_NAME#v}
+        run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion=${GITHUB_REF_NAME#v}
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}

@@ -6,20 +6,17 @@ on:
       - 'v*'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 # Only one Pages deployment at a time; do not cancel an in-progress deploy.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build-docs:
-    name: Build Dokka HTML
+  deploy-docs:
+    name: Build and deploy Dokka HTML
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       JAVA_VERSION: 21
     defaults:
@@ -46,20 +43,9 @@ jobs:
       - name: Generate Dokka HTML
         run: ./gradlew :smartfoo-android-lib-core:dokkaGeneratePublicationHtml
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Path is relative to the repository root, not the job working-directory.
-          path: android/smartfoo-android-lib-core/build/dokka/html
-
-  deploy-docs:
-    name: Deploy to GitHub Pages
-    needs: build-docs
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: android/smartfoo-android-lib-core/build/dokka/html
+          commit_message: "docs: update API docs for ${{ github.ref_name }}"

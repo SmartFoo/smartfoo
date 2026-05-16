@@ -59,10 +59,11 @@ secrets.
    ```
    Pushing a `v*` tag triggers the [publish GitHub Actions workflow](.github/workflows/publish.yml), which runs:
    ```bash
-   ./gradlew :smartfoo-android-lib-core:publishAllPublicationsToCentralPortal -PreleaseVersion=${GITHUB_REF_NAME#v}
+   ./gradlew publishAggregationToCentralPortal -PreleaseVersion=<version>
    ```
+   The aggregation task collects all library publications and uploads them as a single bundle to the Central Portal.
 
-3. Log in to [central.sonatype.com](https://central.sonatype.com) -> Deployments, verify the artifacts, then click **Publish**. The release appears on Maven Central within ~15 minutes.
+3. Because `publishingType` is set to `USER_MANAGED`, log in to [central.sonatype.com](https://central.sonatype.com) → Deployments, verify the artifacts, then click **Publish**. The release appears on Maven Central within ~15 minutes. Switch `publishingType` to `AUTOMATIC` in `android/settings.gradle.kts` to skip this manual step once you're confident in the setup.
 
 ## Optional Publishing Smoke Test
 

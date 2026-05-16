@@ -14,14 +14,11 @@ val mavenCentralUsername = providers.gradleProperty("mavenCentralUsername").getO
     ?: providers.environmentVariable("MAVEN_CENTRAL_USERNAME").getOrNull()
 val mavenCentralPassword = providers.gradleProperty("mavenCentralPassword").getOrNull()
     ?: providers.environmentVariable("MAVEN_CENTRAL_PASSWORD").getOrNull()
-
 nmcpSettings {
     centralPortal {
-        mavenCentralUsername?.let { username.set(it) }
-        mavenCentralPassword?.let { password.set(it) }
-        // USER_MANAGED lets you review the deployment in the Central Portal UI before publishing.
-        // Switch to AUTOMATIC once you've confirmed the first upload looks correct.
-        publishingType.set("USER_MANAGED")
+        username = mavenCentralUsername
+        password = mavenCentralPassword
+        publishingType = "AUTOMATIC" // "USER_MANAGED" or "AUTOMATIC"
     }
 }
 
