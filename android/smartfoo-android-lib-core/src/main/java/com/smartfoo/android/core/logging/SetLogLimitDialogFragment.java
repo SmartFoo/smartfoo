@@ -108,6 +108,14 @@ public class SetLogLimitDialogFragment
         mCallbacks = sDummyCallbacks;
     }
 
+    /**
+     * Inflates the dialog view, wires up the two seekbars and the Reset button, and builds
+     * an {@link AlertDialog} whose positive button delivers the selected values to the host
+     * activity via {@link SetLogLimitDialogFragmentCallbacks#onSetLogLimit}.
+     *
+     * @param savedInstanceState previously saved instance state (not used)
+     * @return the configured {@link AlertDialog}
+     */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
     {
@@ -149,11 +157,13 @@ public class SetLogLimitDialogFragment
                 textViewLogLimit.setText(text);
             }
 
+            /** No-op; required by {@link OnSeekBarChangeListener}. */
             @Override
             public void onStartTrackingTouch(SeekBar seekBar)
             {
             }
 
+            /** No-op; required by {@link OnSeekBarChangeListener}. */
             @Override
             public void onStopTrackingTouch(SeekBar seekBar)
             {
@@ -179,11 +189,13 @@ public class SetLogLimitDialogFragment
                 textViewLogEmailLimit.setText(text);
             }
 
+            /** No-op; required by {@link OnSeekBarChangeListener}. */
             @Override
             public void onStartTrackingTouch(SeekBar seekBar)
             {
             }
 
+            /** No-op; required by {@link OnSeekBarChangeListener}. */
             @Override
             public void onStopTrackingTouch(SeekBar seekBar)
             {

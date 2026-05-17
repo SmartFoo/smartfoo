@@ -593,32 +593,38 @@ private constructor() {
             FooLog.v(TAG, "-onCreate()")
         }
 
+        /** Delegates to [FooNotificationListenerManager.onNotificationListenerConnected]. */
         override fun onListenerConnected() {
             FooLog.v(TAG, "onListenerConnected()")
             mOnListenerConnectedStartMillis = System.currentTimeMillis()
             mNotificationListenerManager.onNotificationListenerConnected(this)
         }
 
+        /** Delegates to [FooNotificationListenerManager.onNotificationPosted]. */
         override fun onNotificationPosted(sbn: StatusBarNotification, rankingMap: RankingMap?) {
             FooLog.v(TAG, "onNotificationPosted(...)")
             mNotificationListenerManager.onNotificationPosted(this, sbn, rankingMap)
         }
 
+        /** Delegates to [NotificationListenerService.onNotificationRankingUpdate]. */
         override fun onNotificationRankingUpdate(rankingMap: RankingMap) {
             FooLog.v(TAG, "onNotificationRankingUpdate(...)")
             super.onNotificationRankingUpdate(rankingMap)
         }
 
+        /** Delegates to [NotificationListenerService.onListenerHintsChanged]. */
         override fun onListenerHintsChanged(hints: Int) {
             FooLog.v(TAG, "onListenerHintsChanged(...)")
             super.onListenerHintsChanged(hints)
         }
 
+        /** Delegates to [NotificationListenerService.onSilentStatusBarIconsVisibilityChanged]. */
         override fun onSilentStatusBarIconsVisibilityChanged(hideSilentStatusIcons: Boolean) {
             FooLog.v(TAG, "onSilentStatusBarIconsVisibilityChanged(...)")
             super.onSilentStatusBarIconsVisibilityChanged(hideSilentStatusIcons)
         }
 
+        /** Delegates to [NotificationListenerService.onNotificationChannelModified]. */
         override fun onNotificationChannelModified(
             pkg: String?,
             user: UserHandle?,
@@ -629,6 +635,7 @@ private constructor() {
             super.onNotificationChannelModified(pkg, user, channel, modificationType)
         }
 
+        /** Delegates to [NotificationListenerService.onNotificationChannelGroupModified]. */
         override fun onNotificationChannelGroupModified(
             pkg: String?,
             user: UserHandle?,
@@ -639,16 +646,19 @@ private constructor() {
             super.onNotificationChannelGroupModified(pkg, user, group, modificationType)
         }
 
+        /** Delegates to [NotificationListenerService.onInterruptionFilterChanged]. */
         override fun onInterruptionFilterChanged(interruptionFilter: Int) {
             FooLog.v(TAG, "onInterruptionFilterChanged(...)")
             super.onInterruptionFilterChanged(interruptionFilter)
         }
 
+        /** Delegates to [FooNotificationListenerManager.onNotificationRemoved]. */
         override fun onNotificationRemoved(sbn: StatusBarNotification, rankingMap: RankingMap?, reason: Int) {
             FooLog.v(TAG, "onNotificationRemoved(...)")
             mNotificationListenerManager.onNotificationRemoved(this, sbn, rankingMap, reason)
         }
 
+        /** Delegates to [FooNotificationListenerManager.onNotificationListenerNotConnected] with [NotConnectedReason.Disconnected]. */
         override fun onListenerDisconnected() {
             FooLog.v(TAG, "onListenerDisconnected()")
             super.onListenerDisconnected()

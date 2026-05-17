@@ -12,6 +12,7 @@ package com.smartfoo.android.core.logging;
  */
 public abstract class FooLogPrinter
 {
+    /** Whether this printer is currently enabled; {@code false} causes all log records to be dropped. */
     protected boolean mIsEnabled = true;
 
     /**

@@ -84,6 +84,14 @@ public class FooChargePortListener
     }
 
     @NonNull
+    /**
+     * Returns the current sticky {@link Intent#ACTION_BATTERY_CHANGED} intent by registering a
+     * null receiver.
+     *
+     * @param context the application context
+     * @return the battery-changed intent; never null
+     * @throws IllegalArgumentException if {@code context} is null
+     */
     public static Intent getBatteryChargingIntent(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
@@ -111,6 +119,12 @@ public class FooChargePortListener
                status == BatteryManager.BATTERY_STATUS_FULL;
     }
 
+    /**
+     * Returns a list of charge ports currently connected to the device.
+     *
+     * @param context the application context
+     * @return a list of active {@link ChargePort} values; empty if nothing is plugged in
+     */
     @NonNull
     public static List<ChargePort> getChargingPorts(@NonNull Context context)
     {
@@ -125,11 +139,24 @@ public class FooChargePortListener
         return getChargingPorts(chargingPorts);
     }
 
+    /**
+     * Returns a list of localised display names for all charge ports currently connected.
+     *
+     * @param context the application context used to resolve string resources
+     * @return a list of localised charge-port name strings; empty if nothing is plugged in
+     */
     public static List<String> getChargingPortsNames(@NonNull Context context)
     {
         return getChargePortNames(context, getChargingPorts(context));
     }
 
+    /**
+     * Returns a list of localised display names for the given charge ports.
+     *
+     * @param context     the application context used to resolve string resources
+     * @param chargePorts the ports to name; null entries are silently skipped
+     * @return a list of localised charge-port name strings
+     */
     public static List<String> getChargePortNames(@NonNull Context context, List<ChargePort> chargePorts)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
@@ -190,11 +217,13 @@ public class FooChargePortListener
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
+            /** Starts the charge-port broadcast receiver when the first external callback is attached. */
             @Override
             public void onFirstAttach()
             {
                 mScreenBroadcastReceiver.start(new FooChargePortListenerCallbacks()
                 {
+                    /** Delegates to all attached {@link FooChargePortListenerCallbacks#onChargePortConnected} listeners. */
                     @Override
                     public void onChargePortConnected(ChargePort chargePort)
                     {
@@ -205,6 +234,7 @@ public class FooChargePortListener
                         mListenerManager.endTraversing();
                     }
 
+                    /** Delegates to all attached {@link FooChargePortListenerCallbacks#onChargePortDisconnected} listeners. */
                     @Override
                     public void onChargePortDisconnected(ChargePort chargePort)
                     {
@@ -217,6 +247,11 @@ public class FooChargePortListener
                 });
             }
 
+            /**
+             * Stops the charge-port broadcast receiver when the last external callback is detached.
+             *
+             * @return {@code false} to allow the listener manager to remove the internal callback entry
+             */
             @Override
             public boolean onLastDetach()
             {
@@ -237,6 +272,11 @@ public class FooChargePortListener
         return isCharging(mContext);
     }
 
+    /**
+     * Returns a list of charge ports currently connected to the device.
+     *
+     * @return a list of active {@link ChargePort} values; empty if nothing is plugged in
+     */
     public List<ChargePort> getChargingPorts()
     {
         return getChargingPorts(mContext);
@@ -286,6 +326,11 @@ public class FooChargePortListener
             mSyncLock = new Object();
         }
 
+        /**
+         * Returns {@code true} if this receiver is currently registered with the system.
+         *
+         * @return {@code true} if started
+         */
         public boolean isStarted()
         {
             synchronized (mSyncLock)
@@ -294,6 +339,13 @@ public class FooChargePortListener
             }
         }
 
+        /**
+         * Registers this receiver to listen for power-connected and power-disconnected broadcasts.
+         * Captures the current charging port state as a baseline for diffing. Does nothing if
+         * already started.
+         *
+         * @param callbacks the callbacks to notify on charge-port events; must not be null
+         */
         public void start(@NonNull FooChargePortListenerCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
@@ -316,6 +368,9 @@ public class FooChargePortListener
             FooLog.v(TAG, "-start(...)");
         }
 
+        /**
+         * Unregisters this receiver from the system. Does nothing if not currently started.
+         */
         public void stop()
         {
             FooLog.v(TAG, "+stop()");
@@ -331,6 +386,14 @@ public class FooChargePortListener
             FooLog.v(TAG, "-stop()");
         }
 
+        /**
+         * Handles {@link Intent#ACTION_POWER_CONNECTED} and {@link Intent#ACTION_POWER_DISCONNECTED}
+         * broadcasts by diffing the current charging ports against the previous snapshot and
+         * dispatching the appropriate connected/disconnected callbacks.
+         *
+         * @param context the context in which the receiver is running
+         * @param intent  the received power intent
+         */
         @Override
         public void onReceive(Context context, Intent intent)
         {

@@ -455,6 +455,15 @@ public class FooBluetoothUtils
         return toString(service.getUuid(), characteristic.getUuid(), value);
     }
 
+    /**
+     * Returns a formatted string describing a GATT service/characteristic pair and an associated
+     * value, using the friendly name from {@link FooGattUuids} where available.
+     *
+     * @param uuidService        the UUID of the GATT service
+     * @param uuidCharacteristic the UUID of the GATT characteristic within that service
+     * @param value              the value to include in the string (may be null)
+     * @return a quoted, back-slash-delimited description string
+     */
     public static String toString(@NonNull UUID uuidService, @NonNull UUID uuidCharacteristic, Object value)
     {
         return FooString.quote(FooGattUuids.get(uuidService).getName())

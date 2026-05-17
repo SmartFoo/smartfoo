@@ -39,9 +39,19 @@ public class FooGattHandler
 {
     private static final String TAG = FooLog.TAG(FooGattHandler.class);
 
+    /**
+     * When {@code true}, every {@link android.bluetooth.BluetoothGattCallback#onCharacteristicChanged}
+     * callback is written to the verbose log. Disabled by default to avoid log spam on
+     * high-frequency notification streams.
+     */
     @SuppressWarnings("WeakerAccess")
     public static boolean VERBOSE_LOG_CHARACTERISTIC_CHANGE = false;
 
+    /**
+     * The initial process-wide default connect timeout in milliseconds. Set to 60 s in debug
+     * builds and 15 s in release builds. Can be overridden at runtime via
+     * {@link #setDefaultConnectTimeoutMillis(int)}.
+     */
     @SuppressWarnings("WeakerAccess")
     public static int DEFAULT_CONNECT_TIMEOUT_MILLIS;
 
@@ -1510,9 +1520,13 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param value              String
+     * Writes a UTF-8 string value to a GATT characteristic using the default write type and
+     * default operation timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the string to encode and write; must not be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1521,6 +1535,17 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, null, null);
     }
 
+    /**
+     * Writes a UTF-8 string value to a GATT characteristic and executes {@code runAfterSuccess}
+     * on success using the default write type and default operation timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the string to encode and write; must not be null
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
@@ -1530,10 +1555,15 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param value                   String
-     * @param characteristicWriteType null to ignore
+     * Writes a UTF-8 string value to a GATT characteristic using a specific write type and the
+     * default operation timeout.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the string to encode and write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1543,6 +1573,19 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    /**
+     * Writes a UTF-8 string value to a GATT characteristic using a specific write type, the
+     * default operation timeout, and a post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the string to encode and write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
@@ -1553,10 +1596,14 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param value              String
-     * @param timeoutMillis      long
+     * Writes a UTF-8 string value to a GATT characteristic using the default write type and a
+     * custom timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the string to encode and write; must not be null
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1566,6 +1613,18 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, null);
     }
 
+    /**
+     * Writes a UTF-8 string value to a GATT characteristic using the default write type, a custom
+     * timeout, and a post-success callback.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the string to encode and write; must not be null
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
@@ -1576,11 +1635,16 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param value                   String
-     * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           long
+     * Writes a UTF-8 string value to a GATT characteristic using a specific write type, a custom
+     * timeout, and no post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the string to encode and write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1591,6 +1655,20 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value), characteristicWriteType, timeoutMillis, null);
     }
 
+    /**
+     * Writes a UTF-8 string value to a GATT characteristic with full control over write type,
+     * timeout, and post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the string to encode and write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        String value,
@@ -1602,11 +1680,16 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param value              int
-     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset             int
+     * Writes an integer value to a GATT characteristic using the default write type and timeout.
+     * The integer is encoded to bytes using the given {@code formatType} and {@code offset}.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the integer value to encode and write
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                           {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1615,6 +1698,20 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, null);
     }
 
+    /**
+     * Writes an integer value to a GATT characteristic using the default write type and timeout,
+     * and executes {@code runAfterSuccess} on success.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the integer value to encode and write
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                           {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, @SuppressWarnings("SameParameterValue") int offset,
                                        Runnable runAfterSuccess)
@@ -1623,12 +1720,18 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param value                   int
-     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset                  int
-     * @param characteristicWriteType null to ignore
+     * Writes an integer value to a GATT characteristic using a specific write type and the default
+     * timeout.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the integer value to encode and write
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                                {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1638,6 +1741,22 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    /**
+     * Writes an integer value to a GATT characteristic using a specific write type, the default
+     * timeout, and a post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the integer value to encode and write
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                                {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
@@ -1648,12 +1767,17 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param value              int
-     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset             int
-     * @param timeoutMillis      long
+     * Writes an integer value to a GATT characteristic using the default write type and a custom
+     * timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the integer value to encode and write
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                           {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1663,6 +1787,21 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, formatType, offset, null, timeoutMillis, null);
     }
 
+    /**
+     * Writes an integer value to a GATT characteristic using the default write type, a custom
+     * timeout, and a post-success callback.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the integer value to encode and write
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                           {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
@@ -1673,13 +1812,19 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param value                   int
-     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset                  int
-     * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           long
+     * Writes an integer value to a GATT characteristic using a specific write type, a custom
+     * timeout, and no post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the integer value to encode and write
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                                {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1690,6 +1835,23 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(value, formatType, offset), characteristicWriteType, timeoutMillis, null);
     }
 
+    /**
+     * Writes an integer value to a GATT characteristic with full control over write type, timeout,
+     * and post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the integer value to encode and write
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SINT8},
+     *                                {@link BluetoothGattCharacteristic#FORMAT_UINT8}, etc.
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int value, int formatType, int offset,
@@ -1701,12 +1863,17 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param mantissa           int
-     * @param exponent           int
-     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset             int
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using the default write type and timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param mantissa           the mantissa component of the float value
+     * @param exponent           the exponent component of the float value
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                           {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1715,6 +1882,21 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, null);
     }
 
+    /**
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using the default write type and timeout, and executes {@code runAfterSuccess} on success.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param mantissa           the mantissa component of the float value
+     * @param exponent           the exponent component of the float value
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                           {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
@@ -1724,13 +1906,19 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param mantissa                int
-     * @param exponent                int
-     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset                  int
-     * @param characteristicWriteType null to ignore
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using a specific write type and the default timeout.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param mantissa                the mantissa component of the float value
+     * @param exponent                the exponent component of the float value
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                                {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1740,6 +1928,23 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    /**
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using a specific write type, the default timeout, and a post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param mantissa                the mantissa component of the float value
+     * @param exponent                the exponent component of the float value
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                                {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
@@ -1750,13 +1955,18 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param mantissa           int
-     * @param exponent           int
-     * @param formatType         One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset             int
-     * @param timeoutMillis      long
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using the default write type and a custom timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param mantissa           the mantissa component of the float value
+     * @param exponent           the exponent component of the float value
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                           {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1766,6 +1976,22 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, mantissa, exponent, formatType, offset, null, timeoutMillis, null);
     }
 
+    /**
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using the default write type, a custom timeout, and a post-success callback.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param mantissa           the mantissa component of the float value
+     * @param exponent           the exponent component of the float value
+     * @param formatType         one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                           {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset             byte offset within the characteristic value at which to start writing
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
@@ -1776,14 +2002,20 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param mantissa                int
-     * @param exponent                int
-     * @param formatType              One of BluetoothGattCharacteristic.FORMAT_*
-     * @param offset                  int
-     * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           long
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * using a specific write type, a custom timeout, and no post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param mantissa                the mantissa component of the float value
+     * @param exponent                the exponent component of the float value
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                                {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1794,6 +2026,24 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, FooGattUtils.toBytes(mantissa, exponent, formatType, offset), characteristicWriteType, timeoutMillis, null);
     }
 
+    /**
+     * Writes a float-SFLOAT/FLOAT value (given as mantissa and exponent) to a GATT characteristic
+     * with full control over write type, timeout, and post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param mantissa                the mantissa component of the float value
+     * @param exponent                the exponent component of the float value
+     * @param formatType              one of {@link BluetoothGattCharacteristic#FORMAT_SFLOAT} or
+     *                                {@link BluetoothGattCharacteristic#FORMAT_FLOAT}
+     * @param offset                  byte offset within the characteristic value at which to start writing
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        int mantissa, int exponent, int formatType, int offset,
@@ -1805,9 +2055,12 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param value              byte[]
+     * Writes a raw byte array to a GATT characteristic using the default write type and timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the raw bytes to write; must not be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1816,6 +2069,17 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, (Runnable) null);
     }
 
+    /**
+     * Writes a raw byte array to a GATT characteristic using the default write type and timeout,
+     * and executes {@code runAfterSuccess} on success.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the raw bytes to write; must not be null
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
@@ -1825,10 +2089,15 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param value                   byte[]
-     * @param characteristicWriteType null to ignore
+     * Writes a raw byte array to a GATT characteristic using a specific write type and the default
+     * timeout.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the raw bytes to write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1838,6 +2107,19 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, characteristicWriteType, sDefaultOperationTimeoutMillis, null);
     }
 
+    /**
+     * Writes a raw byte array to a GATT characteristic using a specific write type, the default
+     * timeout, and a post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the raw bytes to write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param runAfterSuccess         optional runnable posted on the main looper after a successful write;
+     *                                may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
                                        CharacteristicWriteType characteristicWriteType,
@@ -1847,10 +2129,14 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid        UUID
-     * @param characteristicUuid UUID
-     * @param value              byte[]
-     * @param timeoutMillis      long
+     * Writes a raw byte array to a GATT characteristic using the default write type and a custom
+     * timeout.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the raw bytes to write; must not be null
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
@@ -1860,6 +2146,18 @@ public class FooGattHandler
         return characteristicWrite(serviceUuid, characteristicUuid, value, null, timeoutMillis, null);
     }
 
+    /**
+     * Writes a raw byte array to a GATT characteristic using the default write type, a custom
+     * timeout, and a post-success callback.
+     *
+     * @param serviceUuid        UUID of the service that contains the characteristic
+     * @param characteristicUuid UUID of the characteristic to write
+     * @param value              the raw bytes to write; must not be null
+     * @param timeoutMillis      maximum time in milliseconds to wait for the write callback
+     * @param runAfterSuccess    optional runnable posted on the main looper after a successful write;
+     *                           may be null
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(UUID serviceUuid, UUID characteristicUuid,
                                        byte[] value,
@@ -1870,11 +2168,16 @@ public class FooGattHandler
     }
 
     /**
-     * @param serviceUuid             UUID
-     * @param characteristicUuid      UUID
-     * @param value                   byte[]
-     * @param characteristicWriteType null to ignore
-     * @param timeoutMillis           long
+     * Writes a raw byte array to a GATT characteristic using a specific write type, a custom
+     * timeout, and no post-success callback.
+     *
+     * @param serviceUuid             UUID of the service that contains the characteristic
+     * @param characteristicUuid      UUID of the characteristic to write
+     * @param value                   the raw bytes to write; must not be null
+     * @param characteristicWriteType controls the GATT write type; pass null to use the
+     *                                characteristic's existing write type
+     * @param timeoutMillis           maximum time in milliseconds to wait for the write callback
+     * @return true if the write request was enqueued, false if the adapter is disabled or not connected
      */
     @SuppressWarnings("unused")
     public boolean characteristicWrite(final UUID serviceUuid, final UUID characteristicUuid,
@@ -2116,6 +2419,15 @@ public class FooGattHandler
         EnableWithResponse,
     }
 
+    /**
+     * Enables or disables notifications/indications for a characteristic. Also writes the
+     * Client Characteristic Configuration descriptor and uses the default operation timeout.
+     *
+     * @param serviceUuid                            UUID of the service that contains the characteristic
+     * @param characteristicUuid                     UUID of the characteristic
+     * @param characteristicNotificationDescriptorType the notification mode to set; must not be null
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType)
@@ -2123,6 +2435,18 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, null);
     }
 
+    /**
+     * Enables or disables notifications/indications for a characteristic, also writing the
+     * Client Characteristic Configuration descriptor, using the default timeout, and executing
+     * {@code runAfterSuccess} on success.
+     *
+     * @param serviceUuid                            UUID of the service that contains the characteristic
+     * @param characteristicUuid                     UUID of the characteristic
+     * @param characteristicNotificationDescriptorType the notification mode to set; must not be null
+     * @param runAfterSuccess                        optional runnable posted on the main looper after
+     *                                               success; may be null
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
@@ -2131,6 +2455,17 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, true, runAfterSuccess);
     }
 
+    /**
+     * Enables or disables notifications/indications for a characteristic, controlling whether the
+     * Client Characteristic Configuration descriptor is also written, using the default timeout.
+     *
+     * @param serviceUuid                            UUID of the service that contains the characteristic
+     * @param characteristicUuid                     UUID of the characteristic
+     * @param characteristicNotificationDescriptorType the notification mode to set; must not be null
+     * @param setDescriptorClientCharacteristicConfig true to also write the Client Characteristic
+     *                                               Configuration descriptor; false to skip it
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("UnusedReturnValue")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
@@ -2139,6 +2474,19 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, null);
     }
 
+    /**
+     * Enables or disables notifications/indications for a characteristic, controlling the
+     * descriptor write, using the default timeout, and executing {@code runAfterSuccess} on success.
+     *
+     * @param serviceUuid                            UUID of the service that contains the characteristic
+     * @param characteristicUuid                     UUID of the characteristic
+     * @param characteristicNotificationDescriptorType the notification mode to set; must not be null
+     * @param setDescriptorClientCharacteristicConfig true to also write the Client Characteristic
+     *                                               Configuration descriptor; false to skip it
+     * @param runAfterSuccess                        optional runnable posted on the main looper after
+     *                                               success; may be null
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("WeakerAccess")
     public boolean characteristicSetNotification(UUID serviceUuid, UUID characteristicUuid,
                                                  CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
@@ -2148,6 +2496,19 @@ public class FooGattHandler
         return characteristicSetNotification(serviceUuid, characteristicUuid, characteristicNotificationDescriptorType, setDescriptorClientCharacteristicConfig, sDefaultOperationTimeoutMillis, runAfterSuccess);
     }
 
+    /**
+     * Enables or disables notifications/indications for a characteristic with a custom timeout and
+     * no post-success callback.
+     *
+     * @param serviceUuid                            UUID of the service that contains the characteristic
+     * @param characteristicUuid                     UUID of the characteristic
+     * @param characteristicNotificationDescriptorType the notification mode to set; must not be null
+     * @param setDescriptorClientCharacteristicConfig true to also write the Client Characteristic
+     *                                               Configuration descriptor; false to skip it
+     * @param timeoutMillis                          maximum time in milliseconds to wait for the
+     *                                               descriptor write callback
+     * @return true if the request was enqueued, false if the adapter is disabled or not connected
+     */
     @SuppressWarnings("unused")
     public boolean characteristicSetNotification(final UUID serviceUuid, final UUID characteristicUuid,
                                                  final CharacteristicNotificationDescriptorType characteristicNotificationDescriptorType,
@@ -2685,11 +3046,22 @@ public class FooGattHandler
             mIsSignaled = false;
         }
 
+        /**
+         * Cancels any pending wait by resetting the event with a sentinel start time of {@code -1},
+         * which causes a waiting thread to wake up and report a canceled/interrupted result.
+         */
         public void cancel()
         {
             reset(-1);
         }
 
+        /**
+         * Resets the event so that a subsequent call to {@link #waitOne(long)} will block until
+         * either signaled or the timeout elapses, measuring elapsed time from {@code startTimeMillis}.
+         *
+         * @param startTimeMillis the reference timestamp in milliseconds (typically
+         *                        {@link System#currentTimeMillis()}), or {@code -1} to cancel
+         */
         public void reset(long startTimeMillis)
         {
             synchronized (mEvent)

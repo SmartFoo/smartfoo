@@ -32,22 +32,49 @@ import java.util.Map;
  */
 public class FooBluetoothAudioConnectionListener
 {
+    /**
+     * Callback interface for Bluetooth audio connection state changes.
+     */
     public interface OnBluetoothAudioConnectionCallbacks
     {
+        /**
+         * Called when a Bluetooth audio device (headset or A2DP) becomes connected.
+         *
+         * @param bluetoothDevice the device that connected; never null
+         */
         void onBluetoothAudioConnected(BluetoothDevice bluetoothDevice);
 
+        /**
+         * Called when a previously connected Bluetooth audio device disconnects.
+         *
+         * @param bluetoothDevice the device that disconnected; never null
+         */
         void onBluetoothAudioDisconnected(BluetoothDevice bluetoothDevice);
     }
 
     private final FooListenerAutoStartManager<OnBluetoothAudioConnectionCallbacks> mListenerManager;
     private final FooBluetoothAudioConnectionBroadcastReceiver                     mBluetoothConnectionBroadcastReceiver;
 
+    /**
+     * Creates a new listener that monitors Bluetooth audio connection state.
+     *
+     * <p>The underlying broadcast receiver is started automatically when the first
+     * {@link OnBluetoothAudioConnectionCallbacks} is attached via {@link #attach} and stopped when
+     * the last one is removed via {@link #detach}.</p>
+     *
+     * @param context any context; the application context is used internally; must not be null
+     */
     public FooBluetoothAudioConnectionListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
+            /**
+             * Called when the first {@link OnBluetoothAudioConnectionCallbacks} is attached.
+             * Starts the broadcast receiver and queries currently connected profiles so that
+             * already-connected devices are immediately reported.
+             */
             @Override
             public void onFirstAttach()
             {
@@ -75,6 +102,12 @@ public class FooBluetoothAudioConnectionListener
                 });
             }
 
+            /**
+             * Called when the last {@link OnBluetoothAudioConnectionCallbacks} is removed.
+             * Stops the broadcast receiver from listening for system intents.
+             *
+             * @return false to indicate the auto-start manager should not re-attach
+             */
             @Override
             public boolean onLastDetach()
             {

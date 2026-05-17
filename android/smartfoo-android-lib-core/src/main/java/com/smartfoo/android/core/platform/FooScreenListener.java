@@ -62,11 +62,13 @@ public class FooScreenListener
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
+            /** Starts the screen broadcast receiver when the first external callback is attached. */
             @Override
             public void onFirstAttach()
             {
                 mScreenBroadcastReceiver.start(new FooScreenListenerCallbacks()
                 {
+                    /** Delegates to all attached {@link FooScreenListenerCallbacks#onScreenOff()} listeners. */
                     @Override
                     public void onScreenOff()
                     {
@@ -77,6 +79,7 @@ public class FooScreenListener
                         mListenerManager.endTraversing();
                     }
 
+                    /** Delegates to all attached {@link FooScreenListenerCallbacks#onScreenOn()} listeners. */
                     @Override
                     public void onScreenOn()
                     {
@@ -87,6 +90,7 @@ public class FooScreenListener
                         mListenerManager.endTraversing();
                     }
 
+                    /** Delegates to all attached {@link FooScreenListenerCallbacks#onUserUnlocked()} listeners. */
                     @Override
                     public void onUserUnlocked()
                     {
@@ -99,6 +103,11 @@ public class FooScreenListener
                 });
             }
 
+            /**
+             * Stops the screen broadcast receiver when the last external callback is detached.
+             *
+             * @return {@code false} to allow the listener manager to remove the internal callback entry
+             */
             @Override
             public boolean onLastDetach()
             {
@@ -184,6 +193,11 @@ public class FooScreenListener
             mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         }
 
+        /**
+         * Returns {@code true} if at least one display is currently in a non-off state.
+         *
+         * @return {@code true} if any display is on
+         */
         public boolean isScreenOn()
         {
             boolean isScreenOn = false;
@@ -198,6 +212,11 @@ public class FooScreenListener
             return isScreenOn;
         }
 
+        /**
+         * Returns {@code true} if this receiver is currently registered with the system.
+         *
+         * @return {@code true} if started
+         */
         public boolean isStarted()
         {
             synchronized (mSyncLock)
@@ -206,6 +225,12 @@ public class FooScreenListener
             }
         }
 
+        /**
+         * Registers this receiver to listen for screen-on, screen-off, and user-unlock broadcasts.
+         * Does nothing if already started.
+         *
+         * @param callbacks the callbacks to notify on screen state changes; must not be null
+         */
         public void start(@NonNull FooScreenListenerCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
@@ -226,6 +251,9 @@ public class FooScreenListener
             FooLog.v(TAG, "-start(...)");
         }
 
+        /**
+         * Unregisters this receiver from the system. Does nothing if not currently started.
+         */
         public void stop()
         {
             FooLog.v(TAG, "+stop()");
@@ -241,6 +269,19 @@ public class FooScreenListener
             FooLog.v(TAG, "-stop()");
         }
 
+        /**
+         * Dispatches the received screen-on, screen-off, or user-unlock broadcast to the
+         * appropriate {@link FooScreenListenerCallbacks} method.
+         *
+         * <p>For {@link Intent#ACTION_SCREEN_OFF} and {@link Intent#ACTION_SCREEN_ON}, the
+         * display state is re-verified via {@link #isScreenOn()} before notifying callbacks
+         * to guard against stale or out-of-order broadcasts.</p>
+         *
+         * @param context the context in which the receiver is running
+         * @param intent  the received broadcast intent with action
+         *                {@link Intent#ACTION_SCREEN_OFF}, {@link Intent#ACTION_SCREEN_ON},
+         *                or {@link Intent#ACTION_USER_UNLOCKED}
+         */
         @Override
         public void onReceive(Context context, Intent intent)
         {

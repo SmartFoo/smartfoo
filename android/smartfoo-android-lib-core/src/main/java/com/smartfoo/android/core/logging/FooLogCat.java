@@ -46,6 +46,7 @@ public class FooLogCat
      * TODO:(pv) This is still crashing some times! :(
      */
     public static int EMAIL_MAX_KILOBYTES_DEFAULT = 56;
+    /** Maximum log size in bytes for email attachments; derived from {@link #EMAIL_MAX_KILOBYTES_DEFAULT}. */
     public static int EMAIL_MAX_BYTES_DEFAULT     = EMAIL_MAX_KILOBYTES_DEFAULT * 1024;
 
     /**
@@ -55,13 +56,17 @@ public class FooLogCat
      */
     public static int ACCUMULATOR_MAX = 250;
 
+    /** Line-feed character used when building multi-line log strings. */
     public static final String LINEFEED = FooString.LINEFEED;
 
+    /** Typeface family name applied to log text views (e.g. in the debug activity). */
     public static final String TYPEFACE_FAMILY = "monospace";
     public static final float  TYPEFACE_SIZE   = 0.8f;
 
     // TODO:(pv) Rename these to indicate which version of Android they came from
+    /** Header line emitted by older Android versions when logcat starts (pre-JellyBean format). */
     public static final String HEADER_DEV_LOG_MAIN1 = "--------- beginning of /dev/log/main";
+    /** Header line emitted by Android JellyBean and later when logcat starts. */
     public static final String HEADER_DEV_LOG_MAIN2 = "--------- beginning of main";
 
     /**
@@ -418,6 +423,11 @@ public class FooLogCat
             this.message = message;
         }
 
+        /**
+         * Returns a human-readable representation of this log entry, including all fields.
+         *
+         * @return a string containing the date/time, PID, TID, log level, tag, and message
+         */
         @Override
         public String toString()
         {

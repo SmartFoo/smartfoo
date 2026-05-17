@@ -116,6 +116,10 @@ public class GenericPromptSingleButtonDialogFragment
     protected String mMessage;
     protected Result mResult;
 
+    /**
+     * Required public no-arg constructor; use one of the {@code newInstance} factory methods to
+     * create a properly configured instance.
+     */
     public GenericPromptSingleButtonDialogFragment()
     {
         super(new GenericPromptSingleButtonDialogFragmentCallbacks()
@@ -150,6 +154,13 @@ public class GenericPromptSingleButtonDialogFragment
         return mResult;
     }
 
+    /**
+     * Builds and returns the {@link android.app.AlertDialog}, restoring all arguments from the
+     * fragment's saved bundle and wiring up the single acknowledgement button.
+     *
+     * @param savedInstanceState previously saved instance state (not used directly)
+     * @return the fully configured {@link android.app.AlertDialog}
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
@@ -213,6 +224,12 @@ public class GenericPromptSingleButtonDialogFragment
         }
     }
 
+    /**
+     * Called when the dialog is cancelled (e.g. back press); records a {@link Result#Canceled}
+     * outcome via {@link #onResult}.
+     *
+     * @param dialog the dialog that was cancelled
+     */
     @Override
     public void onCancel(DialogInterface dialog)
     {
@@ -221,6 +238,12 @@ public class GenericPromptSingleButtonDialogFragment
         onResult(dialog, Result.Canceled);
     }
 
+    /**
+     * Called when the dialog is dismissed; ensures a {@link Result#Canceled} outcome is recorded
+     * if the button was not previously tapped.
+     *
+     * @param dialog the dialog that was dismissed
+     */
     @Override
     public void onDismiss(DialogInterface dialog)
     {

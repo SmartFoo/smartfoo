@@ -41,6 +41,11 @@ public class FooHandlerThread
         super(threadName, priority);
     }
 
+    /**
+     * Called once the looper is ready to process messages.
+     *
+     * <p>Logs entry and exit around the super-class call for diagnostics.</p>
+     */
     @Override
     protected void onLooperPrepared()
     {
@@ -50,6 +55,11 @@ public class FooHandlerThread
         FooLog.v(TAG, threadName + " -onLooperPrepared()");
     }
 
+    /**
+     * Runs the thread's looper loop.
+     *
+     * <p>Logs entry and exit around the super-class call for diagnostics.</p>
+     */
     @Override
     public void run()
     {

@@ -33,6 +33,12 @@ public class FooBluetoothAdapterStateListener
 
     private final FooBluetoothAdapterStateBroadcastReceiver mBluetoothAdapterStateReceiver;
 
+    /**
+     * Constructs a new listener backed by the given context.
+     *
+     * @param context the application or activity context used to register the broadcast receiver;
+     *                must not be null
+     */
     public FooBluetoothAdapterStateListener(Context context)
     {
         mBluetoothAdapterStateReceiver = new FooBluetoothAdapterStateBroadcastReceiver(context);

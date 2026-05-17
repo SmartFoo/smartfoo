@@ -197,6 +197,14 @@ public class FooBluetoothManager
 
     private static final Comparator<BluetoothDevice> BLUETOOTH_DEVICE_COMPARATOR = new Comparator<BluetoothDevice>()
     {
+        /**
+         * Compares two {@link BluetoothDevice} objects by their human-readable name.
+         *
+         * @param o1 the first device to compare
+         * @param o2 the second device to compare
+         * @return a negative integer, zero, or a positive integer as {@code o1}'s name is
+         *         lexicographically less than, equal to, or greater than {@code o2}'s name
+         */
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         @Override
         public int compare(BluetoothDevice o1, BluetoothDevice o2)

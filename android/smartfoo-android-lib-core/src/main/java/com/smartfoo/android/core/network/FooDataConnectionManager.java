@@ -52,6 +52,12 @@ public class FooDataConnectionManager
     private boolean   mIsStarted;
     private HookState mLastCellularHookState;
 
+    /**
+     * Constructs a new manager that consolidates cellular hook-state and data connectivity.
+     *
+     * @param context the application or activity context used to access system services;
+     *                must not be null
+     */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     public FooDataConnectionManager(@NonNull Context context)
     {

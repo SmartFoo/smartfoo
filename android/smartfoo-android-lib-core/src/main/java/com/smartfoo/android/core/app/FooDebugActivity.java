@@ -395,6 +395,13 @@ public class FooDebugActivity
         mLogEmailLimitKb = savedInstanceState.getInt("mLogEmailLimitKb");
     }
 
+    /**
+     * Inflates the debug activity options menu and configures the search view and the visibility
+     * of the clear/refresh items based on whether the activity was launched with a fixed log.
+     *
+     * @param menu the options menu in which items are placed
+     * @return true to display the menu
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -435,6 +442,13 @@ public class FooDebugActivity
         return true;
     }
 
+    /**
+     * Updates the log-to-file menu item title to reflect the current enabled/disabled state each
+     * time the options menu is about to be displayed.
+     *
+     * @param menu the options menu being prepared
+     * @return true to display the menu
+     */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
@@ -451,6 +465,13 @@ public class FooDebugActivity
         return true;
     }
 
+    /**
+     * Handles debug-menu item selections including home/up navigation, search, share, clear,
+     * refresh, set-log-limit, and log-to-file toggle.
+     *
+     * @param item the menu item that was selected
+     * @return true if the item was handled; delegates to super otherwise
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -847,6 +868,14 @@ public class FooDebugActivity
         }.execute();
     }
 
+    /**
+     * Handles the result of a share activity; if the log was shared as a compressed file, deletes
+     * the temporary compressed file after the share completes.
+     *
+     * @param requestCode the integer request code originally supplied to {@code startActivityForResult}
+     * @param resultCode  the result code returned by the child activity
+     * @param data        an intent that carries the result data, or {@code null}
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
@@ -875,6 +904,13 @@ public class FooDebugActivity
         }
     }
 
+    /**
+     * Applies new log size limits chosen by the user in the set-log-limit dialog and reloads the
+     * log to enforce the updated limits.
+     *
+     * @param logLimitKb      the maximum kilobytes of log to display in the activity
+     * @param logEmailLimitKb the maximum kilobytes of log to include in a shared email
+     */
     @Override
     public void onSetLogLimit(int logLimitKb, int logEmailLimitKb)
     {
@@ -1310,6 +1346,12 @@ public class FooDebugActivity
 
     private int mPositionFound = -1;
 
+    /**
+     * Advances the search to the next log line that matches the submitted query text.
+     *
+     * @param query the search string submitted by the user
+     * @return true to indicate the query has been handled
+     */
     @Override
     public boolean onQueryTextSubmit(String query)
     {
@@ -1317,6 +1359,13 @@ public class FooDebugActivity
         return true;
     }
 
+    /**
+     * Scrolls to and highlights the first log line that matches the current search text, starting
+     * from the currently selected or first-visible position.
+     *
+     * @param newText the current contents of the search field; no search is performed if empty
+     * @return true to indicate the change has been handled
+     */
     @Override
     public boolean onQueryTextChange(String newText)
     {

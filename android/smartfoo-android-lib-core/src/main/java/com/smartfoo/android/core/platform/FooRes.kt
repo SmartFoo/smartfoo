@@ -72,6 +72,14 @@ object FooRes {
         FooReflection.mapConstants(Configuration::class, "ORIENTATION_")
     }
 
+    /**
+     * Returns a human-readable string for a [Configuration] orientation constant.
+     *
+     * @param orientation one of [Configuration.ORIENTATION_PORTRAIT],
+     *                    [Configuration.ORIENTATION_LANDSCAPE], or
+     *                    [Configuration.ORIENTATION_UNDEFINED]
+     * @return a string such as `"ORIENTATION_PORTRAIT(1)"`
+     */
     @JvmStatic
     fun orientationToString(orientation: Int) = FooReflection.toString(orientationMap, orientation)
 

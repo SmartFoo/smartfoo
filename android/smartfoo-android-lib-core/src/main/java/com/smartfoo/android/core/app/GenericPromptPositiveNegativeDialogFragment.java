@@ -248,6 +248,10 @@ public class GenericPromptPositiveNegativeDialogFragment
     protected boolean mIsChecked;
     protected Result  mResult;
 
+    /**
+     * Required public no-arg constructor; use one of the {@code newInstance} factory methods to
+     * create a properly configured instance.
+     */
     public GenericPromptPositiveNegativeDialogFragment()
     {
         super(new GenericPromptPositiveNegativeDialogFragmentCallbacks()
@@ -291,6 +295,13 @@ public class GenericPromptPositiveNegativeDialogFragment
         return mResult;
     }
 
+    /**
+     * Builds and returns the {@link AlertDialog}, restoring all arguments from the fragment's
+     * saved bundle and wiring up the positive, negative, and optional checkbox widgets.
+     *
+     * @param savedInstanceState previously saved instance state (not used directly)
+     * @return the fully configured {@link AlertDialog}
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState)
@@ -411,6 +422,12 @@ public class GenericPromptPositiveNegativeDialogFragment
         }
     }
 
+    /**
+     * Called when the dialog is cancelled (e.g. back press); records a {@link Result#Canceled}
+     * outcome via {@link #onResult}.
+     *
+     * @param dialog the dialog that was cancelled
+     */
     @Override
     public void onCancel(DialogInterface dialog)
     {
@@ -419,6 +436,12 @@ public class GenericPromptPositiveNegativeDialogFragment
         onResult(dialog, Result.Canceled);
     }
 
+    /**
+     * Called when the dialog is dismissed; ensures a {@link Result#Canceled} outcome is recorded
+     * if no button was previously tapped.
+     *
+     * @param dialog the dialog that was dismissed
+     */
     @Override
     public void onDismiss(DialogInterface dialog)
     {

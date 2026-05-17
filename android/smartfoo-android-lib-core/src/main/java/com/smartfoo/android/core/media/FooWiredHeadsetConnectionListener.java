@@ -47,12 +47,19 @@ public class FooWiredHeadsetConnectionListener
     private final FooListenerAutoStartManager<OnWiredHeadsetConnectionCallbacks> mListenerManager;
     private final WiredHeadsetBroadcastReceiver                                  mWiredHeadsetBroadcastReceiver;
 
+    /**
+     * Constructs a new listener bound to the given context.
+     *
+     * @param context the application context used to register/unregister the broadcast receiver
+     * @throws IllegalArgumentException if {@code context} is null
+     */
     public FooWiredHeadsetConnectionListener(@NonNull Context context)
     {
         FooRun.throwIllegalArgumentExceptionIfNull(context, "context");
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
+            /** Starts the headset broadcast receiver when the first external callback is attached. */
             @Override
             public void onFirstAttach()
             {
@@ -60,6 +67,7 @@ public class FooWiredHeadsetConnectionListener
                 {
                     mWiredHeadsetBroadcastReceiver.start(new OnWiredHeadsetConnectionCallbacks()
                     {
+                        /** Delegates to all attached {@link OnWiredHeadsetConnectionCallbacks#onWiredHeadsetConnected} listeners. */
                         @Override
                         public void onWiredHeadsetConnected(String name, boolean hasMicrophone)
                         {
@@ -70,6 +78,7 @@ public class FooWiredHeadsetConnectionListener
                             mListenerManager.endTraversing();
                         }
 
+                        /** Delegates to all attached {@link OnWiredHeadsetConnectionCallbacks#onWiredHeadsetDisconnected} listeners. */
                         @Override
                         public void onWiredHeadsetDisconnected(String name, boolean hasMicrophone)
                         {
@@ -83,6 +92,11 @@ public class FooWiredHeadsetConnectionListener
                 }
             }
 
+            /**
+             * Stops the headset broadcast receiver when the last external callback is detached.
+             *
+             * @return {@code false} to allow the listener manager to remove the internal callback entry
+             */
             @Override
             public boolean onLastDetach()
             {
@@ -150,6 +164,12 @@ public class FooWiredHeadsetConnectionListener
             mSyncLock = new Object();
         }
 
+        /**
+         * Returns {@code true} if a wired headset is currently connected, based on the last
+         * received broadcast.
+         *
+         * @return {@code true} if connected
+         */
         public boolean isWiredHeadsetConnected()
         {
             synchronized (mSyncLock)
@@ -158,6 +178,11 @@ public class FooWiredHeadsetConnectionListener
             }
         }
 
+        /**
+         * Returns {@code true} if this receiver is currently registered with the system.
+         *
+         * @return {@code true} if started
+         */
         public boolean isStarted()
         {
             synchronized (mSyncLock)
@@ -216,6 +241,13 @@ public class FooWiredHeadsetConnectionListener
             FooLog.v(TAG, "-stop()");
         }
 
+        /**
+         * Handles headset plug/unplug broadcasts, updating the connected state and dispatching
+         * the appropriate callback.
+         *
+         * @param context the context in which the receiver is running
+         * @param intent  the {@link AudioManager#ACTION_HEADSET_PLUG} intent
+         */
         @Override
         public void onReceive(Context context, Intent intent)
         {

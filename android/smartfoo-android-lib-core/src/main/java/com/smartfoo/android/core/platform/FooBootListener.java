@@ -57,6 +57,7 @@ public class FooBootListener
         mListenerManager = new FooListenerAutoStartManager<>(this);
         mListenerManager.attach(new FooListenerAutoStartManagerCallbacks()
         {
+            /** Starts the boot broadcast receiver when the first external callback is attached. */
             @Override
             public void onFirstAttach()
             {
@@ -74,6 +75,7 @@ public class FooBootListener
                     }
                     */
 
+                    /** Delegates to all attached {@link FooBootListenerCallbacks#onBootCompleted()} listeners. */
                     @Override
                     public void onBootCompleted()
                     {
@@ -84,6 +86,7 @@ public class FooBootListener
                         mListenerManager.endTraversing();
                     }
 
+                    /** Delegates to all attached {@link FooBootListenerCallbacks#onReboot()} listeners. */
                     @Override
                     public void onReboot()
                     {
@@ -94,6 +97,7 @@ public class FooBootListener
                         mListenerManager.endTraversing();
                     }
 
+                    /** Delegates to all attached {@link FooBootListenerCallbacks#onShutdown()} listeners. */
                     @Override
                     public void onShutdown()
                     {
@@ -106,6 +110,11 @@ public class FooBootListener
                 });
             }
 
+            /**
+             * Stops the boot broadcast receiver when the last external callback is detached.
+             *
+             * @return {@code false} to allow the listener manager to remove the internal callback entry
+             */
             @Override
             public boolean onLastDetach()
             {
@@ -157,11 +166,22 @@ public class FooBootListener
             mContext = context;
         }
 
+        /**
+         * Returns {@code true} if this receiver is currently registered with the system.
+         *
+         * @return {@code true} if started
+         */
         public boolean isStarted()
         {
             return mIsStarted;
         }
 
+        /**
+         * Registers this receiver to listen for boot, reboot, and shutdown broadcasts.
+         * Does nothing if already started.
+         *
+         * @param callbacks the callbacks to notify on boot events; must not be null
+         */
         public void start(@NonNull FooBootListenerCallbacks callbacks)
         {
             FooLog.v(TAG, "+start(...)");
@@ -181,6 +201,9 @@ public class FooBootListener
             FooLog.v(TAG, "-start(...)");
         }
 
+        /**
+         * Unregisters this receiver from the system. Does nothing if not currently started.
+         */
         public void stop()
         {
             FooLog.v(TAG, "+stop(...)");
@@ -192,6 +215,15 @@ public class FooBootListener
             FooLog.v(TAG, "-stop(...)");
         }
 
+        /**
+         * Dispatches the received boot, reboot, or shutdown broadcast to the appropriate
+         * {@link FooBootListenerCallbacks} method.
+         *
+         * @param context the context in which the receiver is running
+         * @param intent  the received broadcast intent with action
+         *                {@link Intent#ACTION_BOOT_COMPLETED}, {@link Intent#ACTION_REBOOT},
+         *                or {@link Intent#ACTION_SHUTDOWN}
+         */
         @Override
         public void onReceive(Context context, Intent intent)
         {
@@ -220,11 +252,23 @@ public class FooBootListener
         }
     }
 
+    /**
+     * Manifest-declared {@link BroadcastReceiver} for {@link Intent#ACTION_LOCKED_BOOT_COMPLETED}.
+     *
+     * <p>Declared in the manifest so it can be invoked by the system before the user unlocks the
+     * device (direct-boot mode). Currently logs the event; subclass or extend to add behaviour.</p>
+     */
     public static class FooLockedBootCompletedBroadcastReceiver
             extends BroadcastReceiver
     {
         private static final String TAG = FooLog.TAG(FooLockedBootCompletedBroadcastReceiver.class);
 
+        /**
+         * Handles the {@link Intent#ACTION_LOCKED_BOOT_COMPLETED} broadcast.
+         *
+         * @param context the context in which the receiver is running
+         * @param intent  the {@link Intent#ACTION_LOCKED_BOOT_COMPLETED} intent
+         */
         @Override
         public void onReceive(Context context, Intent intent)
         {

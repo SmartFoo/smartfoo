@@ -23,6 +23,7 @@ public class FooDataConnectionListener
 {
     private static final String TAG = FooLog.TAG(FooDataConnectionListener.class);
 
+    /** Set to {@code true} to enable verbose diagnostic logging in the broadcast receiver. */
     public static boolean VERBOSE_LOG = false;
 
     public interface FooDataConnectionListenerCallbacks
@@ -39,6 +40,7 @@ public class FooDataConnectionListener
          * at all.
          */
         public static final int    TYPE_NONE      = -1;
+        /** Human-readable name for {@link #TYPE_NONE}, used when no network connection is present. */
         public static final String TYPE_NONE_NAME = "NONE";
 
         /**
@@ -199,6 +201,13 @@ public class FooDataConnectionListener
             return sb.toString();
         }
 
+        /**
+         * Returns a TTS-friendly string describing the current connection type.
+         * For Wi-Fi connections the SSID is appended when available.
+         *
+         * @param context the context used to resolve string resources; must not be null
+         * @return a non-null, speech-ready description of the current connection
+         */
         public String toSpeech(@NonNull Context context)
         {
             FooRun.throwIllegalArgumentExceptionIfNull(context, "context");

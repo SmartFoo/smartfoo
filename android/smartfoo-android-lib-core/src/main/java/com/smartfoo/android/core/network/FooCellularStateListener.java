@@ -167,6 +167,10 @@ public class FooCellularStateListener
         FooLog.v(TAG, "-start(...)");
     }
 
+    /**
+     * Stops listening for telephony events. Resets the hook state to
+     * {@link HookState#Unknown}. Idempotent — calling while not started has no effect.
+     */
     public void stop()
     {
         FooLog.v(TAG, "+stop()");
@@ -202,11 +206,21 @@ public class FooCellularStateListener
         OffHook
     }
 
+    /**
+     * Returns true if the phone is currently on-hook (idle, no active call).
+     *
+     * @return {@code true} if the current {@link HookState} is {@link HookState#OnHook}
+     */
     public boolean isOnHook()
     {
         return getHookState() == HookState.OnHook;
     }
 
+    /**
+     * Returns true if the phone is currently off-hook (a call is active).
+     *
+     * @return {@code true} if the current {@link HookState} is {@link HookState#OffHook}
+     */
     public boolean isOffHook()
     {
         return getHookState() == HookState.OffHook;
@@ -266,6 +280,17 @@ public class FooCellularStateListener
         return true;
     }
 
+    /**
+     * Called by the telephony framework when the device call state changes.
+     * Translates the raw {@code callState} into a {@link HookState} transition and
+     * notifies the registered {@link FooCellularHookStateCallbacks}.
+     *
+     * @param callState      the new call state; one of
+     *                       {@link TelephonyManager#CALL_STATE_IDLE},
+     *                       {@link TelephonyManager#CALL_STATE_RINGING}, or
+     *                       {@link TelephonyManager#CALL_STATE_OFFHOOK}
+     * @param incomingNumber the incoming phone number, or an empty string if unavailable
+     */
     @Override
     public void onCallStateChanged(int callState, String incomingNumber)
     {
@@ -290,6 +315,19 @@ public class FooCellularStateListener
         }
     }
 
+    /**
+     * Called by the telephony framework when the mobile data connection state changes.
+     * Notifies the registered {@link FooCellularDataConnectionCallbacks} on connected or
+     * disconnected transitions; connecting state is silently ignored.
+     *
+     * @param dataConnectionState the new data connection state; one of
+     *                            {@link TelephonyManager#DATA_DISCONNECTED},
+     *                            {@link TelephonyManager#DATA_CONNECTING},
+     *                            {@link TelephonyManager#DATA_CONNECTED}, or
+     *                            {@link TelephonyManager#DATA_SUSPENDED}
+     * @param dataNetworkType     the network type of the current data connection; one of the
+     *                            {@link TelephonyManager}{@code .NETWORK_TYPE_*} constants
+     */
     @Override
     public void onDataConnectionStateChanged(int dataConnectionState, int dataNetworkType)
     {
