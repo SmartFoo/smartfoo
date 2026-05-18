@@ -1233,16 +1233,18 @@ class FooTextToSpeech private constructor() {
                 if (VERBOSE_LOG_UTTERANCE) {
                     FooLog.w(TAG, "#TTS_UTTERANCE startNextLocked: failed to play utteranceId=${quote(next.utteranceId)}; result=${statusToString(result)}")
                 }
-                currentUtterance = null
-                val sequenceHasMore = utteranceQueue.any { it.sequenceId == next.sequenceId }
-            if (!sequenceHasMore) {
-                scheduleSequenceComplete(
-                    sequenceId = next.sequenceId,
-                    neverStarted = computeNeverStarted(next.sequenceId, currentUtterance?.sequenceId),
-                    errorCode = result,
-                    runAfters = runAfters,
-                )
-            }
+                val nextSequenceId = next.sequenceId
+                val sequenceHasMore = utteranceQueue.any { it.sequenceId == nextSequenceId }
+                if (!sequenceHasMore) {
+                    // startNextLocked only runs when currentUtterance==null, so nothing was interrupted
+                    val interruptedSequenceId = null
+                    scheduleSequenceComplete(
+                        sequenceId = nextSequenceId,
+                        neverStarted = computeNeverStarted(nextSequenceId, interruptedSequenceId),
+                        errorCode = result,
+                        runAfters = runAfters,
+                    )
+                }
                 audioFocusHandleClearLocked()?.let(focusHandles::add)
             }
         }
