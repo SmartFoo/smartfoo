@@ -65,7 +65,7 @@ import java.util.Locale;
 /**
  * A full-screen debug activity that loads, displays, and shares the application logcat output.
  *
- * <p>Displays log lines in a colour-coded {@link RecyclerView}, supports in-line search,
+ * <p>Displays log lines in a color-coded {@link RecyclerView}, supports in-line search,
  * log-to-file toggling, and email sharing of the captured log. Launch extras can inject a
  * pre-captured log string or a custom header message; see {@link #makeExtras} for details.</p>
  *
@@ -86,6 +86,7 @@ public class FooDebugActivity
      * @param username the display name of the current user; ignored if null or empty
      * @return the populated bundle
      */
+    @SuppressWarnings("unused")
     public static Bundle makeExtras(Bundle extras,
                                     String username)
     {
@@ -148,10 +149,10 @@ public class FooDebugActivity
      * Set to <= 0 to disable.
      */
     @SuppressWarnings("FieldCanBeLocal")
-    private static int FAKE_LOG_LINES = 0;
+    private static final int FAKE_LOG_LINES = 0;
 
-    private static       int    EMAIL_MAX_KILOBYTES_DEFAULT = FooLogCat.EMAIL_MAX_BYTES_DEFAULT;
-    private static       int    ACCUMULATOR_MAX             = FooLogCat.ACCUMULATOR_MAX;
+    private static final int    EMAIL_MAX_KILOBYTES_DEFAULT = FooLogCat.EMAIL_MAX_BYTES_DEFAULT;
+    private static final int    ACCUMULATOR_MAX             = FooLogCat.ACCUMULATOR_MAX;
     private static final String LINEFEED                    = FooLogCat.LINEFEED;
     private static final String TYPEFACE_FAMILY             = FooLogCat.TYPEFACE_FAMILY;
     private static final float  TYPEFACE_SIZE               = FooLogCat.TYPEFACE_SIZE;
@@ -262,7 +263,7 @@ public class FooDebugActivity
     }
 
     /**
-     * Initialises the activity, inflates the layout, loads colours from resources, and triggers
+     * Initializes the activity, inflates the layout, loads colors from resources, and triggers
      * the first log load. If {@code savedInstanceState} is null this is a fresh start; otherwise
      * the super-class restores the view hierarchy and {@link #onRestoreInstanceState} will be
      * called to reload the saved log state.
@@ -285,12 +286,12 @@ public class FooDebugActivity
 
         setContentView(R.layout.activity_debug);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null)
         {
             setSupportActionBar(toolbar);
 
-            ProgressBar toolbarProgressBar = (ProgressBar) findViewById(R.id.toolbar_progress_bar);
+            ProgressBar toolbarProgressBar = findViewById(R.id.toolbar_progress_bar);
             toolbarProgressBar.setVisibility(View.GONE);
 
             if (NavUtils.getParentActivityName(this) != null)
@@ -308,8 +309,8 @@ public class FooDebugActivity
         // NOTE:(pv) For some reason setting visibility to gone in the layout isn't working on some devices.
         //  Forcing it to default to GONE here.
         //
-        mGroupProgress = (ViewGroup) findViewById(R.id.groupProgress);
-        mTextProgressTitle = (TextView) findViewById(R.id.textProgressTitle);
+        mGroupProgress = findViewById(R.id.groupProgress);
+        mTextProgressTitle = findViewById(R.id.textProgressTitle);
 
         if (savedInstanceState == null)
         {
@@ -321,7 +322,7 @@ public class FooDebugActivity
             mLogEmailLimitKb = mDebugConfiguration.getDebugLogEmailLimitKb(EMAIL_MAX_KILOBYTES_DEFAULT);
         }
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView = findViewById(R.id.recycler_view);
 
         mRecyclerLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mRecyclerLayoutManager);
@@ -337,21 +338,13 @@ public class FooDebugActivity
         */
 
         Resources resources = getResources();
-        //noinspection deprecation
         mColorSelected = FooRes.getColor(resources, R.color.log_selected);
-        //noinspection deprecation
         mColorAssert = FooRes.getColor(resources, R.color.log_level_assert);
-        //noinspection deprecation
         mColorError = FooRes.getColor(resources, R.color.log_level_error);
-        //noinspection deprecation
         mColorWarn = FooRes.getColor(resources, R.color.log_level_warn);
-        //noinspection deprecation
         mColorInfo = FooRes.getColor(resources, R.color.log_level_info);
-        //noinspection deprecation
         mColorDebug = FooRes.getColor(resources, R.color.log_level_debug);
-        //noinspection deprecation
         mColorVerbose = FooRes.getColor(resources, R.color.log_level_verbose);
-        //noinspection deprecation
         mColorOther = FooRes.getColor(resources, R.color.log_level_other);
 
         loadLog(false);
@@ -365,7 +358,7 @@ public class FooDebugActivity
      * @param outState the bundle in which to place the saved state
      */
     @Override
-    protected void onSaveInstanceState(Bundle outState)
+    protected void onSaveInstanceState(@NonNull Bundle outState)
     {
         super.onSaveInstanceState(outState);
         outState.putString("mHeader", mHeader);
@@ -385,7 +378,7 @@ public class FooDebugActivity
      * @param savedInstanceState the bundle that was previously populated by {@link #onSaveInstanceState}
      */
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState)
     {
         super.onRestoreInstanceState(savedInstanceState);
         mHeader = savedInstanceState.getString("mHeader");
@@ -737,13 +730,13 @@ public class FooDebugActivity
                 int maxTextLength = logEmailLimitBytes;
 
                 List<Spanned> items = mRecyclerAdapter.getItemsCopy();
-                int positionHightlighted = mRecyclerAdapter.getPositionHighlighted();
+                int positionHighlighted = mRecyclerAdapter.getPositionHighlighted();
 
                 if (maxTextLength > 0)
                 {
                     //
                     // Walk items backwards until maxTextLength is reached,
-                    // but always include items 0 [header] and 0 [demarkator]
+                    // but always include items 0 [header] and 0 [demarcator]
                     //
 
                     int linefeedLength = LINEFEED.length();
@@ -751,6 +744,7 @@ public class FooDebugActivity
 
                     Spanned item;
 
+                    //noinspection SequencedCollectionMethodCanBeUsed
                     item = items.get(0); // header
                     headerLength += item.length();
                     emailMessage.append(item);
@@ -761,15 +755,15 @@ public class FooDebugActivity
                     {
                         int itemCount = items.size();
 
-                        item = items.get(1); // demarkator
+                        item = items.get(1); // demarcator
                         headerLength += item.length();
                         emailMessage.append(item);
                         headerLength += linefeedLength;
                         emailMessage.append(LINEFEED);
 
-                        int position = (positionHightlighted != -1) ? positionHightlighted : itemCount;
+                        int position = (positionHighlighted != -1) ? positionHighlighted : itemCount;
 
-                        while (position > 2) // first line after the demarkator
+                        while (position > 2) // first line after the demarcator
                         {
                             // TODO:(pv) publishProgress();
 
@@ -795,6 +789,7 @@ public class FooDebugActivity
                     {
                         Spanned item;
 
+                        //noinspection SequencedCollectionMethodCanBeUsed
                         item = items.get(0); // header
                         emailMessage.append(item);
                         emailMessage.append(LINEFEED);
@@ -810,7 +805,7 @@ public class FooDebugActivity
                             Spanned item = items.get(i);
                             emailMessage.append(item).append(LINEFEED);
 
-                            if (positionHightlighted != -1 && i > positionHightlighted)
+                            if (positionHighlighted != -1 && i > positionHighlighted)
                             {
                                 break;
                             }
@@ -880,6 +875,7 @@ public class FooDebugActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         super.onActivityResult(requestCode, resultCode, data);
+        //noinspection SwitchStatementWithTooFewBranches
         switch (requestCode)
         {
             case REQUEST_SHARE:
@@ -1040,8 +1036,9 @@ public class FooDebugActivity
             }
         }
 
+        @NonNull
         @Override
-        public LogViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
+        public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
         {
             View view = mLayoutInflater.inflate(R.layout.activity_debug_list_item, parent, false);
             return new LogViewHolder(view);
@@ -1083,7 +1080,7 @@ public class FooDebugActivity
          */
         private void setHeaderAndMaxLogLength(Spanned header, int maxLogLength)
         {
-            final Spannable demarkator =
+            final Spannable demarcator =
                     FooString.newSpannableString(FooLogCat.HEADER_DEV_LOG_MAIN2, mColorOther, -1,
                             Typeface.BOLD, TYPEFACE_FAMILY, TYPEFACE_SIZE);
 
@@ -1093,25 +1090,25 @@ public class FooDebugActivity
 
                 mHeader //
                         .append(header).append(LINEFEED) //
-                        .append(demarkator).append(LINEFEED);
+                        .append(demarcator).append(LINEFEED);
 
                 //
-                // NOTE: mHeader is mItem[0], demarkator is mItem[1], and first log line is mItem[2]
+                // NOTE: mHeader is mItem[0], demarcator is mItem[1], and first log line is mItem[2]
                 //
                 mItems.add(0, header);
-                mItems.add(1, demarkator);
+                mItems.add(1, demarcator);
 
                 if (maxLogLength > 0)
                 {
                     //
                     // Remove the first log line until the below generated mText would be <= maxTextLength
                     //
-                    int headerLength = mHeader.length() + demarkator.length();
+                    int headerLength = mHeader.length() + demarcator.length();
 
                     Spanned logLine;
                     while (headerLength + mItemsTextLength > maxLogLength)
                     {
-                        logLine = mItems.remove(2); // first line after the demarkator
+                        logLine = mItems.remove(2); // first line after the demarcator
                         mItemsTextLength -= logLine.length() + 1; // + 1 for LINEFEED
                     }
                 }

@@ -28,6 +28,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresPermission
 import androidx.core.net.toUri
 import com.smartfoo.android.core.FooReflection
@@ -139,7 +140,8 @@ object FooPlatformUtils {
 
         val toast = Toast.makeText(context, text, duration)
 
-        val v = toast.getView()
+        @Suppress("DEPRECATION")
+        val v = toast.view
         if (v != null) {
             val tv = v.findViewById<TextView?>(android.R.id.message)
             tv?.setGravity(gravity)
@@ -1116,15 +1118,13 @@ object FooPlatformUtils {
      */
     @JvmStatic
     fun enlargeHitRect(delegate: View, dx: Int, dy: Int) {
-        val parent = delegate.getParent() as View
-        parent.post(object : Runnable {
-            override fun run() {
-                val r = Rect()
-                delegate.getHitRect(r)
-                r.inset(-dx, -dy)
-                parent.setTouchDelegate(TouchDelegate(r, delegate))
-            }
-        })
+        val parent = delegate.parent as View
+        parent.post {
+            val r = Rect()
+            delegate.getHitRect(r)
+            r.inset(-dx, -dy)
+            parent.touchDelegate = TouchDelegate(r, delegate)
+        }
     }
 
     /**
@@ -1175,6 +1175,7 @@ object FooPlatformUtils {
      *
      * @return true on Lollipop and above
      */
+    @ChecksSdkIntAtLeast(api = VERSION_CODES.LOLLIPOP)
     @JvmStatic
     fun supportsViewElevation(): Boolean {
         return (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP)
