@@ -61,6 +61,7 @@ class FooTextToSpeech private constructor() {
          * Main thing1 to debug
          */
         var VERBOSE_LOG_SEQUENCE = false
+
         /**
          * Main thing2 to debug
          */
@@ -169,10 +170,13 @@ class FooTextToSpeech private constructor() {
     enum class QueuePlacement {
         /** Enqueue after all existing items. */
         APPEND,
+
         /** Place directly after the current utterance so it runs next. */
         NEXT,
+
         /** Interrupt only the current sequence and start this one immediately. */
         IMMEDIATE,
+
         /** Clear all sequences (active and pending) before enqueueing. */
         CLEAR,
     }
@@ -194,12 +198,15 @@ class FooTextToSpeech private constructor() {
                     is FooTextToSpeechPartSpeech -> {
                         Text(sequenceId, utteranceId, part.text)
                     }
+
                     is FooTextToSpeechPartSilence -> {
                         Silence(sequenceId, utteranceId, part.durationMillis)
                     }
+
                     is FooTextToSpeechPartEarcon -> {
                         Earcon(sequenceId, utteranceId, part.earcon)
                     }
+
                     else -> throw IllegalArgumentException("Unhandled part type ${part.javaClass}")
                 }
         }
@@ -441,7 +448,6 @@ class FooTextToSpeech private constructor() {
         get() {
             synchronized(syncLock) { return field }
         }
-
         /**
          * @param volumeRelativeToAudioStream 0 (silence) to 1 (maximum)
          */
@@ -673,7 +679,12 @@ class FooTextToSpeech private constructor() {
         utteranceId: String?,
         interrupted: Boolean,
     ) {
-        handleUtteranceCompletion("onUtteranceStopped(interrupted=$interrupted)", utteranceId, !interrupted, TextToSpeech.STOPPED)
+        handleUtteranceCompletion(
+            "onUtteranceStopped(interrupted=$interrupted)",
+            utteranceId,
+            !interrupted,
+            TextToSpeech.STOPPED
+        )
     }
 
     private fun onRunAfterSpeak() {
@@ -789,7 +800,14 @@ class FooTextToSpeech private constructor() {
                 }
             } else {
                 FooLog.w(TAG, "#TTS_UTTERANCE_PROGRESS handleUtteranceCompletion: UNEXPECTED utteranceId == null")
-                currentUtterance?.let { scheduleSequenceComplete(it.sequenceId, neverStarted, errorCode, runAfters) }
+                currentUtterance?.let {
+                    scheduleSequenceComplete(
+                        it.sequenceId,
+                        neverStarted,
+                        errorCode,
+                        runAfters
+                    )
+                }
                 currentUtterance = null
             }
             startNextLocked().collectInto(runAfters, focusHandles)
@@ -1087,19 +1105,30 @@ class FooTextToSpeech private constructor() {
                         if (VERBOSE_LOG_SEQUENCE) {
                             FooLog.d(TAG, "#TTS_SEQUENCE sequenceEnqueue: placement=CLEAR -> clearing all sequences before enqueue")
                         }
-                        clearLocked(interrupt = true, runAfters = runAfters, focusHandles = focusHandles)
+                        clearLocked(
+                            interrupt = true,
+                            runAfters = runAfters,
+                            focusHandles = focusHandles
+                        )
                     }
+
                     QueuePlacement.IMMEDIATE -> {
                         currentUtterance?.sequenceId?.let { currentUtteranceSequenceId ->
                             if (VERBOSE_LOG_SEQUENCE) {
                                 FooLog.d(TAG, "#TTS_SEQUENCE sequenceEnqueue: placement=IMMEDIATE -> interrupting currentUtterance?.sequenceId=${quote(currentUtteranceSequenceId)}")
                             }
-                            cancelSequenceLocked(currentUtteranceSequenceId, runAfters, focusHandles, startNext = false)
+                            cancelSequenceLocked(
+                                currentUtteranceSequenceId,
+                                runAfters,
+                                focusHandles,
+                                startNext = false
+                            )
                         }
                     }
+
                     QueuePlacement.NEXT,
                     QueuePlacement.APPEND,
-                    -> {
+                        -> {
                         // no-op
                     }
                 }
@@ -1164,6 +1193,7 @@ class FooTextToSpeech private constructor() {
                         }
                         lastText = next.text
                     }
+
                     is Utterance.Silence -> {
                         if (next.durationMillis == lastSilence) {
                             FooLog.w(TAG, "#TTS_UTTERANCE SILENCE startNextLocked: duplicate silence; ignoring")
@@ -1171,6 +1201,7 @@ class FooTextToSpeech private constructor() {
                         }
                         lastSilence = next.durationMillis
                     }
+
                     is Utterance.Earcon -> {
                         if (next.earcon == lastEarcon) {
                             FooLog.w(TAG, "#TTS_UTTERANCE EARCON startNextLocked: duplicate earcon; ignoring")
@@ -1208,12 +1239,18 @@ class FooTextToSpeech private constructor() {
                         }
                         tts!!.speak(next.text, queueMode, params, next.utteranceId)
                     }
+
                     is Utterance.Silence -> {
                         if (VERBOSE_LOG_UTTERANCE) {
                             FooLog.i(TAG, "#TTS_UTTERANCE SILENCE startNextLocked: tts.playSilentUtterance(utteranceId=${quote(next.utteranceId)}, queueMode=${queueModeToString(queueMode)}, durationMillis=${next.durationMillis})")
                         }
-                        tts!!.playSilentUtterance(next.durationMillis.toLong(), queueMode, next.utteranceId)
+                        tts!!.playSilentUtterance(
+                            next.durationMillis.toLong(),
+                            queueMode,
+                            next.utteranceId
+                        )
                     }
+
                     is Utterance.Earcon -> {
                         if (VERBOSE_LOG_UTTERANCE) {
                             FooLog.i(TAG, "#TTS_UTTERANCE EARCON startNextLocked: tts.playEarcon(utteranceId=${quote(next.utteranceId)}, queueMode=${queueModeToString(queueMode)}, params=${FooPlatformUtils.toString(params)}, earcon=${quote(next.earcon)})")
@@ -1228,7 +1265,10 @@ class FooTextToSpeech private constructor() {
                     val remainingForSequence = utteranceQueue.count { it.sequenceId == next.sequenceId }
                     FooLog.d(TAG, "#TTS_SEQUENCE startNextLocked: sequenceId=${quote(next.sequenceId)} utteranceId=${quote(next.utteranceId)} remainingInSequence=$remainingForSequence utteranceQueue.size=${utteranceQueue.size}")
                 }
-                return if (runAfters.isEmpty() && focusHandles.isEmpty()) null else CleanupActions(runAfters, focusHandles)
+                return if (runAfters.isEmpty() && focusHandles.isEmpty())
+                    null
+                else
+                    CleanupActions(runAfters, focusHandles)
             } else {
                 if (VERBOSE_LOG_UTTERANCE) {
                     FooLog.w(TAG, "#TTS_UTTERANCE startNextLocked: failed to play utteranceId=${quote(next.utteranceId)}; result=${statusToString(result)}")
@@ -1249,7 +1289,10 @@ class FooTextToSpeech private constructor() {
             }
         }
         audioFocusHandleClearLocked()?.let(focusHandles::add)
-        return if (runAfters.isEmpty() && focusHandles.isEmpty()) null else CleanupActions(runAfters, focusHandles)
+        return if (runAfters.isEmpty() && focusHandles.isEmpty())
+            null
+        else
+            CleanupActions(runAfters, focusHandles)
     }
 
     /**
