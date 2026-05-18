@@ -865,6 +865,42 @@ object FooPlatformUtils {
     }
 
     /**
+     * Unofficial/internal Intent action to jump directly to an app's Storage & Cache settings.
+     * Note: This is not part of the official Android API and may not work on all devices.
+     */
+    const val ACTION_APP_STORAGE_SETTINGS = "com.android.settings.APP_STORAGE_SETTINGS"
+
+    @JvmStatic
+    private fun intentAppStorageSettings(context: Context) =
+        intentAppStorageSettings(context.packageName)
+
+    @JvmStatic
+    private fun intentAppStorageSettings(packageName: String) =
+        Intent(ACTION_APP_STORAGE_SETTINGS).apply {
+            data = "package:$packageName".toUri()
+        }
+
+    /**
+     * Opens the system storage-details settings page for the given package.
+     *
+     * @param context     the context from which to start the activity
+     * @param packageName the package whose storage settings should be shown; defaults to the
+     *                    calling app's package name
+     */
+    @JvmOverloads
+    @JvmStatic
+    fun showAppStorageSettings(
+        context: Context,
+        packageName: String = context.packageName) {
+        try {
+            startActivity(context, intentAppStorageSettings(packageName))
+        } catch (_: ActivityNotFoundException) {
+            // Fallback to the main app settings page if the direct storage link is not supported
+            showAppSettings(context, packageName)
+        }
+    }
+
+    /**
      * Opens the system battery/power usage settings activity, if available.
      *
      * <p>Does nothing if the activity cannot be resolved on this device.</p>
