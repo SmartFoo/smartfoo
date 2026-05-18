@@ -379,9 +379,11 @@ class FooTextToSpeech private constructor() {
                         }
                     }
                 }
-                this.voiceName = foundVoice.name
+                this.voiceName = foundVoice?.name
                 changed = oldValue != this.voiceName
-                tts!!.setVoice(foundVoice)
+                if (foundVoice != null) {
+                    tts!!.setVoice(foundVoice)
+                }
             }
         }
         return changed
