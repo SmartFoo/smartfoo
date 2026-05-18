@@ -1,7 +1,5 @@
 package com.smartfoo.android.core.collections;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.smartfoo.android.core.FooString;
@@ -221,7 +219,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE get(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE get(" + key + "): " + toDebugString());
         }
 
         int i = ContainerHelpers.binarySearch(mKeys, mSize, key);
@@ -240,8 +238,8 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " get(" + key + "): value=" + value);
-            Log.e(TAG, '#' + mDebugName + "  AFTER get(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " get(" + key + "): value=" + value);
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER get(" + key + "): " + toDebugString());
         }
 
         return value;
@@ -258,14 +256,14 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE delete(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE delete(" + key + "): " + toDebugString());
         }
 
         remove(key);
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER delete(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER delete(" + key + "): " + toDebugString());
         }
     }
 
@@ -279,7 +277,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE remove(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE remove(" + key + "): " + toDebugString());
         }
 
         E value = null;
@@ -293,7 +291,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER remove(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER remove(" + key + "): " + toDebugString());
         }
 
         return value;
@@ -309,7 +307,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE removeAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE removeAt(" + index + "): " + toDebugString());
         }
 
         E value = null;
@@ -325,7 +323,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER removeAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER removeAt(" + index + "): " + toDebugString());
         }
 
         return value;
@@ -335,7 +333,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE gc(): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE gc(): " + toDebugString());
         }
 
         int n = mSize;
@@ -365,7 +363,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER gc(): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER gc(): " + toDebugString());
         }
     }
 
@@ -387,7 +385,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE put(" + key + ", " + value + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE put(" + key + ", " + value + "): " + toDebugString());
         }
 
         int i = ContainerHelpers.binarySearch(mKeys, mSize, key);
@@ -422,7 +420,7 @@ public class FooLongSparseArray<E>
                     long[] nkeys = new long[n];
                     Object[] nvalues = new Object[n];
 
-                    // Log.e("SparseArray", "grow " + mKeys.length + " to " + n);
+                    // FooLog.e("SparseArray", "grow " + mKeys.length + " to " + n);
                     System.arraycopy(mKeys, 0, nkeys, 0, mKeys.length);
                     System.arraycopy(mValues, 0, nvalues, 0, mValues.length);
 
@@ -432,7 +430,7 @@ public class FooLongSparseArray<E>
 
                 if (mSize - i != 0)
                 {
-                    // Log.e("SparseArray", "move " + (mSize - i));
+                    // FooLog.e("SparseArray", "move " + (mSize - i));
                     System.arraycopy(mKeys, i, mKeys, i + 1, mSize - i);
                     System.arraycopy(mValues, i, mValues, i + 1, mSize - i);
                 }
@@ -447,7 +445,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER put(" + key + ", " + value + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER put(" + key + ", " + value + "): " + toDebugString());
         }
 
         return i;
@@ -460,7 +458,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE size(): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE size(): " + toDebugString());
         }
 
         if (mGarbage)
@@ -470,7 +468,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER size(): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER size(): " + toDebugString());
         }
 
         return mSize;
@@ -484,7 +482,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE keyAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE keyAt(" + index + "): " + toDebugString());
         }
 
         if (mGarbage)
@@ -494,7 +492,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER keyAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER keyAt(" + index + "): " + toDebugString());
         }
 
         return mKeys[index];
@@ -508,7 +506,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE valueAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE valueAt(" + index + "): " + toDebugString());
         }
 
         if (mGarbage)
@@ -521,8 +519,8 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  valueAt(" + index + "): value=" + value);
-            Log.e(TAG, '#' + mDebugName + "  AFTER valueAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  valueAt(" + index + "): value=" + value);
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER valueAt(" + index + "): " + toDebugString());
         }
 
         return value;
@@ -542,7 +540,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE setValueAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE setValueAt(" + index + "): " + toDebugString());
         }
 
         if (mGarbage)
@@ -554,7 +552,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER setValueAt(" + index + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER setValueAt(" + index + "): " + toDebugString());
         }
     }
 
@@ -568,7 +566,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE indexOfKey(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE indexOfKey(" + key + "): " + toDebugString());
         }
 
         if (mGarbage)
@@ -578,7 +576,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER indexOfKey(" + key + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER indexOfKey(" + key + "): " + toDebugString());
         }
 
         return ContainerHelpers.binarySearch(mKeys, mSize, key);
@@ -602,7 +600,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE indexOfValue(" + value + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE indexOfValue(" + value + "): " + toDebugString());
         }
 
         if (mGarbage)
@@ -620,7 +618,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " AFTER indexOfValue(" + value + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " AFTER indexOfValue(" + value + "): " + toDebugString());
         }
 
         return -1;
@@ -659,7 +657,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " BEFORE append(" + key + ", " + value + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " BEFORE append(" + key + ", " + value + "): " + toDebugString());
         }
 
         if (mSize != 0 && key <= mKeys[mSize - 1])
@@ -681,7 +679,7 @@ public class FooLongSparseArray<E>
                 long[] nkeys = new long[n];
                 Object[] nvalues = new Object[n];
 
-                // Log.e("SparseArray", "grow " + mKeys.length + " to " + n);
+                // FooLog.e("SparseArray", "grow " + mKeys.length + " to " + n);
                 System.arraycopy(mKeys, 0, nkeys, 0, mKeys.length);
                 System.arraycopy(mValues, 0, nvalues, 0, mValues.length);
 
@@ -696,7 +694,7 @@ public class FooLongSparseArray<E>
 
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + "  AFTER append(" + key + ", " + value + "): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + "  AFTER append(" + key + ", " + value + "): " + toDebugString());
         }
     }
 
@@ -833,7 +831,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " iterateKeys(): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " iterateKeys(): " + toDebugString());
         }
         return new SparseArrayKeysIterator<>(this);
     }
@@ -852,7 +850,7 @@ public class FooLongSparseArray<E>
     {
         if (mDebugName != null)
         {
-            Log.e(TAG, '#' + mDebugName + " iterateValues(): " + toDebugString());
+            FooLog.e(TAG, '#' + mDebugName + " iterateValues(): " + toDebugString());
         }
         return new SparseArrayValuesIterator<>(this);
     }
@@ -892,7 +890,7 @@ public class FooLongSparseArray<E>
         {
             if (mArray.mDebugName != null)
             {
-                Log.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray);
+                FooLog.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray);
             }
             //
             // NOTE:(pv) hasNext() causes mArray.gc() to be called
@@ -922,7 +920,7 @@ public class FooLongSparseArray<E>
         {
             //if (mArray.mDebugName != null)
             //{
-            //    Log.e(TAG, '#' + mArray.mDebugName + " remove(): BEFORE " + mArray.toString());
+            //    FooLog.e(TAG, '#' + mArray.mDebugName + " remove(): BEFORE " + mArray.toString());
             //}
             if (mCanRemove)
             {
@@ -935,7 +933,7 @@ public class FooLongSparseArray<E>
             }
             //if (mArray.mDebugName != null)
             //{
-            //    Log.e(TAG, '#' + mArray.mDebugName + " remove():  AFTER " + mArray.toString());
+            //    FooLog.e(TAG, '#' + mArray.mDebugName + " remove():  AFTER " + mArray.toString());
             //}
         }
     }
@@ -974,7 +972,7 @@ public class FooLongSparseArray<E>
         {
             if (mArray.mDebugName != null)
             {
-                Log.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray);
+                FooLog.e(TAG, '#' + mArray.mDebugName + " next(): " + mArray);
             }
             //
             // NOTE:(pv) hasNext() causes mArray.gc() to be called
@@ -1004,7 +1002,7 @@ public class FooLongSparseArray<E>
         {
             //if (mArray.mDebugName != null)
             //{
-            //    Log.e(TAG, '#' + mArray.mDebugName + " remove(): BEFORE " + mArray.toString());
+            //    FooLog.e(TAG, '#' + mArray.mDebugName + " remove(): BEFORE " + mArray.toString());
             //}
             if (mCanRemove)
             {
@@ -1017,7 +1015,7 @@ public class FooLongSparseArray<E>
             }
             //if (mArray.mDebugName != null)
             //{
-            //    Log.e(TAG, '#' + mArray.mDebugName + " remove():  AFTER " + mArray.toString());
+            //    FooLog.e(TAG, '#' + mArray.mDebugName + " remove():  AFTER " + mArray.toString());
             //}
         }
     }
